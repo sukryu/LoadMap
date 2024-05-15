@@ -7,7 +7,8 @@
 * ES6+ 문법(화살표 함수, 템플릿 리터럴, 구조 분해 할당 등) 활용하기.
 * 함수형 프로그래밍, 객체 지향 프로그래밍 패러다임 이해하기.
 * 예외처리, 디버깅, 코드 최적화 등 실무에 필요한 스킬 익히기.
-[JavaScript](./Js/js.md)
+
+* [JavaScript](./Js/js.md)
 
 # Node.js 핵심 개념 및 API 학습.
 
@@ -16,7 +17,8 @@
 * 파일 시스템, 네트워크, 스트림 등 Node.js 내장 모듈 활용하기.
 * npm(Node Package Manager)을 활용한 패키지 관리하기.
 * 환경 변수, 프로세스 관리, 클러스터링 등 실무에 필요한 개념 학습하기.
-[Node.js](./Node/nodejs.md)
+
+* [Node.js](./Node/nodejs.md)
 
 # 웹 프레임워크 Express.js / Nest.js 학습.
 
@@ -25,9 +27,9 @@
 * RESTful API 설계 및 구현하기.
 * 인증/인가, 쿠키/세션, CORS 등 보안 관련 개념 이해하기.
 * 웹 소켓, 서버 센트 이벤트 등 실시간 통신 기술 활용하기.
-[Express.js](./web-framework/Express/expressjs.md)
-[Fastify.js](./web-framework/Fastify/fastifyjs.md)
-[Nest.js](./web-framework/Nest/nestjs.md)
+* [Express.js](./web-framework/Express/expressjs.md)
+* [Fastify.js](./web-framework/Fastify/fastifyjs.md)
+* [Nest.js](./web-framework/Nest/nestjs.md)
 
 # 데이터베이스 연동.
 
