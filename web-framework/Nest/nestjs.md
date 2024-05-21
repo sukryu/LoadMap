@@ -727,6 +727,208 @@ async function bootstrap() {
   await app.listen(3000);
 }
 bootstrap();</code></pre>
+
+<ol>
+  <li>Passport를 사용한 소셜 로그인 (OAuth)
+    <ul>
+      <li>Passport는 Node.js에서 인증을 위해 사용되는 미들웨어로, NestJS에서도 활용할 수 있음.</li>
+      <li>@nestjs/passport 패키지를 사용하여 Passport 기반 인증을 구현할 수 있음.</li>
+      <li>Google, Facebook, Twitter 등의 소셜 로그인을 지원하며, OAuth 1.0, OAuth 2.0 프로토콜을 사용함.</li>
+    </ul>
+    <pre><code class="language-typescript">import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+@UseGuards(AuthGuard('google'))
+@Get('google')
+async googleAuth(@Req() req) {
+// 구글 인증 처리
+}
+@UseGuards(AuthGuard('google'))
+@Get('google/redirect')
+googleAuthRedirect(@Req() req) {
+return this.authService.googleLogin(req);
+}</code></pre>
+  </li>
+  <li>Bull을 사용한 작업 큐 (Job Queue)
+    <ul>
+      <li>Bull은 Node.js에서 작업 큐를 구현하기 위한 라이브러리로, NestJS에서도 사용할 수 있음.</li>
+      <li>@nestjs/bull 패키지를 사용하여 Bull 기반의 작업 큐를 구현할 수 있음.</li>
+      <li>이메일 발송, 파일 처리, 배치 작업 등 백그라운드에서 실행되어야 하는 작업들을 큐에 저장하고 처리할 수 있음.</li>
+    </ul>
+    <pre><code class="language-typescript">import { Process, Processor } from '@nestjs/bull';
+import { Job } from 'bull';
+@Processor('audio')
+export class AudioProcessor {
+@Process()
+async transcode(job: Job<unknown>) {
+let progress = 0;
+for (let i = 0; i < 100; i++) {
+await doSomething(job.data);
+progress += 10;
+job.progress(progress);
+}
+return {};
+}
+}</code></pre>
+  </li>
+  <li>TypeORM/Sequelize/Mongoose를 사용한 데이터베이스 통합
+    <ul>
+      <li>NestJS에서는 다양한 데이터베이스 통합을 위한 패키지를 제공함.</li>
+      <li>@nestjs/typeorm, @nestjs/sequelize, @nestjs/mongoose 패키지를 사용하여 각 ORM/ODM 라이브러리와 통합할 수 있음.</li>
+      <li>데이터베이스 연결, 엔티티 정의, 리포지토리 패턴 등을 손쉽게 구현할 수 있음.</li>
+    </ul>
+    <pre><code class="language-typescript">// TypeORM 예시
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+@Entity()
+export class User {
+@PrimaryGeneratedColumn()
+id: number;
+@Column()
+firstName: string;
+@Column()
+lastName: string;
+@Column()
+email: string;
+}</code></pre>
+  </li>
+  <li>gRPC를 사용한 마이크로서비스 간 통신
+    <ul>
+      <li>gRPC는 고성능 RPC 프레임워크로, NestJS에서도 마이크로서비스 간 통신에 사용할 수 있음.</li>
+      <li>@nestjs/microservices 패키지를 사용하여 gRPC 기반의 마이크로서비스를 구현할 수 있음.</li>
+      <li>Protocol Buffers를 사용하여 서비스 인터페이스를 정의하고, 효율적인 데이터 직렬화와 높은 성능을 제공함.</li>
+    </ul>
+    <pre><code class="language-typescript">// gRPC 컨트롤러 예시
+@Controller()
+export class AppController {
+  @GrpcMethod('AppController', 'Ping')
+  ping(data: PingRequest, metadata: Metadata, call: ServerUnaryCall&lt;PingRequest, PingResponse&gt;): PingResponse {
+    const { message } = data;
+    return { message: `Pong ${message}` };
+  }
+}</code></pre>
+  </li>
+  <li>Redis를 사용한 캐싱
+    <ul>
+      <li>Redis는 인메모리 데이터 스토어로, NestJS 애플리케이션의 캐싱 솔루션으로 사용할 수 있음.</li>
+      <li>@nestjs/common의 Cache 모듈을 사용하여 Redis 기반의 캐싱을 구현할 수 있음.</li>
+      <li>자주 사용되는 데이터나 계산 결과를 캐싱하여 애플리케이션의 성능을 향상시킬 수 있음.</li>
+    </ul>
+    <pre><code class="language-typescript">import { CACHE_MANAGER, Inject } from '@nestjs/common';
+import { Cache } from 'cache-manager';
+constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+async getCachedData(key: string) {
+const cachedData = await this.cacheManager.get(key);
+if (cachedData) {
+return cachedData;
+}
+const data = await this.fetchData();
+await this.cacheManager.set(key, data);
+return data;
+}</code></pre>
+  </li>
+  <li>Swagger를 사용한 API 문서 자동 생성
+    <ul>
+      <li>Swagger는 RESTful API의 문서화를 위한 오픈소스 도구로, NestJS에서도 활용할 수 있음.</li>
+      <li>@nestjs/swagger 패키지를 사용하여 API 문서를 자동으로 생성할 수 있음.</li>
+      <li>컨트롤러, DTO 등에 적절한 어노테이션을 추가하면 문서가 자동으로 생성되어 유지보수와 협업이 용이해짐.</li>
+    </ul>
+    <pre><code class="language-typescript">import { ApiProperty } from '@nestjs/swagger';
+export class CreateCatDto {
+@ApiProperty({ description: 'The name of the cat' })
+name: string;
+@ApiProperty({ description: 'The age of the cat' })
+age: number;
+@ApiProperty({ description: 'The breed of the cat' })
+breed: string;
+}</code></pre>
+  </li>
+  <li>Jest를 사용한 단위 테스트 및 E2E 테스트
+    <ul>
+      <li>Jest는 JavaScript 테스팅 프레임워크로, NestJS 애플리케이션의 테스트에 사용할 수 있음.</li>
+      <li>@nestjs/testing 패키지를 사용하여 단위 테스트와 E2E 테스트를 작성할 수 있음.</li>
+      <li>테스트 주도 개발(TDD)을 통해 애플리케이션의 품질과 안정성을 높일 수 있음.</li>
+    </ul>
+    <pre><code class="language-typescript">// 단위 테스트 예시
+describe('CatsController', () =&gt; {
+  let catsController: CatsController;
+  let catsService: CatsService;
+beforeEach(async () => {
+const moduleRef = await Test.createTestingModule({
+controllers: [CatsController],
+providers: [CatsService],
+}).compile();
+catsService = moduleRef.get&lt;CatsService&gt;(CatsService);
+catsController = moduleRef.get&lt;CatsController&gt;(CatsController);
+});
+describe('findAll', () => {
+it('should return an array of cats', async () => {
+const result = ['test'];
+jest.spyOn(catsService, 'findAll').mockImplementation(() => result);
+expect(await catsController.findAll()).toBe(result);
+});
+});
+});</code></pre>
+  </li>
+  <li>PM2/Forever를 사용한 프로세스 관리
+    <ul>
+      <li>PM2와 Forever는 Node.js 애플리케이션의 프로세스 관리를 위한 도구로, NestJS에서도 사용할 수 있음.</li>
+      <li>PM2 또는 Forever를 사용하여 애플리케이션을 백그라운드에서 실행하고, 프로세스 모니터링, 자동 재시작 등의 기능을 활용할 수 있음.</li>
+    </ul>
+    <pre><code class="language-bash"># PM2 사용 예시
+pm2 start dist/main.js --name my-app
+pm2 stop my-app
+pm2 restart my-app
+pm2 delete my-app</code></pre>
+  </li>
+  <li>Elasticsearch를 사용한 검색 기능 구현
+    <ul>
+      <li>Elasticsearch는 분산형 검색 및 분석 엔진으로, NestJS 애플리케이션에 강력한 검색 기능을 추가할 수 있음.</li>
+      <li>@nestjs/elasticsearch 패키지를 사용하여 Elasticsearch와 통합할 수 있음.</li>
+      <li>데이터 색인, 검색, 집계 등의 기능을 활용하여 사용자에게 풍부한 검색 경험을 제공할 수 있음.</li>
+    </ul>
+    <pre><code class="language-typescript">import { Injectable } from '@nestjs/common';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
+@Injectable()
+export class SearchService {
+constructor(private readonly elasticsearchService: ElasticsearchService) {}
+async search(text: string) {
+const result = await this.elasticsearchService.search({
+index: 'products',
+body: {
+query: {
+multi_match: {
+query: text,
+fields: ['title', 'description']
+}
+}
+}
+});
+return result.hits.hits;
+}
+}</code></pre>
+  </li>
+  <li>AWS Lambda, GCP Functions, Azure Functions 등 서버리스 환경에서의 NestJS 활용
+    <ul>
+      <li>NestJS 애플리케이션은 서버리스 환경에서도 실행될 수 있음.</li>
+      <li>@nestjs/serverless 패키지를 사용하여 AWS Lambda, GCP Functions, Azure Functions 등에 배포할 수 있음.</li>
+      <li>서버리스 환경에서 NestJS의 모듈화된 구조와 의존성 주입 등의 기능을 그대로 활용할 수 있음.</li>
+    </ul>
+    <pre><code class="language-typescript">// serverless.yml 파일 예시
+service: my-nest-app
+provider:
+name: aws
+runtime: nodejs14.x
+functions:
+main:
+handler: dist/lambda.handler
+events:
+- http:
+path: /
+method: ANY
+- http:
+path: /{proxy+}
+method: ANY</code></pre>
+  </li>
+</ol>
 <h3>마무리</h3>
 <ul>
   <li>NestJS는 Angular의 아키텍처와 디자인 패턴에서 영감을 받아 만들어진 프레임워크로, 모듈화, 의존성 주입, 데코레이터 등의 개념을 사용하여 확장 가능하고 유지보수하기 쉬운 서버 사이드 애플리케이션을 구축할 수 있음.</li>
