@@ -19,54 +19,112 @@
 </ul>
 <p>프로젝트의 요구사항과 데이터 구조에 맞는 데이터베이스를 선택해야 합니다. 관계형 데이터베이스는 정규화된 데이터와 복잡한 쿼리에 적합하고, NoSQL 데이터베이스는 유연성과 확장성이 필요한 경우에 사용됩니다.</p>
 <h3>ORM/ODM 활용</h3>
+<p>ORM(Object-Relational Mapping)과 ODM(Object-Document Mapping)은 객체와 데이터베이스 간의 매핑을 처리하는 기술입니다. 이를 통해 개발자는 데이터베이스 작업을 객체 지향적인 방식으로 수행할 수 있습니다. ORM/ODM은 데이터베이스 종속성을 줄이고, 코드의 가독성과 유지보수성을 높여줍니다.</p>
+<p>ORM/ODM에는 크게 Active Record 패턴과 Data Mapper 패턴의 두 가지 구현 방식이 있습니다.</p>
+<h4>Active Record 패턴</h4>
+<p>Active Record 패턴은 객체 자체가 데이터베이스 작업을 수행하는 방식입니다. 객체의 메서드를 호출함으로써 데이터베이스 쿼리가 실행됩니다. 객체와 데이터베이스 테이블이 1:1로 매핑됩니다.</p>
 <ul>
-  <li>ORM (Object-Relational Mapping)
-    <ul>
-      <li>Sequelize: Node.js에서 사용되는 Promise 기반의 ORM으로, 다양한 RDBMS를 지원합니다.</li>
-      <li>TypeORM: TypeScript 기반의 ORM으로, Active Record와 Data Mapper 패턴을 모두 지원합니다.</li>
-      <li>기타: Objection.js, Knex.js 등의 Query Builder 라이브러리도 사용할 수 있습니다.</li>
-    </ul>
-  </li>
-  <li>ODM (Object-Document Mapping)
-    <ul>
-      <li>Mongoose: MongoDB를 위한 ODM 라이브러리로, 스키마 정의와 쿼리 작성을 간편하게 해줍니다.</li>
-    </ul>
-  </li>
+  <li>객체가 데이터베이스 작업을 직접 수행</li>
+  <li>객체의 속성이 데이터베이스 테이블의 컬럼과 일치</li>
+  <li>객체의 메서드를 통해 데이터베이스 쿼리 실행 (예: save(), find(), update(), delete())</li>
+  <li>간단한 CRUD 작업에 적합</li>
+  <li>객체와 데이터베이스의 강한 결합</li>
+  <li>예시: Ruby on Rails의 Active Record, Sequelize의 기본 사용 방식</li>
 </ul>
-<p>ORM과 ODM을 사용하면 데이터베이스 작업을 객체 지향적으로 처리할 수 있어 생산성을 높일 수 있습니다. 데이터베이스 쿼리를 직접 작성하는 대신 객체 모델을 통해 데이터를 조작할 수 있습니다.</p>
-<p>NestJS에서는 @nestjs/sequelize, @nestjs/typeorm, @nestjs/mongoose 등의 패키지를 통해 ORM/ODM을 손쉽게 통합할 수 있습니다.</p>
-<pre><code class="language-typescript">// Sequelize 모델 정의 예시
-import { Column, Model, Table } from 'sequelize-typescript';
+<pre><code class="language-typescript">// Active Record 패턴 예시 (Sequelize)
+import { Model, Column, Table } from 'sequelize-typescript';
+
 @Table
-export class User extends Model {
-@Column
-name: string;
-@Column
-email: string;
+class User extends Model {
+  @Column
+  name: string;
+
+  @Column
+  email: string;
 }
-// TypeORM 엔티티 정의 예시
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+
+const user = new User();
+user.name = 'John Doe';
+user.email = 'john@example.com';
+await user.save();
+
+const users = await User.findAll();
+</code></pre>
+<h4>Data Mapper 패턴</h4>
+<p>Data Mapper 패턴은 객체와 데이터베이스 간의 매핑을 별도의 매퍼 객체가 담당하는 방식입니다. 객체는 순수한 도메인 모델로 유지되며, 매퍼 객체가 객체와 데이터베이스 간의 데이터 이동을 처리합니다.</p>
+<ul>
+  <li>객체와 데이터베이스 간의 매핑을 분리</li>
+  <li>순수한 도메인 모델 유지</li>
+  <li>매퍼 객체가 데이터베이스 작업 수행</li>
+  <li>복잡한 쿼리와 성능 최적화에 유리</li>
+  <li>객체와 데이터베이스의 느슨한 결합</li>
+  <li>예시: TypeORM, Doctrine (PHP), Hibernate (Java)</li>
+</ul>
+<pre><code class="language-typescript">// Data Mapper 패턴 예시 (TypeORM)
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
 @Entity()
 export class User {
-@PrimaryGeneratedColumn()
-id: number;
-@Column()
-name: string;
-@Column()
-email: string;
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column()
+  email: string;
 }
-// Mongoose 스키마 정의 예시
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-@Schema()
-export class User extends Document {
-@Prop()
-name: string;
-@Prop()
-email: string;
-}
-export const UserSchema = SchemaFactory.createForClass(User);
+
+const userRepository = getRepository(User);
+
+const user = new User();
+user.name = 'John Doe';
+user.email = 'john@example.com';
+await userRepository.save(user);
+
+const users = await userRepository.find();
 </code></pre>
+<p>Active Record 패턴은 간단한 CRUD 작업에 적합하며, 구현이 간편하다는 장점이 있습니다. 하지만 객체와 데이터베이스의 강한 결합으로 인해 복잡한 도메인 모델이나 성능 최적화에는 한계가 있을 수 있습니다.</p>
+<p>Data Mapper 패턴은 객체와 데이터베이스를 분리하여 도메인 모델의 순수성을 유지할 수 있습니다. 매퍼 객체가 데이터베이스 작업을 담당하므로 복잡한 쿼리나 성능 최적화에 유리합니다. 하지만 구현이 상대적으로 복잡하고 러닝 커브가 있을 수 있습니다.</p>
+<p>프로젝트의 요구사항과 복잡성에 따라 적합한 패턴을 선택하는 것이 중요합니다. NestJS에서는 Sequelize, TypeORM, Mongoose 등 다양한 ORM/ODM 라이브러리를 지원하므로, 프로젝트의 특성에 맞는 라이브러리와 패턴을 선택하여 사용할 수 있습니다.</p>
+<p>또한 NestJS의 모듈 시스템과 종속성 주입(Dependency Injection)을 활용하면 데이터베이스 연동 로직을 모듈화하고 추상화할 수 있습니다. 이를 통해 코드의 재사용성과 유지보수성을 높일 수 있습니다.</p>
+<pre><code class="language-typescript">// NestJS에서 TypeORM 모듈 설정 예시
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './user.entity';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([User]),
+  ],
+  providers: [UserService],
+  controllers: [UserController],
+})
+export class UserModule {}
+
+// UserService에서 TypeORM 리포지토리 주입 예시
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
+  }
+}
+</code></pre>
+<p>위의 예시 코드는 NestJS에서 TypeORM을 사용하여 모듈을 구성하고, 서비스에서 리포지토리를 주입받는 방법을 보여줍니다. 이러한 방식으로 데이터베이스 연동 로직을 모듈화하고 추상화하여 코드의 가독성과 유지보수성을 높일 수 있습니다.</p>
+<p>ORM/ODM을 활용한 데이터베이스 연동은 개발 생산성과 코드 품질을 향상시키는 데 큰 도움이 됩니다. NestJS에서는 다양한 ORM/ODM 라이브러리를 지원하므로, 프로젝트의 요구사항에 맞는 최적의 솔루션을 선택하여 사용할 수 있습니다.</p>
+
 <h3>데이터베이스 스키마 설계</h3>
 <p>데이터베이스 스키마는 데이터의 구조와 관계를 정의하는 청사진입니다. 효과적인 스키마 설계를 통해 데이터 무결성을 보장하고, 성능을 최적화할 수 있습니다.</p>
 <ul>
