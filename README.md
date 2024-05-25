@@ -34,6 +34,7 @@
   <li>ORM(Sequelize, TypeORM 등) 또는 ODM(Mongoose) 활용하기</li>
   <li>데이터베이스 스키마 설계, 쿼리 최적화, 인덱싱 등 심화 개념 학습하기</li>
   <li>트랜잭션, 락, 복제, 샤딩 등 데이터베이스 고급 기능 이해하기</li>
+  <li><a href="./Database/database.md"></a></li>
 </ul>
 <h2>테스팅 및 디버깅</h2>
 <ul>
