@@ -23,13 +23,13 @@
   </li>
   <li> 심볼(Symbol)의 고유성과 사용 사례.
     <ul> 심볼은 유일한 식별자를 생성하는 데 사용한다. </ul>
-    <script>
+    ```javascript
     const uniqueKey = Symbol(`description`);
     const obj = {
       [uniqueKey]: 'This is a unique property'
     };
     console.log(obj[uniqueKey]); // `This is a unique property`;
-    </script>
+    ```
   </li>
   <li>타입 변환: 암묵적 타입 변환(타입 강제)과 명시적 타입 변환(타입 캐스팅)방식 존재.</li>
   <li>타입 체크: typeof, instanceof 연산자 등을 사용하여 데이터 타입 확인.</li>
