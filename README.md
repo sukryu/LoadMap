@@ -43,6 +43,96 @@
   <li>디버깅 도구(Visual Studio Code, Chrome DevTools 등) 사용하기</li>
   <li>로깅(Winston, Bunyan 등), 에러 처리, 예외 모니터링 등 실무 스킬 익히기</li>
 </ul>
+<h2>GraphQL API 개발</h2>
+<ul>
+  <li>GraphQL 기본 개념 및 구조 이해하기</li>
+  <li>Apollo Server를 사용한 GraphQL API 구현하기</li>
+  <li>스키마 설계, 리졸버 작성, 쿼리 최적화 등 실습하기</li>
+  <li>GraphQL 클라이언트(Apollo Client) 사용법 익히기</li>
+  <li>RESTful API와 GraphQL의 장단점 비교 및 적절한 사용 시나리오 이해하기</li>
+</ul>
+
+<h2>성능 최적화</h2>
+<ul>
+  <li>Node.js 애플리케이션 프로파일링 도구 사용법 익히기</li>
+  <li>메모리 누수 탐지 및 해결 방법 학습하기</li>
+  <li>데이터베이스 쿼리 최적화 기법 익히기</li>
+  <li>로드 밸런싱, CDN 활용 등 네트워크 최적화 방법 이해하기</li>
+  <li>웹 성능 메트릭(TTFB, FCP, LCP 등) 이해 및 최적화 방법 학습하기</li>
+</ul>
+
+<h2>마이크로서비스 아키텍처</h2>
+<ul>
+  <li>마이크로서비스 아키텍처의 장단점 이해하기</li>
+  <li>서비스 분리 전략 및 설계 방법 학습하기</li>
+  <li>서비스 간 통신 방식(REST, gRPC, 메시지 큐 등) 이해하기</li>
+  <li>API Gateway 구현 및 활용하기</li>
+  <li>서비스 디스커버리, 로드 밸런싱 구현하기</li>
+  <li>분산 트랜잭션 관리 및 데이터 일관성 유지 방법 학습하기</li>
+</ul>
+
+<h2>컨테이너화 및 오케스트레이션 심화</h2>
+<ul>
+  <li>Docker 고급 기능 (멀티 스테이지 빌드, 네트워크, 볼륨 등) 활용하기</li>
+  <li>Kubernetes 구조 및 핵심 개념 이해하기</li>
+  <li>Kubernetes 리소스 (Pod, Service, Deployment 등) 관리하기</li>
+  <li>Helm을 사용한 Kubernetes 애플리케이션 패키징 및 배포하기</li>
+  <li>CI/CD 파이프라인과 Kubernetes 통합하기</li>
+</ul>
+
+<h2>서버리스 아키텍처</h2>
+<ul>
+  <li>서버리스 컴퓨팅의 개념과 장단점 이해하기</li>
+  <li>AWS Lambda, Azure Functions, Google Cloud Functions 등 서버리스 플랫폼 비교하기</li>
+  <li>Serverless Framework를 사용한 애플리케이션 개발 및 배포하기</li>
+  <li>서버리스 아키텍처의 모니터링 및 디버깅 방법 익히기</li>
+  <li>서버리스와 컨테이너 기반 아키텍처의 적절한 사용 시나리오 이해하기</li>
+</ul>
+
+<h2>데이터 스트리밍 및 실시간 처리</h2>
+<ul>
+  <li>Apache Kafka, Amazon Kinesis 등 데이터 스트리밍 플랫폼 이해하기</li>
+  <li>실시간 데이터 처리 아키텍처 설계하기</li>
+  <li>스트림 프로세싱 라이브러리 (RxJS, Node-RED 등) 활용하기</li>
+  <li>실시간 분석, 모니터링 시스템 구축하기</li>
+  <li>대용량 로그 처리 및 분석 방법 학습하기</li>
+</ul>
+
+<h2>AI/ML 통합</h2>
+<ul>
+  <li>머신러닝 모델을 Node.js 애플리케이션에 통합하는 방법 학습하기</li>
+  <li>TensorFlow.js, Brain.js 등 JavaScript 기반 ML 라이브러리 활용하기</li>
+  <li>자연어 처리 (NLP) 기능을 백엔드 서비스에 추가하기</li>
+  <li>추천 시스템, 이상 탐지 등 실용적인 AI/ML 애플리케이션 개발하기</li>
+  <li>AI/ML 모델의 버전 관리 및 배포 전략 이해하기</li>
+</ul>
+
+<h2>확장 가능한 아키텍처 설계</h2>
+<ul>
+  <li>수평적/수직적 확장 전략 이해하기</li>
+  <li>데이터베이스 샤딩, 파티셔닝 기법 학습하기</li>
+  <li>캐시 계층 설계 및 구현하기</li>
+  <li>비동기 작업 처리를 위한 작업 큐 시스템 구축하기</li>
+  <li>고가용성 (HA) 아키텍처 설계 및 구현하기</li>
+</ul>
+
+<h2>네트워크 프로그래밍 심화</h2>
+<ul>
+  <li>TCP/IP, UDP 프로토콜 심화 학습하기</li>
+  <li>WebSocket, Socket.io를 활용한 실시간 애플리케이션 개발하기</li>
+  <li>gRPC를 이용한 마이크로서비스 간 통신 구현하기</li>
+  <li>MQTT, CoAP 등 IoT 프로토콜 이해 및 활용하기</li>
+  <li>VPN, 프록시 서버 구현하기</li>
+</ul>
+
+<h2>국제화 및 지역화 (i18n & l10n)</h2>
+<ul>
+  <li>다국어 지원을 위한 백엔드 설계 방법 학습하기</li>
+  <li>날짜, 시간, 통화 등의 지역화 처리 방법 익히기</li>
+  <li>다국어 데이터베이스 설계 및 쿼리 최적화하기</li>
+  <li>RESTful API의 국제화 전략 수립하기</li>
+  <li>문자 인코딩, 유니코드 처리 방법 이해하기</li>
+</ul>
 <h2>배포 및 운영</h2>
 <ul>
   <li>버전 관리 시스템(Git) 마스터하기</li>
