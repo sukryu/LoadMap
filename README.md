@@ -199,3 +199,117 @@
 * 기술 문서 작성(API 문서, 아키텍처 문서 등)능력 기르기.
 * 영어로 된 기술 문서 읽고 이해하기.
 * 오픈소스 프로젝트 참여, 블로그 작성 등 커뮨티 활동하기.
+
+
+프로그래밍 언어
+
+서버 사이드 언어 (예: Python, Java, JavaScript (Node.js), C#, Go, Ruby)
+각 언어의 특성, 장단점, 사용 사례 이해
+
+
+데이터베이스
+
+관계형 데이터베이스 (예: MySQL, PostgreSQL, Oracle)
+NoSQL 데이터베이스 (예: MongoDB, Cassandra, Redis)
+SQL 쿼리 작성 및 최적화
+데이터 모델링, 정규화, 인덱싱
+
+
+API 개발
+
+RESTful API 설계 원칙
+GraphQL
+API 문서화 (예: Swagger)
+버전 관리
+
+
+웹 서버
+
+Apache, Nginx 등의 웹 서버 설정 및 관리
+로드 밸런싱
+리버스 프록시
+
+
+프레임워크
+
+언어별 주요 백엔드 프레임워크 (예: Django, Spring, Express.js, ASP.NET)
+ORM (Object-Relational Mapping) 사용법
+
+
+보안
+
+인증 및 권한 부여 (OAuth, JWT)
+HTTPS/SSL
+SQL 인젝션, XSS 등 일반적인 보안 취약점 이해 및 방어
+데이터 암호화
+
+
+서버 관리 및 배포
+
+Linux 기본 명령어 및 서버 관리
+컨테이너화 (Docker)
+CI/CD (Jenkins, GitLab CI 등)
+클라우드 서비스 (AWS, Google Cloud, Azure)
+
+
+성능 최적화
+
+캐싱 전략 (Redis, Memcached)
+데이터베이스 쿼리 최적화
+로드 테스팅 및 프로파일링
+
+
+아키텍처
+
+마이크로서비스 아키텍처
+서버리스 아키텍처
+이벤트 기반 아키텍처
+확장성 있는 시스템 설계
+
+
+버전 관리
+
+Git 사용법
+브랜칭 전략
+
+
+테스팅
+
+단위 테스트, 통합 테스트, 시스템 테스트
+TDD (Test-Driven Development)
+자동화된 테스팅 도구
+
+
+메시지 큐
+
+RabbitMQ, Apache Kafka 등
+
+
+로깅 및 모니터링
+
+ELK 스택 (Elasticsearch, Logstash, Kibana)
+프로메테우스, Grafana
+
+
+네트워킹 기초
+
+TCP/IP, HTTP/HTTPS 프로토콜
+웹소켓
+
+
+소프트웨어 개발 방법론
+
+Agile, Scrum 이해
+코드 리뷰 프로세스
+
+
+동시성 및 병렬 처리
+
+멀티스레딩, 비동기 프로그래밍
+
+
+정규표현식
+문서화
+
+코드 문서화
+API 문서 작성
