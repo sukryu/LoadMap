@@ -794,3 +794,161 @@ is_student = True
             - 스레드 안전(멀티스레딩에 적합)
             - 다양한 큐 타입 제공(FIFO, LIFO, 우선순위 큐)
 
+#### 객체 지향 프로그래밍 ####
+
+객체 지향 프로그래밍은 코드를 객체라는 단위로 구조화하는 프로그래밍 패러다임입니다.
+Python은 완전한 객체 지향 언어로, OOP의 주요 개념들을 모두 지원합니다.
+
+- 클래스와 객체
+
+    1. 클래스 정의:
+    ```python
+    class Dog:
+        def __init__(self, name, age):
+            self.name = name
+            self.age = age
+        def bark(self):
+            print(f"{self.name} says: Woof!")
+    ```
+
+    2. 객체 생성 및 사용
+    ```python
+    my_dog = Dog("Buddy", 3)
+    print(my_dog.name)  # Buddy
+    my_dog.bark()  # Buddy says: Woof!
+    ```
+
+- 상속: 상속을 통해 기존 클래스의 속성과 메서드를 새로운 클래스에서 재사용할 수 있습니다.
+    ```python
+    class Animal:
+        def __init__(self, name):
+            self.name = name
+
+        def speak(self):
+            pass
+
+    class Cat(Animal):
+        def speak(self):
+            return f"{self.name} says Meow!"
+
+    class Dog(Animal):
+        def speak(self):
+            return f"{self.name} says Woof!"
+
+    cat = Cat("Whiskers")
+    dog = Dog("Rex")
+    print(cat.speak())  # Whiskers says Meow!
+    print(dog.speak())  # Rex says Woof!
+    ```
+
+- 다형성: 다형성을 통해 같은 인터페이스를 사용하여 서로 다른 객체 타입을 다룰 수 있습니다.
+    ```python
+    def animal_sound(animal):
+    print(animal.speak())
+
+    cat = Cat("Mittens")
+    dog = Dog("Fido")
+
+    animal_sound(cat)  # Mittens says Meow!
+    animal_sound(dog)  # Fido says Woof!
+    ```
+
+- 캡슐화: 캡슐화는 객체의 내부 상태를 외부로부터 숨기고, 특정 인터페이스를 통해서만 접근할 수 있게 하는 메커니즘입니다.
+```python
+class BankAccount:
+    def __init__(self, balance):
+        self._balance = balance  # 관례적으로 '_'로 시작하는 속성은 비공개로 간주
+
+    def deposit(self, amount):
+        if amount > 0:
+            self._balance += amount
+        else:
+            print("Invalid amount")
+
+    def withdraw(self, amount):
+        if 0 < amount <= self._balance:
+            self._balance -= amount
+        else:
+            print("Insufficient funds")
+
+    def get_balance(self):
+        return self._balance
+
+account = BankAccount(1000)
+account.deposit(500)
+account.withdraw(200)
+print(account.get_balance())  # 1300
+```
+
+- 특수 메서드(매직 매서드): Python은 특별한 이름을 가진 메서드를 통해 객체의 동작을 커스터마이즈할 수 있습니다.
+```python
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        return f"Point({self.x}, {self.y})"
+
+    def __add__(self, other):
+        return Point(self.x + other.x, self.y + other.y)
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+p1 = Point(1, 2)
+p2 = Point(3, 4)
+print(p1)  # Point(1, 2)
+print(p1 + p2)  # Point(4, 6)
+print(p1 == Point(1, 2))  # True
+```
+
+- 클래스 메서드와 정적 메서드
+    1. 클래스 메서드: 클래스 전체에 대해 동작하는 메서드
+    2. 정적 메서드: 클래스나 인스턴스 상태에 접근하지 않는 메서드
+
+    ```python
+    class MathOperations:
+    PI = 3.14
+
+    def __init__(self, value):
+        self.value = value
+
+    @classmethod
+    def get_pi(cls):
+        return cls.PI
+
+    @staticmethod
+    def add(a, b):
+        return a + b
+
+    def multiply_by_pi(self):
+        return self.value * self.PI
+
+    print(MathOperations.get_pi())  # 3.14
+    print(MathOperations.add(5, 3))  # 8
+
+    math_obj = MathOperations(5)
+    print(math_obj.multiply_by_pi())  # 15.7
+    ```
+
+- 추상 클래스: 추상 클래스는 하나 이상의 추상 메서드를 포함하는 클래스로, 직접 인스턴스화할 수 없습니다.
+```python
+from abc import ABC, abstractmethod
+
+class Shape(ABC):
+    @abstractmethod
+    def area(self):
+        pass
+
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+
+    def area(self):
+        return 3.14 * self.radius ** 2
+
+# shape = Shape()  # TypeError: Can't instantiate abstract class Shape
+circle = Circle(5)
+print(circle.area())  # 78.5
+```
