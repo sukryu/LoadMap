@@ -290,3 +290,169 @@ is_student = True
 
 - 함수 정의와 호출
     - 함수 정의: ```def``` 키워드를 사용하여 함수를 정의합니다.
+    - 구문:
+    ```python
+    def 함수이름(매개변수1, 매개변수2, ...):
+        # 함수 본문
+        return 결과 # 선택적
+    ```
+    - 예시:
+    ```python
+    def greet(name):
+        return f"안녕하세요, {name}님!"
+    ```
+
+    - 함수 호출: 함수 이름과 괄호를 사용하여 함수를 호출합니다.
+    - 예시:
+    ```python
+    message = greet("Alice")
+    print(message) # 출력 : 안녕하세요, Alice님!
+    ```
+
+- 매개변수와 인자
+    - 위치 인자: 함수 호출 시 순서대로 전달되는 인자입니다.
+    - 예시:
+    ```python
+    def add(a, b):
+        return a + b
+
+    result = add(3, 5) # 3은 a에 5는 b에 할당됨.
+    ```
+
+    - 키워드 인자: 매개변수 이름을 명시하여 전달하는 인자입니다.
+    - 예시
+    ```python
+    def greet(name, greeting="안녕하세요"):
+        return f"{greeting}, {name}님!"
+    
+    print(greet(name="Bob", greeting="반갑습니다.")) # 출력: 반갑습니다. Bob님!
+    print(greet(name="Charlie")) # 출력: 안녕하세요, Charlie님!
+    ```
+
+    - 기본값 매개변수: 함수 정의 시 매개변수에 기본값을 지정할 수 있습니다.
+    - 예시:
+    ```python
+    def power(base, exponent = 2):
+        return base ** exponent
+    
+    print(power(3)) # 출력: 9 (3^2)
+    print(power(3, 3)) # 출력: 27 (3^3)
+    ```
+
+    - 가변 인자(*args): 임의 개수의 위치 인자를 튜플로 받습니다.
+    - 예시:
+    ```python
+    def sum_all(*numbers):
+        return sum(numbers)
+
+    print(sum_all(1, 2, 3, 4, 5)) # 출력: 15
+    ```
+
+    - 키워드 가변 인자 (**kwargs): 임의 개수의 키워드 인자를 딕셔너리로 받습니다.
+    - 예시:
+    ```python
+    def print_info(**kwargs):
+        for key, value in kwargs.items():
+            print(f"{key} : {value}")
+    
+    print_info(name="Alice", age = 30, city="Seoul")
+    ```
+
+- 반환값:
+    - 단일 값 반환:
+    ```python
+    def square(n):
+        return n ** 2
+    ```
+
+    - 다중 값 반환:
+    ```python
+    def min_max(numbers):
+        return min(numbers), max(numbers)
+
+    minimum, maximum = min_max([1, 2, 3, 4, 5])
+    ```
+
+    - 반환값이 없는 함수: 명시적인 return 문이 없으면 None을 반환합니다.
+    ```python
+    def greet(name):
+        print(f"Hello, {name}!")
+
+    result = greet("Dave") # result는 None
+    ```
+
+- 람다 함수:
+    - 람다 함수는 이름 없는 일회용 함수로, 간단한 함수를 한 줄로 정의할 수 있습니다.
+
+    - 구문:
+    ```python
+    lambda 매개변수: 표현식
+    ```
+
+    - 예시:
+    ```python
+    square = lambda x: x ** 2
+    print(square(5)) # 출력 25
+
+    # 정렬에 사용
+    pairs = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
+    pairs.sort(key=lambda pair: pair[1])
+    print(pairs) # 출력: [(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')] 
+    ```
+
+- 함수의 스코프와 네임스페이스
+    - 전역 변수와 지역 변수:
+    ```python
+    x = 10  # 전역 변수
+
+    def func():
+        y = 20  # 지역 변수
+        print(x)  # 전역 변수 접근 가능
+        print(y)  # 지역 변수 접근 가능
+
+    func()
+    print(x)  # 전역 변수 접근 가능
+    # print(y)  # 오류: 지역 변수는 함수 외부에서 접근 불가
+    ```
+
+    - global 키워드: 함수 내에서 전역 변수를 수정할 때 사용합니다.
+    ```python
+    x = 10
+
+    def modify_global():
+        global x
+        x = 20
+
+    modify_global()
+    print(x)  # 출력: 20
+    ```
+
+- 재귀 함수:
+    - 함수가 자기 자신을 호출하는 기법입니다.
+    - 예시(팩토리얼 계산):
+    ```python
+    def factorial(n):
+        if n == 0 or n == 1:
+            return 1
+        else:
+            return n * factorial(n - 1)
+
+    print(factorial(5))  # 출력: 120
+    ```
+
+- 함수 데코레이터
+    - 기존 함수의 동작을 수정하거나 확장하는 데 사용됩니다.
+    - 예시:
+    ```python
+    def uppercase_decorator(func):
+    def wrapper():
+        result = func()
+        return result.upper()
+    return wrapper
+
+    @uppercase_decorator
+    def greet():
+        return "hello, world"
+
+    print(greet())  # 출력: HELLO, WORLD
+    ```
