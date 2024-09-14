@@ -283,3 +283,10 @@ is_student = True
     squares = [x**2 for x in range(10)]
     even_numbers = [x for x in range(20) if x % 2 == 0]
     ```
+
+#### 함수 ####
+
+함수는 특정 작업을 수행하는 코드 블록으로, 재사용성과 모듈화를 향상시키는 핵심 요소입니다.
+
+- 함수 정의와 호출
+    - 함수 정의: ```def``` 키워드를 사용하여 함수를 정의합니다.
