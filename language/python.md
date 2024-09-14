@@ -952,3 +952,115 @@ class Circle(Shape):
 circle = Circle(5)
 print(circle.area())  # 78.5
 ```
+
+#### 모듈과 패키지 ####
+
+모듈과 패키지는 Python 코드를 구조화하고 재사용 가능하게 만드는 중요한 메커니즘입니다.
+
+- 모듈: 모듈은 Python 정의와 문장들을 담고 있는 파일입니다. 파일명이 모듈명이 됩니다.
+    1. 모듈 생성: 예를 들어, my_module.py 라는 파일을 만들고 다음과 같이 작성합니다.
+    ```python
+    # my_module.py
+
+    def greet(name):
+        return f"Hello, {anme}!"
+    
+    PI = 3.14159
+    ```
+
+    2. 모듈 사용:
+    ```python
+    import my_module
+
+    print(my_module.greet("Alice")) # Hello, Alice!
+    print(my_module.PI) # 3.14159
+    ```
+
+    3. 특정 항목만 임포트
+    ```python
+    from my_module import greet, PI
+
+    print(greet("Bob"))  # Hello, Bob!
+    print(PI)  # 3.14159
+    ```
+
+    4. 별칭 사용:
+    ```python
+    import my_module as mm
+
+    print(mm.greet("Charlie"))  # Hello, Charlie!
+    ```
+
+- 패키지: 패키지는 모듈을 담는 디렉토리입니다. 패키지는 모듈을 계층적으로 구조화하는 방법을 제공합니다.
+    1. 패키지 구조:
+    ```md
+    my_package/
+    __init__.py
+    module1.py
+    module2.py
+    subpackage/
+        __init__.py
+        module3.py
+    ```
+
+    2. __init__.py: 이 파일은 디렉토리를 Python 패키지로 만듭니다. 비어있을 수 있으며, 패키지 초기화 코드를 포함할 수 있습니다.
+
+    3. 패키지 사용:
+    ```python
+    import my_package.module1
+    from my_package import module2
+    from my_package.subpackage import module3
+    ```
+
+- 모듈 검색 경로
+    - Python은 모듈을 임포트할 때 다음 순서대로 검색합니다.
+        1. 현재 디렉토리
+        2. PYTHONPATH 환경 변수에 나열된 디렉토리
+        3. Python 기본 라이브러리 디렉토리
+
+    - sys.path 리스트를 통해 현재 검색 경로를 확인하고 수정할 수 있습니다.
+
+- 표준 라이브러리 모듈
+    - Python은 풍부한 표준 라이브러리를 제공합니다. 몇가지 유용한 모듈은 다음과 같습니다.
+
+    1. os: 운영 체제와 상호 작용
+    2. sys: Python 인터프리터와 상호 작용
+    3. datetime: 날짜와 시간 처리
+    4. math: 수학 함수
+    5. random: 난수 생성
+    6. json: JSON 데이터 처리
+    7. re: 정규 표현식
+    8. collections: 특수 컨테이너 데이터형
+
+- 서드파티 패키지
+    - Python Package Index (PyPI)를 통해 수많은 서드파티 패키지를 사용할 수 있습니다.
+
+    1. pip 사용:
+    ```bash
+    pip install package_name
+    ```
+
+    2. 가상 환경: venv 모듈을 사용하여 프로젝트별로 격리된 Python 환경을 만들 수 있습니다.
+    ```bash
+    python -m venv myenv
+    source myenv/bin/activate # Linux/macOS
+    myenv\Scripts\activate.bat # Windows
+    ```
+
+- 모듈과 패키지 작성 시 주의사항
+    1. 순환 임포트 피하기: 모듈 간에 상호 임포트 하지 않도록 주의
+    2. 상대 임포트 사용: 패키지 내에서는 상대 경로로 임포트 가능
+    ```python
+    from .module import function
+    from ..subpackage import module
+    ```
+    3. if __name__ == "__main__": 사용: 모듈이 직접 실행될 때만 실행될 코드 지정
+
+- 네임스페이스 패키지
+    - Python 3.3 부터는 __init__.py 없이도 패키지를 만들 수 있습니다. 이를 네임스페이스 패키지라고 합니다.
+
+- __all__ 변수
+    - 모듈에서 __all__ 리스트를 정의하여 ``` from module import * ``` 사용 시 임포트될 이름들을 지정할 수 있습니다.
+    ```python
+    __all__ = ['function1', 'function2', 'CLASS1']
+    ```
