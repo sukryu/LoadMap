@@ -456,3 +456,341 @@ is_student = True
 
     print(greet())  # 출력: HELLO, WORLD
     ```
+
+#### 데이터 구조 ####
+
+- 데이터 구조: Python은 다양한 내장 데이터 구조를 제공하며, 이들은 데이터를 효율적으로 저장하고 조작하는 데 사용됩니다.
+            주요 데이터 구조는 다음과 같습니다.
+
+    - 리스트 (List):
+        - 리스트는 순서가 있고 변경 가능한 (mutable)데이터 구조입니다.
+        1. 생성:
+        ```python
+        empty_list = []
+        numbers = [1, 2, 3, 4, 5]
+        mixed = [1, "two", 3.0, [4, 5]]
+        ```
+
+        2. 접근과 슬라이싱:
+        ```python
+        print(numbers[0])     # 첫 번째 요소: 1
+        print(numbers[-1])    # 마지막 요소: 5
+        print(numbers[1:4])   # 슬라이싱: [2, 3, 4]
+        print(numbers[::-1])  # 역순: [5, 4, 3, 2, 1]
+        ```
+
+        3. 수정:
+        ```python
+        numbers[0] = 10       # 요소 변경
+        numbers.append(6)     # 끝에 추가
+        numbers.insert(1, 15) # 특정 위치에 삽입
+        numbers.extend([7, 8])# 리스트 확장
+        popped = numbers.pop()# 마지막 요소 제거 및 반환
+        numbers.remove(3)     # 특정 값 제거
+        ```
+
+        4. 기타 연산:
+        ```python
+        length = len(numbers) # 길이
+        sorted_nums = sorted(numbers)  # 정렬된 새 리스트 반환
+        numbers.sort()        # 원본 리스트 정렬
+        numbers.reverse()     # 역순으로 변경
+        ```
+
+        5. 리스트 컴프리헨션:
+        ```python
+        squares = [x**2 for x in range(10)]
+        evens = [x for x in range(20) if x % 2 == 0]
+        ```
+
+    - 튜플(Tuple)
+        - 튜플은 순서가 있고 변경 불가능한 (immutable)데이터 구조입니다.
+
+        1. 생성:
+        ```python
+        empty_tuple = ()
+        single_element = (1, ) # 콤마 필수
+        coordinates = (3, 4)
+        mixed = (1, "two", 3.0)
+        ```
+
+        2. 접근:
+        ```python
+        print(coordinates[0])  # 3
+        print(coordinates[-1]) # 4
+        ```
+
+        3. 언패킹:
+        ```python
+        x, y = coordinates
+        ```
+
+        4. 용도:
+            - 변경되지 않아야 하는 데이터를 저장할 때
+            - 딕셔너리의 키로 사용 가능
+            - 함수에서 여러 값을 반환할 때
+        
+    
+    - 집합 (Set)
+        - 집합은 순서가 없고 중복을 허용하지 않는 데이터 구조입니다.
+
+        1. 생성:
+        ```python
+        empty_set = set()
+        numbers = {1, 2, 3, 4, 5}
+        mixed = {1, "two", 3.0}
+        ```
+        
+        2. 연산:
+        ```python
+        numbers.add(6)        # 요소 추가
+        numbers.remove(3)     # 요소 제거 (없으면 에러)
+        numbers.discard(10)   # 요소 제거 (없어도 에러 없음)
+        popped = numbers.pop()# 임의의 요소 제거 및 반환
+
+        # 집합 연산
+        set1 = {1, 2, 3}
+        set2 = {3, 4, 5}
+        print(set1 | set2)    # 합집합: {1, 2, 3, 4, 5}
+        print(set1 & set2)    # 교집합: {3}
+        print(set1 - set2)    # 차집합: {1, 2}
+        print(set1 ^ set2)    # 대칭차: {1, 2, 4, 5}
+        ```
+
+        3. 용도:
+            - 중복 제거
+            - 멤버십 테스트(in 연산자 사용)
+            - 수학적 집합 연산
+
+    - 딕셔너리(Dictionary)
+        - 딕셔너리는 키-값 쌍을 저장하는 데이터 구조입니다.
+
+        1. 생성:
+        ```python
+        empty_dict = {}
+        person = {"name": "Alice", "age": 30, "city": "New York"}
+        ```
+
+        2. 접근과 수정
+        ```python
+        print(person["name"])  # Alice
+        person["age"] = 31     # 값 수정
+        person["job"] = "Engineer"  # 새 키-값 쌍 추가
+        ```
+
+        3. 메서드
+        ```python
+        keys = person.keys()       # 키 목록
+        values = person.values()   # 값 목록
+        items = person.items()     # (키, 값) 튜플 목록
+
+        age = person.get("age", 0) # 키가 없을 때 기본값 반환
+        person.update({"height": 170, "weight": 60})  # 여러 항목 추가/수정
+        ```
+
+        4. 딕셔너리 컴프리헨션
+        ```python
+        squares = {x: x**2 for x in range(5)}
+        ```
+
+    - 문자열(String)
+        - 문자열은 변경 불가능한 문자의 시퀀스입니다.
+
+        1. 생성:
+        ```python
+        single_quotes = 'Hello'
+        double_quotes = "World"
+        triple_quotes = '''Multi-line
+        string'''
+        ```
+
+        2. 연산과 메서드
+        ```python
+        s = "Hello, World!"
+        print(len(s))           # 길이: 13
+        print(s.upper())        # 대문자로: HELLO, WORLD!
+        print(s.lower())        # 소문자로: hello, world!
+        print(s.split(", "))    # 분할: ['Hello', 'World!']
+        print(", ".join(["A", "B", "C"]))  # 결합: A, B, C
+        print(s.strip())        # 양쪽 공백 제거
+        print(s.replace("World", "Python"))  # 치환: Hello, Python!
+        ```
+
+        3. 포매팅
+        ```python
+        name = "Alice"
+        age = 30
+        # f-string (Python 3.6+)
+        print(f"{name} is {age} years old")
+        # format() 메서드
+        print("{} is {} years old".format(name, age))
+        # % 연산자
+        print("%s is %d years old" % (name, age))
+        ```
+
+    - 기타 데이터 구조
+        1. collections 모듈: collections 모듈은 파이썬의 내장 컨테이너(dict, list, set, tuple)에 대한 대안을 제공합니다.
+            1. namedtuple: 일반 튜플의 서브클래스로, 필드에 이름을 부여할 수 있습니다.
+            ```python
+            from collections import namedtuple
+
+            Point = namedtuple('Point', ['x', 'y'])
+            p = Point(11, y = 22)
+
+            print(p.x)  # 11
+            print(p.y)  # 22
+            print(p)    # Point(x=11, y=22)
+            ```
+            - 특징:
+                - 불변(immutable)이므로 튜플의 장점 유지
+                - 필드에 이름으로 접근 가능하여 가독성 향상
+                - 딕셔너리보다 메모리 효율적
+
+            2. defaultdict: 키가 없을 때 기본값을 제공하는 딕셔너리 서브클래스입니다.
+            ```python
+            from collections import defaultdict
+
+            dd = defaultdict(list)
+            dd['key'].append(1)
+            dd['key'].append(2)
+            print(dd)  # defaultdict(<class 'list'>, {'key': [1, 2]})
+
+            # 일반 딕셔너리와 비교
+            d = {}
+            # d['key'].append(1)  # KeyError 발생
+            ```
+
+            - 특징: 
+                - 존재하지 않는 키에 접근할 때 KeyError 대신 기본값 반환
+                - 기본값 팩토리 함수를 지정할 수 있음(list, int, set 등)
+
+            3. Counter: 요소의 개수를 세는 딕셔너리 서브클래스입니다.
+            ```python
+            from collections import Counter
+
+            c = Counter('gallahad')
+            print(c)  # Counter({'a': 3, 'l': 2, 'g': 1, 'h': 1, 'd': 1})
+
+            # 가장 흔한 요소
+            print(c.most_common(2))  # [('a', 3), ('l', 2)]
+
+            # 산술 연산
+            c1 = Counter(a=3, b=1)
+            c2 = Counter(a=1, b=2)
+            print(c1 + c2)  # Counter({'a': 4, 'b': 3})
+            print(c1 - c2)  # Counter({'a': 2})
+            ```
+
+            - 특징:
+                - 데이터의 빈도를 쉽게 계산
+                - 산술 연산을 통한 카운터 조합 가능
+
+            4. deque(double-ended queue): 양쪽 끝에서 빠르게 추가와 삭제를 할 수 있는 리스트형 컨테이너입니다.
+            ```python
+            from collections import deque
+
+            d = deque('abc')
+            d.append('d')        # 오른쪽에 추가
+            d.appendleft('z')    # 왼쪽에 추가
+            print(d)  # deque(['z', 'a', 'b', 'c', 'd'])
+
+            d.pop()              # 오른쪽에서 제거
+            d.popleft()          # 왼쪽에서 제거
+            print(d)  # deque(['a', 'b', 'c'])
+
+            d.rotate(1)          # 오른쪽으로 회전
+            print(d)  # deque(['c', 'a', 'b'])
+            ```
+
+            - 특징:
+                - 양쪽 끝에서의 추가/제거가 O(1) 시간복잡도
+                - 리스트보다 빠른 앞쪽 삽입/삭제
+                - 최대 길이 지정 가능(maxlen 매개변수)
+        
+        2. heapq 모듈: 이진 합 알고리즘을 사용하여 리스트를 최소 힙으로 유지합니다.
+        ```python
+        import heapq
+
+        h = []
+        heapq.heappush(h, (5, 'write code'))
+        heapq.heappush(h, (7, 'release product'))
+        heapq.heappush(h, (1, 'write spec'))
+        heapq.heappush(h, (3, 'create tests'))
+
+        print(heapq.heappop(h))  # (1, 'write spec')
+        print(heapq.heappop(h))  # (3, 'create tests')
+        ```
+
+        - 특징:
+            - 항상 가장 작은 요소가 힙의 루트에 위치
+            - 우선순위 큐 구현에 적합
+            - 정렬된 리스트보다 삽입과 삭제가 효율적 (O(log n))
+        
+        3. array 모듈: 기본 데이터 타입의 컴팩트한 배열을 제공합니다.
+        ```python
+        from array import array
+
+        # 부호 없는 16비트 정수의 배열
+        arr = array('H', [4000, 10, 700, 22222])
+        print(arr[1])  # 10
+
+        # 파일에 쓰기
+        with open('data.bin', 'wb') as f:
+            arr.tofile(f)
+
+        # 파일에서 읽기
+        arr2 = array('H')
+        with open('data.bin', 'rb') as f:
+            arr2.fromfile(f, 4)  # 4개 요소 읽기
+
+        print(arr2)  # array('H', [4000, 10, 700, 22222])
+        ```
+
+        - 특징:
+            - 메모리 효율적(모든 요소가 같은 타입)
+            - C 배열과 호환되어 외부 라이브러리와 인터페이스에 유용
+            - 대량의 숫자 데이터 처리에 적합
+        
+        4. bisect 모듈: 정렬된 시퀀스에서 이진 검색과 삽입을 수행하는 함수를 제공합니다.
+        ```python
+        import bisect
+
+        numbers = [1, 4, 5, 6, 8, 12, 15, 20]
+        print(bisect.bisect(numbers, 13))  # 7 (13이 들어갈 위치)
+
+        bisect.insort(numbers, 13)
+        print(numbers)  # [1, 4, 5, 6, 8, 12, 13, 15, 20]
+        ```
+
+        - 특징:
+            - 정렬된 리스트에서 효율적인 검색과 삽입 (O(log n))
+            - 정렬 상태를 유지하면서 새 항목 삽입 가능
+
+        5. queue 모듈: 여러 가지 큐 구현을 제공합니다.
+        ```python
+        from queue import Queue, LifoQueue, PriorityQueue
+
+        # 선입선출(FIFO) 큐
+        q = Queue()
+        q.put(1)
+        q.put(2)
+        print(q.get())  # 1
+
+        # 후입선출(LIFO) 큐 (스택)
+        lifo = LifoQueue()
+        lifo.put(1)
+        lifo.put(2)
+        print(lifo.get())  # 2
+
+        # 우선순위 큐
+        pq = PriorityQueue()
+        pq.put((2, 'code'))
+        pq.put((1, 'eat'))
+        pq.put((3, 'sleep'))
+        print(pq.get())  # (1, 'eat')
+        ```
+
+        - 특징:
+            - 스레드 안전(멀티스레딩에 적합)
+            - 다양한 큐 타입 제공(FIFO, LIFO, 우선순위 큐)
+
