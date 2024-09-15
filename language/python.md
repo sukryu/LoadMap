@@ -1064,3 +1064,154 @@ print(circle.area())  # 78.5
     ```python
     __all__ = ['function1', 'function2', 'CLASS1']
     ```
+
+#### 파일 처리 ####
+
+Python에서 파일 처리는 데이터를 저장하고 불러오는 중요한 기능입니다. 텍스트 파일과 바이너리 파일 모두 다룰 수 있습니다.
+
+- 기본적인 파일 열기와 닫기
+    1. 파일 열기:
+    ```python
+    file = open("example.txt", 'r') # 읽기 모드로 열기
+
+    # 파일 작업 수행
+
+    file.close() # 파일 닫기
+    ```
+
+    2. with문 사용 (권장):
+    ```python
+    with open('example.txt', 'r') as file:
+        # 파일 작업 수행
+    # 블록을 벗어나면 자동으로 파일이 닫힘.
+    ```
+
+- 파일 모드
+    1. ```'r'```: 읽기 모드 (기본값)
+    2. ```'w'```: 쓰기 모드(파일이 존재하면 내용을 덮어씀)
+    3. ```'a'```: 추가 모드(파일 끝에 내용을 추가)
+    4. ```'x'```: 배타적 생성 모드 (파일이 이미 존재하면 실패)
+    5. ```'b'```: 이진 모드 (텍스트 모드 대신 사용)
+    6. ```'+'```: 일기와 쓰기를 동시에 할 수 있는 모드
+
+- 텍스트 파일 읽기:
+    1. 전체 내용 읽기:
+    ```python
+    with open('example.txt', 'r') as file:
+        content = file.read()
+        print(content)
+    ```
+
+    2. 한 줄씩 읽기:
+    ```python
+    with open('example.txt', 'r') as file:
+        for line in file:
+            print(line.strip()) # strip()으로 줄바꿈 문자 제거
+    ```
+
+    3. 모든 줄을 리스트로 읽기:
+    ```python
+    with open('example.txt', 'r') as file:
+        lines = file.readlines()
+        print(lines)
+    ```
+
+- 텍스트 파일 쓰기:
+    1. 문자열 쓰기:
+    ```python
+    with open('output.txt', 'w') as file:
+        file.write("Hello, World!\n")
+        file.write("This is a new line.")
+    ```
+
+    2. 여러 줄 쓰기:
+    ```python
+    lines = ["Line 1", "Line 2", "Line 3"]
+    with open('output.txt', 'w') as file:
+        file.writelines(line + '\n' for line in lines)
+    ```
+
+- 파일 위치 제어:
+    1. 현재 위치 확인:
+    ```python
+    lines = ["Line 1", "Line 2", "Line 3"]
+    with open('output.txt', 'w') as file:
+        file.writelines(line + '\n' for line in lines)
+    ```
+
+    2. 위치 변경:
+    ```python
+    with open('example.txt', 'r') as file:
+        file.seek(10)  # 10번째 바이트로 이동
+    ```
+
+- 바이너리 파일 처리:
+    1. 바이너리 파일 읽기:
+    ```python
+    with open('image.jpg', 'rb') as file:
+        data = file.read()
+    ```
+
+    2. 바이너리 파일 쓰기:
+    ```python
+    with open('copy.jpg', 'wb') as file:
+        file.write(data)
+    ```
+
+- CSV 파일 처리: CSV(Comma-Separated Values) 파일은 흔히 사용되는 데이터 형식입니다.
+```python
+import csv
+
+# CSV 파일 읽기
+with open('data.csv', 'r') as file:
+    csv_reader = csv.reader(file)
+    for row in csv_reader:
+        print(row)
+
+# CSV 파일 쓰기
+data = [['Name', 'Age'], ['Alice', '30'], ['Bob', '25']]
+with open('output.csv', 'w', newline='') as file:
+    csv_writer = csv.writer(file)
+    csv_writer.writerows(data)
+```
+
+- JSON 파일 처리: JSON은 데이터 교환 형식으로 널리 사용됩니다.
+```python
+import json
+
+# JSON 파일 읽기
+with open('data.json', 'r') as file:
+    data = json.load(file)
+
+# JSON 파일 쓰기
+data = {'name': 'Alice', 'age': 30}
+with open('output.json', 'w') as file:
+    json.dump(data, file, indent=4)
+```
+
+- 파일 및 디렉토리 관리
+    - os 모듈을 사용하여 파일 시스템을 조작할 수 있습니다.
+    ```python
+    import os
+
+    # 현재 작업 디렉토리
+    print(os.getcwd())
+
+    # 디렉토리 생성
+    os.mkdir('new_directory')
+
+    # 파일 존재 여부 확인
+    print(os.path.exists('file.txt'))
+
+    # 파일 삭제
+    os.remove('file.txt')
+
+    # 디렉토리 내용 나열
+    print(os.listdir('.'))
+    ```
+
+- 파일 처리 시 주의사항
+    1. 항상 파일을 닫아주거나 ```with```문을 사용하세요.
+    2. 대용량 파일을 다룰 때는 메모리 사용에 주의하세요. 한 번에 전체를 읽지 말고 청크 단위로 처리하세요.
+    3. 예외 처리를 통해 파일 작업 중 발생할 수 있는 오류에 대비하세요.
+    4. 텍스트 파일을 다룰 때 인코딩에 주의하세요 (예: ```open('file.txt', 'r', encoding='utf-8')```).
