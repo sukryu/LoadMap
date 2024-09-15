@@ -1557,3 +1557,315 @@ if re.search(pattern, text):
     2. 테스트와 디버깅이 쉬움.
     3. 병렬 처리에 적합
     4. 부작용을 줄여 예측 가능한 코드 작성 가능.
+
+### 제너레이터와 이터레이터 ###
+
+제너레이터와 이터레이터는 Python에서 대량의 데이터를 효율적으로 처리하는 데 사용되는 중요한 개념입니다.
+
+1. 이터레이터 (Iterator):
+    - 이터레이터는 데이터 스트림을 표현하는 객체입니다. ```__iter__()```와 ```__next__()``` 메서드를 구현합니다.
+    
+    1. 이터레이터 프로토콜:
+    ```python
+    class MyIterator:
+        def __init__(self, max):
+            self.max = max
+            self.n = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self.n < self.max:
+                result = self.n
+                self.n += 1
+                return result
+            else:
+                raise StopIteration
+
+    for i in MyIterator(5):
+        print(i)  # 출력: 0, 1, 2, 3, 4
+    ```
+
+    2. 내장 함수 iter()와 next():
+    ```python
+    my_list = [1, 2, 3, 4, 5]
+    my_iter = iter(my_list)
+
+    print(next(my_iter))  # 출력: 1
+    print(next(my_iter))  # 출력: 2
+    ```
+
+2. 제너레이터 (Generator):
+    - 제너레이터는 이터레이터를 생성하는 함수입니다. ```yield```키워드를 사용하여 값을 하나씩 반환합니다.
+
+    1. 제너레이터 함수:
+    ```python
+    def countdown(n):
+        while n > 0:
+            yield n
+            n -= 1
+
+    for i in countdown(5):
+        print(i)  # 출력: 5, 4, 3, 2, 1
+    ```
+
+    2. 제너레이터 표현식:
+    ```python
+    squares = (x**2 for x in range(5))
+    print(list(squares))  # 출력: [0, 1, 4, 9, 16]
+    ```
+
+3. 제너레이터 장점:
+    1. 메모리 효율성: 모든 값을 한 번에 메모리에 저장하지 않고 필요할 때 생성합니다.
+    2. 지연 평가 (Lazy Evaluation): 필요한 시점에 값을 계산합니다.
+    3. 무한 시퀀스 표현 가능:
+    ```python
+    def infinite_sequence():
+        n = 0
+        while True:
+            yield n
+            n += 1
+
+    gen = infinite_sequence()
+    print(next(gen))  # 출력: 0
+    print(next(gen))  # 출력: 1
+    ```
+
+4. 제너레이터 메서드:
+    1. send(): 제너레이터 값을 전달합니다.
+    2. throw(): 제너레이터에 예외를 전달합니다.
+    3. close(): 제너레이터를 종료합니다.
+    ```python
+    def echo_generator():
+        while True:
+            value = yield
+            print(f"Received: {value}")
+
+    gen = echo_generator()
+    next(gen)  # 제너레이터 초기화
+    gen.send("Hello")  # 출력: Received: Hello
+    gen.send("World")  # 출력: Received: World
+    gen.close()
+    ```
+
+5. 이터레이터와 제너레이터의 활용:
+    1. 파일 읽기:
+    ```python
+    def read_large_file(file_path):
+        with open(file_path, 'r') as file:
+            for line in file:
+                yield line.strip()
+
+    for line in read_large_file('large_file.txt'):
+        print(line)
+    ```
+
+    2. 피보나치 수열:
+    ```python
+    def fibonacci():
+        a, b = 0, 1
+        while True:
+            yield a
+            a, b = b, a + b
+
+    fib = fibonacci()
+    for _ in range(10):
+        print(next(fib))  # 처음 10개의 피보나치 수 출력
+    ```
+
+6. 이터레이터와 제너레이터 도구:
+    1. itertools 모듈:
+    ```python
+    import itertools
+
+    # 무한 반복
+    for i in itertools.repeat("Hello", 3):
+        print(i)  # "Hello"를 3번 출력
+
+    # 순열
+    for perm in itertools.permutations([1, 2, 3], 2):
+        print(perm)
+
+    # 조합
+    for comb in itertools.combinations([1, 2, 3, 4], 2):
+        print(comb)
+    ```
+
+    2. 제너레이터 파이프라인:
+    ```python
+    def generate_numbers(n):
+        for i in range(n):
+            yield i
+
+    def square_numbers(numbers):
+        for number in numbers:
+            yield number ** 2
+
+    def add_one(numbers):
+        for number in numbers:
+            yield number + 1
+
+    pipeline = add_one(square_numbers(generate_numbers(5)))
+    print(list(pipeline))  # 출력: [1, 2, 5, 10, 17]
+    ```
+
+### 데코레이터 ###
+
+데코레이터는 기존 코드를 수정하지 않고 함수나 메서드의 기능을 확장하거나 수정하는 방법입니다.
+이는 Python의 강력한 기능 중 하나로, 코드의 재사용성과 가독성을 높이는 데 도움이 됩니다.
+
+1. 기본 데코레이터:
+    1. 간단한 데코레이터:
+    ```python
+    def uppercase_decorator(func):
+        def wrapper():
+            result = func()
+            return result.upper()
+        return wrapper
+
+    @uppercase_decorator
+    def greet():
+        return "hello, world"
+
+    print(greet())  # 출력: HELLO, WORLD
+    ```
+
+    2. 인자를 가진 함수에 대한 데코레이터:
+    ```python
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            print("Something is happening before the function is called.")
+            result = func(*args, **kwargs)
+            print("Something is happening after the function is called.")
+            return result
+        return wrapper
+
+    @decorator
+    def say_hello(name):
+        print(f"Hello, {name}!")
+
+    say_hello("Alice")
+    ```
+
+2. 데코레이터에 인자 전달:
+```python
+def repeat(times):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+@repeat(3)
+def greet(name):
+    print(f"Hello, {name}!")
+
+greet("Bob")  # "Hello, Bob!"를 3번 출력
+```
+
+3. 클래스 데코레이터: 클래스를 데코레이터로 사용할 수 있습니다.
+```python
+class CountCalls:
+    def __init__(self, func):
+        self.func = func
+        self.num_calls = 0
+
+    def __call__(self, *args, **kwargs):
+        self.num_calls += 1
+        print(f"Call {self.num_calls} of {self.func.__name__!r}")
+        return self.func(*args, **kwargs)
+
+@CountCalls
+def say_hello():
+    print("Hello!")
+
+say_hello()
+say_hello()
+```
+
+4. 데코레이터 체이닝: 여러 데코레이터를 동시에 적용할 수 있습니다.
+```python
+def bold(func):
+    def wrapper():
+        return "<b>" + func() + "</b>"
+    return wrapper
+
+def italic(func):
+    def wrapper():
+        return "<i>" + func() + "</i>"
+    return wrapper
+
+@bold
+@italic
+def greet():
+    return "Hello, world!"
+
+print(greet())  # 출력: <b><i>Hello, world!</i></b>
+```
+
+5. functools.wraps 사용:
+    - 데코레이터를 사용하면 원본 함수의 메타데이터가 손실될 수 있습니다. ```functools.wraps```를 사용하여 이를 방지할 수 있습니다.
+    ```python
+    from functools import wraps
+
+    def log_function_call(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            print(f"Calling function: {func.__name__}")
+            return func(*args, **kwargs)
+        return wrapper
+
+    @log_function_call
+    def add(x, y):
+        """Add two numbers."""
+        return x + y
+
+    print(add.__name__)  # 출력: add
+    print(add.__doc__)   # 출력: Add two numbers.
+    ```
+
+6. 데코레이터의 일반적인 사용 사례:
+    1. 로깅
+    2. 시간 측정
+    3. 접근 제어 및 인증
+    4. 캐싱
+    5. 에러 처리
+    예시 (시간 측정 데코레이터):
+    ```python
+    import time
+
+    def timing_decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            print(f"{func.__name__} took {end_time - start_time:.2f} seconds to execute.")
+            return result
+        return wrapper
+
+    @timing_decorator
+    def slow_function():
+        time.sleep(2)
+
+    slow_function()
+    ```
+
+7. 클래스 메서드와 정적 메서드의 데코레이터:
+    - Python에서는 ```@classmethod```와 ```@staticmethod```데코레이터를 제공하여 클래스 메서드와 정적 메서드를 정의할 수 있습니다.
+    ```python
+    class MyClass:
+        @classmethod
+        def class_method(cls):
+            print("This is a class method")
+
+        @staticmethod
+        def static_method():
+            print("This is a static method")
+
+    MyClass.class_method()
+    MyClass.static_method()
+    ```
