@@ -1422,4 +1422,138 @@ if re.search(pattern, text):
     1. 복잡한 정규 표현식은 가독성이 떨어질 수 있으므로 주석을 달거나 분리하세요.
     2. 정규 표현식은 강력하지만, 때로는 간단한 문자열 메서드가 더 적합할 수 있습니다.
     3. 성능에 민감한 경우, 큰 텍스트에 대해 복잡한 정규 표현식을 반복 사용하는 것은 피하세요.
-    4. 사용자 입력을 정규 표현식으로 사용하지 마세요. 보안 위험이 있을 수 있습니다.ㅁ
+    4. 사용자 입력을 정규 표현식으로 사용하지 마세요. 보안 위험이 있을 수 있습니다.
+
+### 함수형 프로그래밍 ###
+
+함수형 프로그래밍은 계산을 수학적 함수의 평가로 취급하고 상태 변경과 가변 데이터를 피하는
+프로그래밍 패러다임입니다. Python은 함수형 프로그래밍의 많은 특성을 지원합니다.
+
+1. 일급 함수 (First-class Functions):
+    - Python에서 함수는 일급 객체입니다. 이는 함수를 변수에 할당하고, 다른 함수의 인자로 전달하며, 함수에서 반환할 수 있음을 의미합니다.
+    ```python
+    def greet(name):
+    return f"Hello, {name}!"
+
+    # 함수를 변수에 할당
+    say_hello = greet
+
+    # 함수를 인자로 전달
+    def apply_function(func, value):
+        return func(value)
+
+    result = apply_function(say_hello, "Alice")
+    print(result)  # 출력: Hello, Alice!
+    ```
+
+2. 람다 함수 (Lambda Functions):
+    - 람다 함수는 이름 없는 익명 함수를 생성하는 방법입니다.
+    ```python
+    square = lambda x: x ** 2
+    print(square(5))  # 출력: 25
+
+    # 정렬에 사용
+    pairs = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
+    pairs.sort(key=lambda pair: pair[1])
+    print(pairs)  # 출력: [(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')]
+    ```
+
+3. 고차 함수(Higher-order Functions):
+    - 고차 함수는 다른 함수를 인자로 받거나 함수를 결과로 반환하는 함수입니다.
+
+    1. map() 함수:
+    ```python
+    numbers = [1, 2, 3, 4, 5]
+    squared = list(map(lambda x: x**2, numbers))
+    print(squared)  # 출력: [1, 4, 9, 16, 25]
+    ```
+
+    2. filter() 함수:
+    ```python
+    numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    evens = list(filter(lambda x: x % 2 == 0, numbers))
+    print(evens)  # 출력: [2, 4, 6, 8, 10]
+    ```
+
+    3. Reduce() 함수:
+    ```python
+    from functools import reduce
+
+    numbers = [1, 2, 3, 4, 5]
+    sum_all = reduce(lambda x, y: x + y, numbers)
+    print(sum_all)  # 출력: 15
+    ```
+
+4. 순수 함수(Pure Functions):
+    - 순수 함수는 동일한 입력에 대해 항상 동일한 출력을 반환하며, 부작용(side effects)이 없는 함수입니다.
+    ```python
+    # 순수 함수
+    def add(a, b):
+        return a + b
+
+    # 순수하지 않은 함수
+    total = 0
+    def add_to_total(value):
+        global total
+        total += value
+        return total
+    ```
+
+5. 불변성(Immutabiliy):
+    - 함수형 프로그래밍에서는 데이터의 불변성을 강조합니다. Python에서는 튜플과 frozenset 같은 불변 자료구조를 제공합니다.
+    ```python
+    # 불변 리스트 대신 튜플 사용
+    immutable_list = (1, 2, 3, 4, 5)
+
+    # 불변 집합
+    immutable_set = frozenset([1, 2, 3, 4, 5])
+    ```
+
+6. 재귀(Recursion):
+    - 재귀는 함수가 자기 자신을 호출하는 기법으로, 함수형 프로그래밍에서 반복을 표현하는 주요 방법입니다.
+    ```python
+    def factorial(n):
+        if n == 0 or n == 1:
+            return 1
+        else:
+            return n * factorial(n - 1)
+
+    print(factorial(5))  # 출력: 120
+    ```
+
+7. 함수 데코레이터(Function Decorator):
+    - 데코레이터는 기존 함수를 수정하지 않고 기능을 확장하는 방법입니다.
+    ```python
+    def uppercase_decorator(func):
+        def wrapper():
+            result = func()
+            return result.upper()
+        return wrapper
+
+    @uppercase_decorator
+    def greet():
+        return "hello, world"
+
+    print(greet())  # 출력: HELLO, WORLD
+    ```
+
+8. 클로저(Closure):
+    - 클로저는 자신을 둘러싼 환경을 기억하는 함수입니다.
+    ```python
+    def multiplier(n):
+        def multiply(x):
+            return x * n
+        return multiply
+
+    double = multiplier(2)
+    triple = multiplier(3)
+
+    print(double(5))  # 출력: 10
+    print(triple(5))  # 출력: 15
+    ```
+
+9. 함수형 프로그래밍의 이점:
+    1. 코드의 간결성과 가독성 향상.
+    2. 테스트와 디버깅이 쉬움.
+    3. 병렬 처리에 적합
+    4. 부작용을 줄여 예측 가능한 코드 작성 가능.
