@@ -1,6 +1,6 @@
 # Python 프로그래밍 언어 #
 
-### Python이란? ###
+## Python이란? ##
 
 Python은 1991년 귀도 반 로섬(Guido van Rossum)이 개발한 고급 프로그래밍 언어입니다. 다음과 같은 특징을 가지고 있습니다:
 
@@ -11,7 +11,7 @@ Python은 1991년 귀도 반 로섬(Guido van Rossum)이 개발한 고급 프로
 5. 풍부한 표준 라이브러리: 다양한 기능을 제공하는 방대한 표준 라이브러리를 포함하고 있습니다.
 6. 크로스 플랫폼: Windows, macOS, Linux 등 다양한 운영 체제에서 실행 가능합니다.
 
-### Python의 동작 방식 ###
+## Python의 동작 방식 ##
 
 Python 코드가 실행되는 과정은 다음과 같습니다:
 
@@ -21,9 +21,9 @@ Python 코드가 실행되는 과정은 다음과 같습니다:
 4. 결과 출력: 프로그램의 실행 결과가 출력됩니다.
 
 
-### Python의 주요 기능과 개념 ###
+## Python의 주요 기능과 개념 ##
 
-#### 변수와 데이터 타입 ####
+### 변수와 데이터 타입 ###
 
 - 변수:
     - Python에서 변수는 데이터를 저장하는 컨테이너 입니다. 변수 이름은 문자, 숫자, 밑줄(_)로 구성될 수 있지만, 숫자로 시작할 수 없습니다.
@@ -115,7 +115,7 @@ is_student = True
     # print(local_var) # 오류 발생: 지역 변수는 함수 외부에서 접근 불가.
     ```
 
-#### 제어 구조 ####
+### 제어 구조 ###
 
 제어구조는 프로그램의 실행 흐름을 제어하는 데 사용됩니다. Python의 주요 제어 구조는 조건문과 반복문입니다.
 
@@ -284,7 +284,7 @@ is_student = True
     even_numbers = [x for x in range(20) if x % 2 == 0]
     ```
 
-#### 함수 ####
+### 함수 ###
 
 함수는 특정 작업을 수행하는 코드 블록으로, 재사용성과 모듈화를 향상시키는 핵심 요소입니다.
 
@@ -457,7 +457,7 @@ is_student = True
     print(greet())  # 출력: HELLO, WORLD
     ```
 
-#### 데이터 구조 ####
+### 데이터 구조 ###
 
 - 데이터 구조: Python은 다양한 내장 데이터 구조를 제공하며, 이들은 데이터를 효율적으로 저장하고 조작하는 데 사용됩니다.
             주요 데이터 구조는 다음과 같습니다.
@@ -794,7 +794,7 @@ is_student = True
             - 스레드 안전(멀티스레딩에 적합)
             - 다양한 큐 타입 제공(FIFO, LIFO, 우선순위 큐)
 
-#### 객체 지향 프로그래밍 ####
+### 객체 지향 프로그래밍 ###
 
 객체 지향 프로그래밍은 코드를 객체라는 단위로 구조화하는 프로그래밍 패러다임입니다.
 Python은 완전한 객체 지향 언어로, OOP의 주요 개념들을 모두 지원합니다.
@@ -953,7 +953,7 @@ circle = Circle(5)
 print(circle.area())  # 78.5
 ```
 
-#### 모듈과 패키지 ####
+### 모듈과 패키지 ###
 
 모듈과 패키지는 Python 코드를 구조화하고 재사용 가능하게 만드는 중요한 메커니즘입니다.
 
@@ -1065,7 +1065,7 @@ print(circle.area())  # 78.5
     __all__ = ['function1', 'function2', 'CLASS1']
     ```
 
-#### 파일 처리 ####
+### 파일 처리 ###
 
 Python에서 파일 처리는 데이터를 저장하고 불러오는 중요한 기능입니다. 텍스트 파일과 바이너리 파일 모두 다룰 수 있습니다.
 
@@ -1217,7 +1217,7 @@ with open('output.json', 'w') as file:
     4. 텍스트 파일을 다룰 때 인코딩에 주의하세요 (예: ```open('file.txt', 'r', encoding='utf-8')```).
 
 
-#### 예외 처리 ####
+### 예외 처리 ###
 
 예외 처리는 프로그램 실행 중 발생할 수 있는 오류를 관리하는 메커니즘입니다. 이를 통해 프로그램이 예기치 않은 
 상황에서도 정상적으로 동작할 수 있도록 합니다.
@@ -1323,3 +1323,103 @@ except ZeroDivisionError:
     3. 로깅을 활용하여 예외 정보를 기록하세요.
     4. 예외 처리 블록 내에서 최소한의 코드만 실행하세요.
     5. 예외를 사용하여 일반적인 흐름을 제어하지 마세요. 예외는 예외적인 상황을 위한 것입니다.
+     
+### 정규 표현식 ###
+
+정규 표현식은 문자열에서 특정 패턴을 찾거나 매칭하는 데 사용되는 강력한 도구입니다.
+Python에서는 ```re```모듈을 통해 정규 표현식 기능을 제공합니다.
+
+1. 기본 패턴 매칭:
+```python
+import re
+
+text = "The quick brown fox jumps over the lazy dog"
+pattern = r"fox"
+
+if re.search(pattern, text):
+    print("패턴을 찾았습니다!")
+```
+
+2. 주요 메타 문자:
+    - ```.```: 임의의 한 문자
+    - ```^```: 문자열의 시작
+    - ```$```: 문자열의 끝
+    - ```*```: 0회 이상 반복
+    - ```+```: 1회 이상 반복
+    - ```?```: 0회 또는 1회
+    - ```{m,n}```: m회 이상 n회 이하 반복
+
+    - 예시:
+    ```python
+    pattern = r"^The.*dog$"
+    if re.match(pattern, text):
+        print("전체 문장이 패턴과 일치합니다!")
+    ```
+
+3. 문자 클래스:
+    - ```[abc]```: a,b 또는 c중 하나
+    - ```[^abc]```: a,b,c를 제외한 모든 문자
+    - ```[a-z]```: a부터 z까지의 모든 소문자
+    - ```\d```: 숫자[0-9]
+    - ```\w```: 단어 문자[a-zA-Z0-9]
+    - ```\s```: 공백 문자
+    
+    - 예시:
+    ```python
+    pattern = r"\b\w+\b"
+    words = re.findall(pattern, text)
+    print(words)
+    ```
+
+4. 그룹과 캡처:
+    - 괄호 ```()```를 사용하여 그룹을 만들고 캡처할 수 있습니다.
+    ```python
+    text = "John's phone number is 123-456-7890"
+    pattern = r"(\d{3})-(\d{3})-(\d{4})"
+    match = re.search(pattern, text)
+    if match:
+        print(f"Area code: {match.group(1)}")
+        print(f"Exchange code: {match.group(2)}")
+        print(f"Line number: {match.group(3)}")
+    ```
+
+5. 주요 re 모듈 함수:
+    1. ```re.search(pattern, string)```: 문자열에서 패턴의 첫 번째 발생을 찾습니다.
+    2. ```re.match(pattern, string)```: 문자열의 시작부터 패턴과 일치하는지 확인합니다.
+    3. ```re.findall(pattern, string)```: 모든 일치하는 부분을 리스트로 반환합니다.
+    4. ```re.finditer(pattern, string)```: 일치하는 부분의 이터레이터를 반환합니다.
+    5. ```re.sub(pattern, string)```: 패턴과 일치하는 부분을 대체 문자열로 교체합니다.
+
+6. 컴파일된 정규 표현식:
+    - 자주 사용하는 패턴은 컴파일하여 성능을 향상시킬 수 있습니다.
+    ```python
+    pattern = re.compile(r"\b\w+\b")
+    words = pattern.findall(text)
+    ```
+
+7. 플래그:
+    - 정규 표현식의 동작을 수정하는 플래그를 사용할 수 있습니다.
+        - ```re.IGNORECASE``` 또는 ```re.I```: 대소문자 구문 없이 매칭.
+        - ```re.MULTILINE``` 또는 ```re.M```: 여러 줄에 걸쳐 매칭.
+        - ```re.DOTALL``` 또는 ```re.S: ```:```.```이 개행 문자도 포함하도록 함.
+
+    - 예시:
+    ```python
+    pattern = re.compile(r"^python", re.IGNORECASE | re.MULTILINE)
+    ```
+
+8. 탐욕적(Greedy) vs 비탐욕적(Non-greedy) 매칭:
+    - 기본적으로 정규 표현식은 탐욕적입니다. 비탐욕적 매칭을 위해 ```?```를 사용합니다.
+    ```python
+    text = "<p>First paragraph</p><p>Second paragraph</p>"
+    greedy = re.findall(r"<p>.*</p>", text)
+    non_greedy = re.findall(r"<p>.*?</p>", text)
+    print(f"Greedy: {greedy}")
+    print(f"Non-greedy: {non_greedy}")
+    ```
+
+9. 정규 표현식 사용 시 주의사항:
+    1. 복잡한 정규 표현식은 가독성이 떨어질 수 있으므로 주석을 달거나 분리하세요.
+    2. 정규 표현식은 강력하지만, 때로는 간단한 문자열 메서드가 더 적합할 수 있습니다.
+    3. 성능에 민감한 경우, 큰 텍스트에 대해 복잡한 정규 표현식을 반복 사용하는 것은 피하세요.
+    4. 사용자 입력을 정규 표현식으로 사용하지 마세요. 보안 위험이 있을 수 있습니다.ㅁ
