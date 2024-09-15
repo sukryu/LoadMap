@@ -1215,3 +1215,111 @@ with open('output.json', 'w') as file:
     2. 대용량 파일을 다룰 때는 메모리 사용에 주의하세요. 한 번에 전체를 읽지 말고 청크 단위로 처리하세요.
     3. 예외 처리를 통해 파일 작업 중 발생할 수 있는 오류에 대비하세요.
     4. 텍스트 파일을 다룰 때 인코딩에 주의하세요 (예: ```open('file.txt', 'r', encoding='utf-8')```).
+
+
+#### 예외 처리 ####
+
+예외 처리는 프로그램 실행 중 발생할 수 있는 오류를 관리하는 메커니즘입니다. 이를 통해 프로그램이 예기치 않은 
+상황에서도 정상적으로 동작할 수 있도록 합니다.
+
+1. 기본적인 예외 처리 구조
+```python
+try:
+    # 예외가 발생할 수 있는 코드
+    result = 10/0
+except ZeroDivisionError:
+    # 특정 예외 처리
+    print("0으로 나눌 수 없습니다.")
+except Exception as e:
+    print(f"예외 발생: {e}")
+else:
+    # 예외가 발생하지 않았을 때 실행
+    print("계산이 성공적으로 수행되었습니다.")
+finally:
+    # 예외 발생 여부와 관계없이 항상 실행
+    print("예외 처리 구문이 끝났습니다.")
+```
+
+2. 다중 예외 처리
+```python
+try:
+    x = int(input("숫자를 입력하세요: "))
+    result = 10 / x
+except ValueError:
+    print("유효한 숫자를 입력하세요.")
+except ZeroDivisionError:
+    print("0으로 나눌 수 없습니다.")
+```
+
+3. 예외 발생시키기
+    - ```raise``` 키워드를 사용하여 의도적으로 예외를 발생시킬 수 있습니다.
+    ```python
+    def validate_age(age):
+        if age < 0:
+            raise ValueError("나이는 음수일 수 없습니다.")
+        if age > 120:
+            raise ValueError("나이가 너무 많습니다.")
+        return age
+
+    try:
+        validate_age(-5)
+    except ValueError as e:
+        print(e)
+    ```
+
+4. 사용자 정의 예외:
+    - 필요에 따라 자신만의 예외 클래스를 정의할 수 있습니다.
+    ```python
+    class CustomError(Exception):
+        def __init__(self, message):
+            self.message = message
+            super().__init__(self.message)
+
+    try:
+        raise CustomError("이것은 사용자 정의 예외입니다.")
+    except CustomError as e:
+        print(e)
+    ```
+
+5. 예외 체이닝:
+    - 한 예외가 다른 예외를 직접적으로 발생시킬 때 사용합니다.
+    ```python
+    try:
+        try:
+            raise ValueError("원본 예외")
+        except ValueError as e:
+            raise RuntimeError("새로운 예외") from e
+    except RuntimeError as e:
+        print(f"예외 발생: {e}")
+        print(f"원인: {e.__cause__}")
+    ```
+
+6. 컨텍스트 관리자와 예외 처리
+    - ```with```문을 사용하여 리소스의 획득과 해제를 자동으로 관리할 수 있습니다.
+    ```python
+    class FileManager:
+        def __init__(self, filename):
+            self.filename = filename
+        
+        def __enter__(self):
+            self.file = open(self.filename, 'w')
+            return self.file
+        
+        def __exit__(self, exc_type, exc_value, traceback):
+            if self.file:
+                self.file.close()
+            if exc_type is not None:
+                print(f"예외 발생: {exc_type}, {exc_value}")
+            return True  # 예외를 처리했음을 나타냄
+
+    with FileManager('test.txt') as f:
+        f.write("Hello, World!")
+        raise ValueError("테스트 예외")
+    ```
+
+7. 예외 처리 모범 사례:
+    1. 구체적인 예외를 먼저 처리하고, 더 일반적인 예외를 나중에 처리하세요.
+    2. 빈 ```except```절을 사용하지 마세요. 모든 예외를 무시하면 디버깅이 어려워집니다.
+    3. 로깅을 활용하여 예외 정보를 기록하세요.
+    4. 예외 처리 블록 내에서 최소한의 코드만 실행하세요.
+    5. 예외를 사용하여 일반적인 흐름을 제어하지 마세요. 예외는 예외적인 상황을 위한 것입니다.
