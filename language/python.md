@@ -1869,3 +1869,147 @@ print(greet())  # 출력: <b><i>Hello, world!</i></b>
     MyClass.class_method()
     MyClass.static_method()
     ```
+
+### 동시성 프로그래밍 ###
+
+동시성 프로그래밍은 여러 작업을 동시에 실행하는 프로그래밍 패러다임입니다.
+Python에서는 주로 threading, multiprocessing, 그리고 asyncio를 사용하여 동시성을 구현합니다.
+
+1. 스레딩(Threading):
+    - 스레딩은 하나의 프로세스 내에서 여러 실행 흐름을 만드는 방법입니다.
+
+    1. 기본 스레드 생성:
+    ```python
+    import threading
+    import time
+
+    def worker(name):
+        print(f"Worker {name} starting")
+        time.sleep(2)
+        print(f"Worker {name} finished")
+
+    threads = []
+    for i in range(5):
+        t = threading.Thread(target=worker, args=(i,))
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    print("All workers finished")
+    ```
+
+    2. 스레드 동기화:
+    ```python
+    import threading
+
+    counter = 0
+    lock = threading.Lock()
+
+    def increment():
+        global counter
+        with lock:
+            for _ in range(100000):
+                counter += 1
+
+    threads = [threading.Thread(target=increment) for _ in range(5)]
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    print(f"Counter value: {counter}")
+    ```
+
+2. 멀티 프로세싱 (Multiprocessing):
+    - 멀티 프로세싱은 여러 프로세스를 생성하여 병렬 처리를 수행합니다. CPU 바운드 작업에 적합합니다.
+    ```python
+    import multiprocessing
+    import time
+
+    def worker(num):
+        print(f"Worker {num} starting")
+        time.sleep(2)
+        print(f"Worker {num} finished")
+
+    if __name__ == "__main__":
+        processes = []
+        for i in range(5):
+            p = multiprocessing.Process(target=worker, args=(i,))
+            processes.append(p)
+            p.start()
+
+        for p in processes:
+            p.join()
+
+        print("All workers finished")
+    ```
+
+3. 프로세스 풀(Process Pool):
+    - 여러 작업을 동시에 처리하기 위한 프로세스 풀을 생성할 수 있습니다.
+    ```python
+    from multiprocessing import Pool
+
+    def f(x):
+        return x*x
+
+    if __name__ == "__main__":
+        with Pool(5) as p:
+            print(p.map(f, [1, 2, 3, 4, 5]))
+    ```
+
+4. asyncio:
+    - asyncio는 Python의 비동기 프로그래밍을 위한 라이브러리입니다. I/O 바운드 작업에 특히 유용합니다.
+
+    1. 기본 asyncio 사용:
+    ```python
+    import asyncio
+
+    async def say_after(delay, what):
+        await asyncio.sleep(delay)
+        print(what)
+
+    async def main():
+        print("started at", time.strftime('%X'))
+        
+        await say_after(1, 'hello')
+        await say_after(2, 'world')
+        
+        print("finished at", time.strftime('%X'))
+
+    asyncio.run(main())
+    ```
+
+    2. 여러 작업을 동시에 실행:
+    ```python
+    import asyncio
+
+    async def fetch_data(url):
+        print(f"Start fetching {url}")
+        await asyncio.sleep(2)  # 네트워크 요청을 시뮬레이션
+        print(f"Finished fetching {url}")
+        return f"Data from {url}"
+
+    async def main():
+        urls = ['http://example.com', 'http://example.org', 'http://example.net']
+        tasks = [fetch_data(url) for url in urls]
+        results = await asyncio.gather(*tasks)
+        print(results)
+
+    asyncio.run(main())
+    ```
+
+5. 동시성 프로그래밍의 주의사항
+    1. 경쟁 조건 (Race Conditions): 여러 스레드나 프로세스가 동시에 같은 자원에 접근할 때 발생할 수 있는 문제
+    2. 데드락 (Deadlock): 두 개 이상의 작업이 서로 상대방의 작업이 끝나기를 기다리며 진행되지 않는 상태
+    3. 동기화 오버헤드: 과도한 동기화는 성능 저하를 일으킬 수 있음
+    4. 컨텍스트 스위칭: 스레드나 프로세스 간의 전환에 따른 비용
+
+6. 동시성 프로그래밍 선택 가이드
+
+    1. I/O 바운드 작업: asyncio 또는 threading
+    2. CPU 바운드 작업: multiprocessing 
+    3. 간단한 병렬 처리: concurrent.futures 모듈
