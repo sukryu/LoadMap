@@ -418,3 +418,158 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
                 return a + b;
             }
             ```
+
+
+### Java의 메서드 ###
+
+Java에서 메서드는 특정 작업을 수행하는 코드 블록입니다. 메서드는 객체 지향 프로그래밍의 핵심 구성 요소로, 코드의 재사용성과 모듈화를 촉진합니다.
+
+1. 메서드 정의
+    - 메서드의 기본 구조는 다음과 같습니다.
+    ```Java
+    접근제어자 반환타입 메서드이름(매개변수목록) {
+        // 메서드 본문
+        return 반환값; // 반환 타입이 void가 아닌 경우
+    }
+    ```
+
+    - 예시:
+    ```Java
+    public int add(int a, int b) {
+        return a + b;
+    }
+    ```
+
+2. 메서드 호출
+    - 객체의 메서드를 호출하거나 static 메서드를 직접 호출할 수 있습니다.
+    ```java
+    ClassName objectName = new ClassName();
+    int result = objectName.methodName(arguments);
+
+    // static 메서드의 경우
+    int result = ClassName.staticMethodName(arguments);
+    ```
+
+    - 예시:
+    ```Java
+    Caclurator calc = new Calculator();
+    int sum = calc.add(5, 3);
+
+    // static 메서드 호출
+    int max = Math.max(10, 20);
+    ```
+
+3. 매개변수:
+    - 메서드는 여러 개의 매개변수를 가질 수 있습니다.
+
+    1. 기본 타입 매개변수:
+        - 기본 데이터 타입은 값으로 전달됩니다. (pass by value).
+        ```Java
+        public void incrementNumber(int number) {
+            number++;
+        }
+
+        int x = 5;
+        incrementNumber(x);
+        System.out.println(x); // 출력: 5 (x의 값은 변경되지 않음)
+        ```
+
+    2. 참조 타입 매개변수
+        - 객체는 참조로 전달됩니다. (pass by reference).
+        ```Java
+        public void modifyList(List<Integer> numbers) {
+            numbers.add(100);
+        }
+
+        List<Integer> myList = new ArrayList<>();
+        myList.add(1);
+        modifyList(myList);
+        System.out.println(myList); // 출력: [1, 100]
+        ```
+
+    3. 가변 인자 (Varargs)
+        - 메서드가 임의의 개수의 인자를 받을 수 있게 합니다.
+        ```Java
+        public int sum(int... numbers) {
+            int total = 0;
+            for (int num : numbers) {
+                total += num;
+            }
+            return total;
+        }
+
+        int result = sum(1, 2, 3, 4, 5);
+        ```
+
+    4. 반환 값
+        - 메서드는 작업 결과를 반환할 수 있습니다.
+        ```Java
+        public double calculatorArea(double radius) {
+            return Math.PI * radius * radius;
+        }
+
+        double area = calculatorArea(5.0);
+        ```
+
+        - void 반환 타입은 메서드가 값을 반환하지 않음을 나타냅니다.
+        ```Java
+        public void printMessage(String message) {
+            System.out.println(message);
+        }
+        ```
+
+    5. 메서드 오버로딩
+        - 같은 이름의 메서드를 여러 개 정의할 수 있습니다. 단, 매개변수의 타입이나 개수가 달라야 합니다.
+        ```Java
+        public int add(int a, int b) {
+            return a + b;
+        }
+
+        public double add(double a, double b) {
+            return a + b;
+        }
+
+        public int add(int a, int b, int c) {
+            return a + b + c;
+        }
+        ```
+
+    6. 재귀 메서드
+        - 메서드가 자기 자신을 호출하는 것을 재귀라고 합니다.
+        ```Java
+        public int factorial(int n) {
+            if (n == 0 || n == 1) {
+                return 1;
+            }
+            return n * factorial(n - 1);
+        }
+        ```
+
+    7. static 메서드
+        - 클래스 레벨에서 호출할 수 있는 메서드입니다. 객체를 생성하지 않고도 사용할 수 있습니다.
+        ```Java
+        public class MathUtils {
+            public static int square(int number) {
+                return number * number;
+            }
+        }
+
+        int result = MathUtils.square(5);
+        ```
+
+    8. 접근 제어자
+        - 메서드의 가시성을 제어합니다.
+
+        - `public`: 어디서든 접근 가능
+        - `protected`: 같은 패키지 내에서, 그리고 다른 패키지의 자식 클래스에서 접근 가능.
+        - `default`: (package-private): 같은 패키지 내에서만 접근 가능
+        - `private`: 같은 클래스 내에서만 접근 가능.
+
+        ```Java
+        public class MyClass {
+            public void publicMethod() { }
+            protected void protectedMethod() { }
+            void defaultMethod() { }
+            private void privateMethod() { }
+        }
+        ```
