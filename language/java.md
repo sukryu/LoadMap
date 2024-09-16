@@ -573,3 +573,325 @@ Java에서 메서드는 특정 작업을 수행하는 코드 블록입니다. �
             private void privateMethod() { }
         }
         ```
+
+### 배열과 컬렉션 ###
+
+1. 배열 (Array):
+    - 배열은 같은 타입의 여러 변수를 하나의 이름으로 그룹화하여 관리하는 자료구조입니다.
+
+    1. 배열 선언과 초기화:
+    ```Java
+    // 선언만 하기
+    int[] numbers;
+
+    // 선언과 동시에 메모리 할당
+    int[] numbers = new int[5];
+
+    // 선언, 메모리 할당, 초기화를 동시에
+    int[] numbers = {1, 2, 3, 4, 5};
+
+    // 배열 크기 지정과 함께 초기화
+    int[] numbers = new int[]{1, 2, 3, 4, 5};
+    ```
+
+    2. 배열의 특징:
+        - 고정된 크기: 한번 생성된 배열의 크기는 변경할 수 없습니다.
+        - 인덱스 기반 접근: 0부터 시작하는 인덱스를 사용하여 요소에 접근합니다.
+        - 연속된 메모리 할당: 배열의 요소들은 메모리 상에 연속으로 저장됩니다.
+
+    3. 다차원 배열:
+        - Java는 다차원 배열을 지원합니다. 가장 일반적인 것은 2차원 배열입니다.
+        ```Java
+        int[][] matrix = new int[3][3];
+
+        // 비정방형 배열도 가능합니다
+        int[][] jaggedArray = new int[3][];
+        jaggedArray[0] = new int[2];
+        jaggedArray[1] = new int[3];
+        jaggedArray[2] = new int[4];
+        ```
+
+    4. 배열 복사:
+    ```Java
+    // System.arraycopy 사용
+    int[] source = {1, 2, 3, 4, 5};
+    int[] destination = new int[5];
+    System.arraycopy(source, 0, destination, 0, source.length);
+
+    // Arrays.copyOf 사용
+    int[] copy = Arrays.copyOf(source, source.length);
+    ```
+
+    5. 배열 정렬과 검색
+    ```Java
+    int[] numbers = {5, 2, 8, 1, 9};
+    Arrays.sort(numbers);
+    int index = Arrays.binarySearch(numbers, 8);
+    ```
+
+    6. 동적 크기 배열 생성
+        - Java에서는 C언어와 달리 직접적인 동적 메모리 할당을 사용하지 않지만, 다음과 같은 방법으로 동적 크기의 배열을 다룰 수 있습니다.
+        
+        1. ArrayList 사용
+        - ArrayList는 동적으로 크기가 조절되는 배열 기반의 리스트입니다.
+        ```Java
+        import java.util.ArrayList;
+        import java.util.Scanner;
+
+        public class DynamicArrayExample {
+            public static void main(String[] args) {
+                ArrayList<Integer> numbers = new ArrayList<>();
+                Scanner scanner = new Scanner(System.in);
+
+                System.out.println("숫자를 입력하세요. 입력을 마치려면 -1을 입력하세요:");
+
+                while (true) {
+                    int input = scanner.nextInt();
+                    if (input == -1) break;
+                    numbers.add(input);
+                }
+
+                System.out.println("입력받은 숫자들: " + numbers);
+                System.out.println("개수: " + numbers.size());
+
+                scanner.close();
+            }
+        }
+        ```
+
+        2. 배열 재할당:
+            - 기본 배열을 사용하면서 필요에 따라 크기를 늘리는 방법입니다.
+            ```Java
+            import java.util.Arrays;
+            import java.util.Scanner;
+
+            public class DynamicArrayReallocation {
+                public static void main(String[] args) {
+                    int[] numbers = new int[5];  // 초기 크기 5로 시작
+                    int size = 0;
+                    Scanner scanner = new Scanner(System.in);
+
+                    System.out.println("숫자를 입력하세요. 입력을 마치려면 -1을 입력하세요:");
+
+                    while (true) {
+                        int input = scanner.nextInt();
+                        if (input == -1) break;
+
+                        if (size == numbers.length) {
+                            // 배열이 가득 찼을 때 크기를 2배로 늘림
+                            numbers = Arrays.copyOf(numbers, numbers.length * 2);
+                        }
+
+                        numbers[size++] = input;
+                    }
+
+                    // 실제 사용된 크기로 배열을 조정
+                    numbers = Arrays.copyOf(numbers, size);
+
+                    System.out.println("입력받은 숫자들: " + Arrays.toString(numbers));
+                    System.out.println("개수: " + numbers.length);
+
+                    scanner.close();
+                }
+            }
+            ```
+
+    2. 컬렉션 프레임워크 (Collection Framework)
+        - Java 컬렉션 프레임워크는 데이터를 저장하고 처리하는 다양한 클래스와 인터페이스를 제공합니다.
+
+        1. List 인터페이스
+            - List는 순서가 있는 데이터의 집합을 나타내며, 중복을 허용합니다.
+            
+            1. ArrayList:
+                - 내부적으로 동적 배열을 사용하여 구현됩니다.
+                ```Java
+                List<String> list = new ArrayList<>();
+                list.add("Apple");
+                list.add("Banana");
+                list.add(1, "Cherry"); // 인덱스 1에 삽입
+
+                String fruit = list.get(1); // "Cherry" 반환
+                list.remove(0); // "Apple" 제거
+                boolean contains = list.contains("Banana"); // true
+                ```
+
+                - 특징:
+                    - 요소의 추가/삭제: O(1) 평균, O(n) 최악
+                    - 요소 접근: O(1)
+                    - 메모리 사용: 연속된 메모리 공간 사용
+
+            
+            2. LinkedList
+                - 이 중 연결 리스트로 구현됩니다.
+                ```Java
+                LinkedList<String> linkedList = new LinkedList<>();
+                linkedList.addFirst("First");
+                linkedList.addLast("Last");
+                linkedList.add("Middle");
+
+                String first = linkedList.getFirst();
+                String last = linkedList.removeLast();
+                ```
+
+                - 특징:
+                    - 요소의 추가/삭제: O(1)
+                    - 요소 접근: O(n)
+                    - 메모리 사용: 각 노드가 데이터와 포인터를 가짐.
+        
+        2. Set 인터페이스
+            - Set은 중복을 허용하지 않는 데이터의 집합을 나타냅니다.
+
+            1. HashSet
+                - 해시 테이블을 사용하여 구현됩니다.
+                ```Java
+                Set<Integer> set = new HashSet<>();
+                set.add(1);
+                set.add(2);
+                set.add(1); // 무시됨
+
+                boolean contains = set.contains(2); // true
+                set.remove(1);
+                ```
+
+                - 특징:
+                    - 요소의 추가/삭제/검색: O(1) 평균
+                    - 순서를 보장하지 않음.
+            
+            2. TreeSet
+                - 이진 검색 트리 (Red-Black Tree)로 구현됩니다.
+                ```Java
+                TreeSet<String> treeSet = new TreeSet<>();
+                treeSet.add("C");
+                treeSet.add("A");
+                treeSet.add("B");
+
+                System.out.println(treeSet); // [A, B, C] 출력
+                String first = treeSet.first(); // "A"
+                String last = treeSet.last(); // "C"
+                ```
+
+                - 특징:
+                    - 요소의 추가/삭제/검색: O(log n)
+                    - 정렬된 순서 유지
+
+            
+            3. LinkedHashSet
+                - HashSet과 LinkedList를 결합한 형태입니다.
+                ```Java
+                LinkedHashSet<String> linkedHashSet = new LinkedHashSet<>();
+                linkedHashSet.add("B");
+                linkedHashSet.add("A");
+                linkedHashSet.add("C");
+
+                System.out.println(linkedHashSet); // [B, A, C] 출력 (삽입 순서 유지)
+                ```
+
+                - 특징:
+                    - 요소의 추가/삭제/검색: O(1)
+                    - 삽입 순서 유지
+                
+            
+        3. Map 인터페이스
+            - Map은 키-값 쌍으로 이루어진 데이터의 집합을 나타냅니다.
+
+            1. HashMap:
+            ```Java
+            Map<String, Integer> map = new HashMap<>();
+            map.put("One", 1);
+            map.put("Two", 2);
+
+            int value = map.get("One"); // 1
+            map.remove("Two");
+
+            for (Map.Entry<String, Integer> entry : map.entrySet()) {
+                System.out.println(entry.getKey() + ": " + entry.getValue());
+            }
+            ```
+            - 특징:
+                - 키와 값 쌍의 추가/삭제/검색: O(1) 평균
+                - 순서를 보장하지 않음.
+            
+
+            2. TreeMap
+            ```Java
+            TreeMap<String, Integer> treeMap = new TreeMap<>();
+            treeMap.put("C", 3);
+            treeMap.put("A", 1);
+            treeMap.put("B", 2);
+
+            System.out.println(treeMap); // {A=1, B=2, C=3} 출력
+            String firstKey = treeMap.firstKey(); // "A"
+            Map.Entry<String, Integer> lastEntry = treeMap.lastEntry(); // "C"=3
+            ```
+
+            - 특징:
+                - 키와 값 쌍의 추가/삭제/검색: O(log n)
+                - 키를 기준으로 정렬된 순서 유지
+            
+
+            3. LinkedHashMap
+                - 삽입 순서 또는 접근 순서를 유지하는 HashMap입니다.
+                ```Java
+                LinkedHashMap<String, Integer> linkedHashMap = new LinkedHashMap<>(16, 0.75f, true);
+                linkedHashMap.put("A", 1);
+                linkedHashMap.put("B", 2);
+                linkedHashMap.put("C", 3);
+
+                linkedHashMap.get("A"); // "A"를 맨 뒤로 이동
+
+                System.out.println(linkedHashMap); // {B=2, C=3, A=1} 출력
+                ```
+
+                - 특징:
+                    - 요소의 추가/삭제/검색: O(1)
+                    - 삽입 순서 또는 접근 순서 유지 가능.
+
+        4. Queue 인터페이스
+            - Queue는 선입선출(FIFO) 구조의 데이터 집합을 나타냅니다.
+
+            1. LinkedList(Queue로 사용)
+            ```Java
+            Queue<String> queue = new LinkedList<>();
+            queue.offer("First");
+            queue.offer("Second");
+
+            String first = queue.poll(); // "First" 반환 및 제거
+            String peek = queue.peek(); // "Second" 반환 (제거하지 않음)
+            ```
+
+            2. PriorityQueue
+                - 요소의 우선순위에 따라 정렬되는 큐입니다.
+                ```Java
+                PriorityQueue<Integer> pq = new PriorityQueue<>();
+                pq.offer(3);
+                pq.offer(1);
+                pq.offer(2);
+
+                System.out.println(pq.poll()); // 1 출력
+                System.out.println(pq.poll()); // 2 출력
+                ```
+
+        5. Deque 인터페이스
+            - Deque(Double Enabled Queue)는 양쪽 끝에서 삽입과 삭제가 가능한 자료구조입니다.
+            ```Java
+            Deque<String> deque = new ArrayDeque<>();
+            deque.addFirst("First");
+            deque.addLast("Last");
+
+            String first = deque.removeFirst();
+            String last = deque.removeLast();
+            ```
+
+        6. Collections 유틸리티 클래스
+            - `Collections`클래스는 컬렉션을 다루는 유용한 정적 메서드들을 제공합니다.
+            ```Java
+            List<Integer> list = new ArrayList<>(Arrays.asList(3, 1, 4, 1, 5, 9));
+
+            Collections.sort(list); // 정렬
+            Collections.reverse(list); // 역순으로 변경
+            int max = Collections.max(list); // 최대값
+            int frequency = Collections.frequency(list, 1); // 1의 출현 빈도
+
+            List<Integer> synchronizedList = Collections.synchronizedList(list); // 동기화된 리스트 생성
+            List<Integer> unmodifiableList = Collections.unmodifiableList(list); // 수정 불가능한 리스트 생성
+            ```
