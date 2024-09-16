@@ -83,7 +83,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
 1. 변수: 변수는 데이터를 저장하는 컨테이너입니다. Java에서 변수를 선언할 때는 데이터 타입을 명시해야 합니다.
     1. 변수 선언: 기본 형식: `데이터 타입 변수명;`
     - 예시:
-    ```java
+    ```Java
     int age;
     double salary;
     String name;
@@ -91,7 +91,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
 
     2. 변수 초기화: 변수를 선언함과 동시에 값을 할당할 수 있습니다.
     - 예시:
-    ```java
+    ```Java
     int age = 25;
     double salary = 50000.50;
     String name = "John Doe";
@@ -173,7 +173,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
         1. 자동 타입 변환 (묵시적 형변환)
             - 작은 크기의 타입에서 큰 크기의 타입으로 자동으로 변환됩니다.
             - 예:
-            ```java
+            ```Java
             int intValue = 100;
             long longValue = intValue; // int에서 long으로 자동 변환
             ```
@@ -181,7 +181,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
         2. 강제 타입 변환(명시적 형변환)
             - 큰 크기의 타입에서 작은 크기의 타입으로 변환할 때 사용합니다. 데이터 손실의 가능성이 있습니다.
             - 예:
-            ```java
+            ```Java
             long longValue = 100;
             int intValue = (int) longValue; // long에서 int로 강제 변환
             ```
@@ -199,7 +199,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
         - boolean -> Boolean
 
         -예:
-        ```java
+        ```Java
         Integer num = 100; // 오토박싱
         int value = num; // 언박싱
         ```
@@ -207,7 +207,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
     5. 상수 (Constants)
         - final 키워드를 사용하여 상수를 선언합니다. 상수는 한 번 초기화되면 값을 변경할 수 없습니다.
         - 예:
-        ```java
+        ```Java
         final double PI = 3.14159;
         ```
 
@@ -221,14 +221,14 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     1. if문
         - 가장 기본적인 조건문입니다.
-        ```java
+        ```Java
         if (condition) {
         // 조건이 참일 때 실행되는 코드
         }
         ```
 
         - 예시:
-        ```java
+        ```Java
         int age = 18;
         if (age >= 18) {
             System.out.println("성인입니다.");
@@ -236,7 +236,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         ```
     2. if-else 문
         - 조건이 거짓일 때 실행할 코드를 지정할 수 있습니다.
-        ```java
+        ```Java
         if (condition) {
             // 조건이 참일 떄 실행할 코드
         } else {
@@ -245,7 +245,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         ```
 
         - 예시:
-        ```java
+        ```Java
         int age = 16;
         if (age >= 18) {
             System.out.println("성인입니다.");
@@ -256,7 +256,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     3. if-else if-else 문
         - 여러 조건을 순차적으로 검사할 수 있습니다.
-        ```java
+        ```Java
         if (condition1) {
             // 조건1이 참일 때 실행되는 코드
         } else if (condition2) {
@@ -267,7 +267,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         ```
 
         - 예시:
-        ```java
+        ```Java
         int score = 85;
         if (score >= 90) {
             System.out.println("A 등급");
@@ -282,7 +282,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     4. switch 문
         - 여러 가지 경우 중 하나를 선택하여 실행합니다.
-        ```java
+        ```Java
         switch (expression) {
             case value1:
                 // value1에 해당하는 코드
@@ -297,7 +297,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         ```
 
         -예시:
-        ```java
+        ```Java
         int dayOfWeek = 3;
         switch (dayOfWeek) {
             case 1:
@@ -320,14 +320,14 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     1. for 루프
         - 특정 횟수만큼 반복할 때 주로 사용합니다.
-        ```java
+        ```Java
         for (initialization; condition; update) {
             // 반복 실행할 코드
         }
         ```
 
         - 예시:
-        ```java
+        ```Java
         for (int i = 0; i < 5; i++) {
             System.out.println("반복 " + i);
         }
@@ -335,14 +335,14 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     2. while 루프
         - 조건이 참인 동안 계속해서 반복합니다.
-        ```java
+        ```Java
         while (contidion) {
             // 반복 실행할 코드
         }
         ```
 
         - 예시:
-        ```java
+        ```Java
         int count = 0;
         while (count < 5) {
             System.out.println("반복 " + count);
@@ -352,14 +352,14 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     3. do-while 루프
         - 코드 블록을 최소한 한 번 실행한 후, 조건이 참인 동안 계속 반복합니다.
-        ```java
+        ```Java
         do {
             // 반복 실행할 코드
         } while (condition);
         ```
 
         - 예시:
-        ```java
+        ```Java
         int count = 0;
         do {
             System.out.println("반복 " + count);
@@ -369,14 +369,14 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
 
     4. 향상된 for 루프 (for-each)
         - 배열이나 컬렉션의 모든 요소를 순회할 때 사용합니다.
-        ```java
+        ```Java
         for (elementType element : collection) {
             // 각 요소에 대해 실행할 코드
         }
         ```
 
         - 예시:
-        ```java
+        ```Java
         int[] numbers = {1, 2, 3, 4, 5};
         for (int num : numbers) {
             System.out.println(num);
@@ -389,7 +389,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         1. break 문:
             - 반복문이나 switch 문을 즉시 종료합니다.
             - 예시:
-            ```java
+            ```Java
             for (int i = 0; i < 10; i++) {
                 if (i == 5) {
                     break;
@@ -401,7 +401,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         2. continue 문:
             - 현재 반복을 건너뛰고 다음 반복으로 진행합니다.
             - 예시:
-            ```java
+            ```Java
             for (int i = 0; i < 5; i++) {
                 if (i == 2) {
                     continue;
@@ -413,7 +413,7 @@ Java의 제어 구조는 프로그램의 실행 흐름을 제어하는 데 사�
         3. return 문:
             - 메서드의 실행을 종료하고 결과를 반환합니다.
             - 예시:
-            ```java
+            ```Java
             public int sum(int a, int b) {
                 return a + b;
             }
