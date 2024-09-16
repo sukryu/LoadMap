@@ -83,6 +83,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
 1. 변수: 변수는 데이터를 저장하는 컨테이너입니다. Java에서 변수를 선언할 때는 데이터 타입을 명시해야 합니다.
     1. 변수 선언: 기본 형식: `데이터 타입 변수명;`
     - 예시:
+
     ```Java
     int age;
     double salary;
@@ -91,6 +92,7 @@ Java는 지속적으로 발전해왔으며, 주요 버전별 특징은 다음과
 
     2. 변수 초기화: 변수를 선언함과 동시에 값을 할당할 수 있습니다.
     - 예시:
+
     ```Java
     int age = 25;
     double salary = 50000.50;
@@ -2115,3 +2117,144 @@ List<String> stringList = asList("a", "b", "c");
         1. 복잡성 증가
         2. 제네릭 타입 소거로 인한 런타임 정보 부재
         3. 기본 타입 사용 불가 (래퍼 클래스 사용 필요)
+
+### 람다 표현식과 함수형 인터페이스 ###
+
+Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 함수형 프로그래밍의 개념을 도입하여 더 간결하고
+표현력 있는 코드를 작성할 수 있게 해줍니다.
+
+1. 람다 표현식
+    - 람다 표현식은 익명 함수를 간단히 표현하는 방법입니다.
+
+    1. 기본 문법
+    ```Java
+    (parameters) -> expression
+    ```
+
+    또는 
+
+    ```Java
+    (parameters) -> { statements; }
+    ```
+
+    2. 예제
+    ```Java
+    // 단일 매개변수, 단일 표현식
+    Runnable r = () -> System.out.println("Hello World");
+
+    // 복수 매개변수, 복수 문장
+    Comparator<String> c = (s1, s2) -> {
+        System.out.println("Comparing strings");
+        return s1.compareTo(s2);
+    };
+    ```
+
+2. 함수형 인터페이스
+    - 함수형 인터페이스는 단 하나의 추상 메서드만을 가진 인터페이스입니다. 람다 표현식은 이러한 함수형 인터페이스의 인스턴스를 생성하는 데 사용됩니다.
+
+    1. `@FunctionalInterface` 어노테이션
+    ```Java
+    @FunctionalInterface
+    public interface MyFunction {
+        void apply(String str);
+    }
+    ```
+
+    2. 주요 내장 함수형 인터페이스
+
+        1. Function<T,R>:T 타입을 인자로 받아 R 타입을 변환
+        ```Java
+        Function<String, Integer> strLength = s -> s.length();
+        ```
+
+        2. Predicate<T>:T 타입을 인자로 받아 boolean을 반환
+        ```Java
+        Predicate<String> isEmpty = s -> s.isEmpty();
+        ```
+
+        3. Consumer<T>:T 타입을 인자로 받아 처리하지만 반환값은 없음
+        ```Java
+        Consumer<String> printer = s -> System.out.println(s);
+        ```
+
+        4. Supplier<T>: 인자 없이 T 타입의 결과를 제공
+        ```Java
+        Supplier<Double> randomValue = () -> Math.random();
+        ```
+
+3. 메서드 참조
+    - 메서드 참조는 람다 표현식을 더 간단히 표현하는 방법입니다.
+
+    1. 정적 메서드 참조
+    ```Java
+    Function<String, Integer> parseIntLambda = s -> Integer.parseInt(s);
+    Function<String, Integer> parseIntReference = Integer::parseInt;
+    ```
+
+    2. 인스턴스 메서드 참조
+    ```Java
+    String str = "Hello";
+    Predicate<String> startsWithLambda = s -> str.startsWith(s);
+    Predicate<String> startsWithReference = str::startsWith;
+    ```
+
+    3. 생성자 참조
+    ```Java
+    Supplier<List<String>> listSupplier = ArrayList::new;
+    ```
+
+4. 람다 표현식의 변수 캡처
+    - 람다 표현식은 외부 범위의 변수를 캡처할 수 있습니다. 그러나 캡처된 변수는 실질적으로 final이어야 합니다.
+    ```Java
+    int factor = 2;
+    Function<Integer, Integer> multiplier = n -> n * factor;
+    // factor = 3; // 에러: factor는 실질적으로 final이어야 함
+    ```
+
+5. 스트림 API와의 결합
+    - 람다 표현식은 스트림 API와 함께 사용될 때 그 힘을 발휘합니다.
+    ```Java
+    List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+    names.stream()
+        .filter(name -> name.startsWith("A"))
+        .map(String::toUpperCase)
+        .forEach(System.out::println);
+    ```
+
+6. 효과적인 람다 사용
+    1. 가독성
+        - 람다 표현식은 코드를 간결하게 만들지만, 너무 복잡한 로직을 람다로 표현하면 가독성이 떨어질 수 있습니다.
+        ```Java
+        // 좋음
+        Predicate<String> isLongString = s -> s.length() > 10;
+
+        // 나쁨 (복잡한 로직)
+        Predicate<String> complexCheck = s -> {
+            if (s.startsWith("A")) {
+                return s.length() > 10 && s.contains("x");
+            } else {
+                return s.length() > 5 && s.contains("y");
+            }
+        };
+        ```
+
+    2. 디버깅
+        - 람다 표현식은 디버깅이 어려울 수 있으므로, 복잡한 로직은 별도의 메서드로 추출하는 것이 좋습니다.
+
+    3. 예외 처리
+        - 람다 표현식에서 예외를 처리할 때는 주의가 필요합니다.
+        ```Java
+        Function<String, Integer> safeParseInt = s -> {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        };
+        ```
+
+7. 함수형 프로그래밍의 장점
+    1. 간결성: 코드가 더 간결해지고 가독성이 향상됩니다.
+    2. 불변성: 함수형 프로그래밍은 불변성을 강조하여 부작용을 줄입니다.
+    3. 병렬 처리: 함수형 스타일은 병렬 처리에 더 작합합니다.
+    4. 지연 연산: 필요한 시점까지 연산을 미룰 수 있어 효과적입니다.
