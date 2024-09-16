@@ -895,3 +895,533 @@ Java에서 메서드는 특정 작업을 수행하는 코드 블록입니다. �
             List<Integer> synchronizedList = Collections.synchronizedList(list); // 동기화된 리스트 생성
             List<Integer> unmodifiableList = Collections.unmodifiableList(list); // 수정 불가능한 리스트 생성
             ```
+
+
+### Java의 객제지향 프로그래밍 ###
+
+1. 클래스와 객체:
+    1. 클래스:
+        - 클래스는 객체의 속성(필드)과 행동(메서드)을 정의하는 템플릿입니다.
+        ```Java
+        public class Car {
+            // 인스턴스 변수 (객체의 속성)
+            private String model;
+            private int year;
+            private double speed;
+
+            // 클래스 변수 (모든 Car 객체가 공유)
+            private static int totalCars = 0;
+
+            // 생성자
+            public Car(String model, int year) {
+                this.model = model;
+                this.year = year;
+                this.speed = 0;
+                totalCars++;
+            }
+
+            // 인스턴스 메서드
+            public void accelerate(double amount) {
+                speed += amount;
+                System.out.println(model + " is accelerating. Current speed: " + speed);
+            }
+
+            // 정적 메서드
+            public static int getTotalCars() {
+                return totalCars;
+            }
+
+            // Getter와 Setter 메서드
+            public String getModel() { return model; }
+            public void setModel(String model) { this.model = model; }
+            public int getYear() { return year; }
+            public void setYear(int year) { this.year = year; }
+        }
+        ```
+    2. 객체:
+        - 객체는 클래스의 인스턴스입니다. 각 객체는 고유한 속성 값을 가집니다.
+        ```Java
+        Car myCar = new Car("Tesla Model 3", 2023);
+        Car yourCar = new Car("Toyota Camry", 2022);
+
+        myCar.accelerate(10);
+        yourCar.accelerate(5);
+
+        System.out.println("Total cars created: " + Car.getTotalCars());
+        ```
+
+2. 캡슐화:
+    - 캡슐화는 데이터(필드)와 그 데이터를 처리하는 메서드를 하나로 묶고, 데이터에 대한 직접 접근을 제한하는 것입니다.
+    ```Java
+    public class BankAccount {
+        private double balance;
+        private String accountNumber;
+
+        public BankAccount(String accountNumber, double initialBalance) {
+            this.accountNumber = accountNumber;
+            if (initialBalance > 0) {
+                this.balance = initialBalance;
+            }
+        }
+
+        public void deposit(double amount) {
+            if (amount > 0) {
+                balance += amount;
+                System.out.println("Deposited: " + amount);
+            } else {
+                System.out.println("Invalid deposit amount");
+            }
+        }
+
+        public void withdraw(double amount) {
+            if (amount > 0 && balance >= amount) {
+                balance -= amount;
+                System.out.println("Withdrawn: " + amount);
+            } else {
+                System.out.println("Invalid withdrawal amount or insufficient funds");
+            }
+        }
+
+        public double getBalance() {
+            return balance;
+        }
+
+        // accountNumber는 setter를 제공하지 않아 변경 불가능
+        public String getAccountNumber() {
+            return accountNumber;
+        }
+    }
+    ```
+
+    - 캡슐화의 이점:
+        1. 데이터 은닉: 객체의 내부 상태를 외부로부터 보호합니다.
+        2. 유연성: 내부 구현을 변경해도 외부 코드에 영향을 주지 않습니다.
+        3. 유효성 검사: setter 메서드에서 데이터의 유효성을 검사할 수 있습니다.
+
+    
+3. 상속:
+    - 상속은 기존 클래스(부모 클래스)의 속성과 메서드를 새로운 클래스(자식 클래스)가 재사용할 수 있게 해줍니다.
+    ```Java
+    public class Vehicle {
+        protected String brand;
+        protected int year;
+
+        public Vehicle(String brand, int year) {
+            this.brand = brand;
+            this.year = year;
+        }
+
+        public void start() {
+            System.out.println("The vehicle is starting");
+        }
+
+        public void stop() {
+            System.out.println("The vehicle is stopping");
+        }
+    }
+
+    public class Car extends Vehicle {
+        private int numberOfDoors;
+
+        public Car(String brand, int year, int numberOfDoors) {
+            super(brand, year);  // 부모 클래스의 생성자 호출
+            this.numberOfDoors = numberOfDoors;
+        }
+
+        @Override
+        public void start() {
+            System.out.println("The car is starting its engine");
+        }
+
+        public void honk() {
+            System.out.println("Beep beep!");
+        }
+    }
+
+    public class Bicycle extends Vehicle {
+        private int numberOfGears;
+
+        public Bicycle(String brand, int year, int numberOfGears) {
+            super(brand, year);
+            this.numberOfGears = numberOfGears;
+        }
+
+        @Override
+        public void start() {
+            System.out.println("The bicycle is ready to ride");
+        }
+
+        public void pedal() {
+            System.out.println("Pedaling the bicycle");
+        }
+    }
+    ```
+
+    - 상속의 이점:
+        1. 코드 재사용: 공통 기능을 부모 클래스에 정의하여 중복을 줄입니다.
+        2. 확장성: 기존 클래스를 수정하지 않고 새로운 기능을 추가할 수 있습니다.
+        3. 다형성: 부모 타입의 참조 변수로 자식 객체를 다룰 수 있습니다.
+
+4. 다형성
+    - 다형성은 같은 타입이지만 실행 결과가 다양한 객체를 이용할 수 있는 성질을 말합니다.
+    ```Java
+    Vehicle vehicle1 = new Car("Toyota", 2023, 4);
+    Vehicle vehicle2 = new Bicycle("Trek", 2022, 21);
+
+    vehicle1.start();  // "The car is starting its engine"
+    vehicle2.start();  // "The bicycle is ready to ride"
+
+    // 다운캐스팅
+    if (vehicle1 instanceof Car) {
+        Car car = (Car) vehicle1;
+        car.honk();  // "Beep beep!"
+    }
+
+    if (vehicle2 instanceof Bicycle) {
+        Bicycle bicycle = (Bicycle) vehicle2;
+        bicycle.pedal();  // "Pedaling the bicycle"
+    }
+    ```
+
+    - 다형성의 이점:
+        1. 유연성: 코드를 더 유연하게 만들어 재사용성을 높입니다.
+        2. 확장성: 새로운 클래스를 추가하기 쉽습니다.
+        3. 유지보수성: 코드 변경의 영향을 최소화합니다.
+
+5. 추상화:
+    - 추상화는 공통적인 속성과 기능을 추출하여 정의하는 것을 말합니다.
+    ```Java
+    public abstract class Shape {
+        protected String color;
+
+        public Shape(String color) {
+            this.color = color;
+        }
+
+        // 추상 메서드 - 하위 클래스에서 반드시 구현해야 함
+        public abstract double calculateArea();
+
+        // 일반 메서드
+        public void displayColor() {
+            System.out.println("This shape is " + color);
+        }
+    }
+
+    public class Circle extends Shape {
+        private double radius;
+
+        public Circle(String color, double radius) {
+            super(color);
+            this.radius = radius;
+        }
+
+        @Override
+        public double calculateArea() {
+            return Math.PI * radius * radius;
+        }
+    }
+
+    public class Rectangle extends Shape {
+        private double width;
+        private double height;
+
+        public Rectangle(String color, double width, double height) {
+            super(color);
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public double calculateArea() {
+            return width * height;
+        }
+    }
+    ```
+
+    - 추상화의 이점:
+        1. 코드 재사용: 공통 기능을 추상 클래스에 정의하여 중복을 줄입니다.
+        2. 강제 구현: 추상 메서드를 통해 하위 클래스가 특정 기능을 반드시 구현하도록 강제할 수 있습니다.
+        3. 설계의 유연성: 구체적인 구현을 하위 클래스에 위임하여 다양한 구현이 가능합니다.
+
+6. 인터페이스:
+    - 인터페이스는 메서드의 시그니처만을 정의하고, 구현은 이를 구현하는 클래스에 맡깁니다.
+    ```Java
+    public interface Flyable {
+        void takeOff();
+        void fly();
+        void land();
+    }
+
+    public interface Swimmable {
+        void swim();
+        void dive();
+    }
+
+    public class Bird implements Flyable {
+        @Override
+        public void takeOff() {
+            System.out.println("Bird is taking off");
+        }
+
+        @Override
+        public void fly() {
+            System.out.println("Bird is flying");
+        }
+
+        @Override
+        public void land() {
+            System.out.println("Bird is landing");
+        }
+    }
+
+    public class Duck implements Flyable, Swimmable {
+        @Override
+        public void takeOff() {
+            System.out.println("Duck is taking off from water");
+        }
+
+        @Override
+        public void fly() {
+            System.out.println("Duck is flying");
+        }
+
+        @Override
+        public void land() {
+            System.out.println("Duck is landing on water");
+        }
+
+        @Override
+        public void swim() {
+            System.out.println("Duck is swimming");
+        }
+
+        @Override
+        public void dive() {
+            System.out.println("Duck is diving");
+        }
+    }
+    ```
+
+    - 인터페이스의 이점:
+        1. 다중 구현: 클래스는 여러 인터페이스를 구현할 수 있어 유연성이 높습니다.
+        2. 계약 정의: 인터페이스는 클래스가 구현해야 할 메서드를 정의합니다.
+        3. 노슨한 결합: 인터페이스를 통해 객체 간의 관계를 정의하면 구현체의 교체가 용이합니다.
+
+7. 패키지:
+    - 패키지는 관련된 클래스와 인터페이스를 그룹화하는 메커니즘입니다.
+    
+    1. 패키지 생성 및 사용
+    ```Java
+    // 파일: com/example/myapp/MyClass.java
+    package com.example.myapp;
+
+    public class MyClass {
+        // 클래스 내용
+    }
+
+    // 다른 파일에서 사용
+    import com.example.myapp.MyClass;
+    // 또는
+    import com.example.myapp.*;
+    ```
+
+    2. 패키지의 이점:
+        1. 이름 충돌 방지: 동일한 이름의 클래스를 다른 패키지에 둘 수 있습니다.
+        2. 코드 구조화: 관련된 클래스들을 논리적으로 그룹화합니다.
+        3. 접근 제어: 패키지 레벨의 접근 제어를 제공합니다.
+
+    3. Built-in 패키지
+        - Java는 많은 built-in 패키지를 제공합니다.
+
+        - `java.lang`: 기본 클래스들(자동으로 import됨)
+        - `java.util`: 유틸리티 클래스들 (Collections 등)
+        - `java.io`: 입출력 관련 클래스들
+
+8. 접근 제어자 (Access Modifiers)
+    - 접근 제어자는 클래스, 변수, 메서드, 생성자의 접근 범위를 제어합니다.
+
+    1. 종류와 범위
+        - `public`: 어디서든 접근 가능
+        - `protected`: 같은 패키지 내에서, 그리고 다른 패키지의 자식 클래스에서 접근 가능
+        - `default`: (package-private): 같은 패키지 내에서만 접근 가능
+        - `private`: 같은 클래스 내에서만 접근 가능
+
+    2. 사용 예시:
+    ```Java
+    public class AccessExample {
+        public int publicVar;
+        protected int protectedVar;
+        int defaultVar;
+        private int privateVar;
+
+        public void publicMethod() { }
+        protected void protectedMethod() { }
+        void defaultMethod() { }
+        private void privateMethod() { }
+    }
+    ```
+
+    3. 접근 제어자의 중요성
+        1. 캡슐화 강화: 내부 구현을 숨기고 필요한 부 분만 노출
+        2. 유지보수성 향상: 외부에서의 직접적인 데이터 조작 방지
+        3. 유연성 증가: 내부 구현을 변경해도 외부 코드에 영향을 주지 않음.
+
+9. static 키워드
+    - `static` 키워드는 클래스 레벨의 멤버를 정의합니다. 이는 객체 생성 없이 사용할 수 있는 멤버를 만듭니다.
+
+    1. static 변수
+    ```Java
+    public class Counter {
+        private static int count = 0;
+
+        public Counter() {
+            count++;
+        }
+
+        public static int getCount() {
+            return count;
+        }
+    }
+
+    // 사용
+    System.out.println(Counter.getCount()); // 0
+    Counter c1 = new Counter();
+    Counter c2 = new Counter();
+    System.out.println(Counter.getCount()); // 2
+    ```
+
+    2. static 메서드
+    ```Java
+    public class MathUtils {
+        public static int add(int a, int b) {
+            return a + b;
+        }
+    }
+
+    // 사용
+    int sum = MathUtils.add(5, 3);
+    ```
+
+    3. static 블록:
+        - 클래스가 로드될 때 한 번만 실행되는 초기화 블록입니다.
+        ```Java
+        public class StaticBlockExample {
+            static {
+                System.out.println("This is a static initialization block.");
+            }
+        }
+        ```
+
+    4. static import
+        - static 멤버를 직접 참소할 수 있게 해줍니다.
+        ```Java
+        import static java.lang.Math.PI;
+        import static java.lang.Math.sqrt;
+
+        public class StaticImportExample {
+            public void printCircleArea(double radius) {
+                System.out.println(PI * radius * radius);
+            }
+
+            public double calculateHypotenuse(double a, double b) {
+                return sqrt(a*a + b*b);
+            }
+        }
+        ```
+
+10. final 키워드:
+    - `fianl`키워드는 엔티티를 "변경할 수 없게" 만듭니다.
+
+    1. final 변수:
+        - 값을 한 번만 할당할 수 있는 상수를 만듭니다.
+        ```Java
+        public class FinalVariableExample {
+            private final int CONSTANT = 100;
+            private final String NAME;
+
+            public FinalVariableExample(String name) {
+                this.NAME = name;  // 생성자에서 초기화
+            }
+        }
+        ```
+
+    2. final 메서드
+        - 오버라이딩을 금지합니다.
+        ```Java
+        public class Parent {
+            public final void cannotOverride() {
+                System.out.println("This method cannot be overridden");
+            }
+        }
+
+        public class Child extends Parent {
+            // 컴파일 에러: Cannot override the final method from Parent
+            // public void cannotOverride() { }
+        }
+        ```
+
+    3. final 클래스
+        - 상속을 금지합니다.
+        ```Java
+        public final class FinalClass {
+            // 이 클래스는 상속될 수 없습니다.
+        }
+
+        // 컴파일 에러: Cannot inherit from final FinalClass
+        // public class SubClass extends FinalClass { }
+        ```
+
+    4. final의 이점:
+        1. 불변성 보장: 데이터의 무결성을 유지
+        2. 스레드 안정성: 멀티스레드 환경에서 안전하게 공유 가능
+        3. 성능 최적화: 컴파일러가 final 키워드를 활용하여 최적화 수행
+
+11. 고급 개념:
+    1. 제네릭 (Generics)
+        - 제네릭은 클래스나 메서드에서 사용할 데이터 타입을 컴파일 시에 미리 지정하는 방법입니다.
+        ```Java
+        public class Box<T> {
+            private T content;
+
+            public void set(T content) {
+                this.content = content;
+            }
+
+            public T get() {
+                return content;
+            }
+        }
+
+        Box<Integer> integerBox = new Box<>();
+        integerBox.set(10);
+        Integer content = integerBox.get();
+        ```
+
+    2. 람다 표현식 (Lambda Expressions)
+        - 람다 표현식은 함수형 프로그래밍을 지원하기 위해 Java 8에서 도입되었습니다.
+        ```Java
+        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5);
+
+        // 람다를 사용한 필터링
+        List<Integer> evenNumbers = numbers.stream()
+                                        .filter(n -> n % 2 == 0)
+                                        .collect(Collectors.toList());
+        ```
+
+    3. 스트림 API (Stream API)
+        - 스트림 API는 컬렉션을 함수형으로 처리할 수 있게 해줍니다.
+        ```Java
+        List<String> names = Arrays.asList("Alice", "Bob", "Charlie", "David");
+
+        List<String> filteredNames = names.stream()
+                                        .filter(name -> name.startsWith("A"))
+                                        .map(String::toUpperCase)
+                                        .collect(Collectors.toList());
+        ```
+
+    4. Optional 클래스
+        - Optional 클래스는 null 처리를 보다 우아하게 할 수 있게 해줍니다.
+        ```Java
+        Optional<String> optionalName = Optional.ofNullable(getName());
+        String name = optionalName.orElse("Unknown");
+        ```
