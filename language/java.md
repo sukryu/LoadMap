@@ -1755,3 +1755,176 @@ while (true) {
     key.reset();
 }
 ```
+
+### 예외 처리 ###
+
+예외 처리는 프로그램 실행 중 발생할 수 있는 예기치 않은 상황을 관리하는 메커니즘입니다.
+Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정성과 신뢰성을 높입니다.
+
+1. 예외의 기본 개념
+    1. 예외 계층 구조
+        -  Java의 모든 예외는 `Throwable` 클래스를 상속받습니다.
+
+        - Throwable
+            - Error: 심각한 시스템 오류, 일반적으로 개발자가 처리하지 않음.
+            - Exception:
+                - RuntimeException: 프로그래머의 실수로 발생하는 예외
+                - 체크 예외: 컴파일러가 처리를 강제하는 예외
+    
+    2. 예외 발생 시키기
+    ```Java
+    throw new IllegalArgumentException("Invalid argument");
+    ```
+
+2. try-catch 문
+
+    1. 기본 구조
+    ```Java
+    try {
+        // 예외가 발생할 수 있는 코드
+    } catch (ExceptionType e) {
+        // 예외 처리 코드
+    }
+    ```
+
+    2. 다중 catch 블록
+    ```Java
+    try {
+        // 예외 발생 가능 코드
+    } catch (IOException e) {
+        System.out.println("IO 오류: " + e.getMessage());
+    } catch (SQLException e) {
+        System.out.println("SQL 오류: " + e.getMessage());
+    } catch (Exception e) {
+        System.out.println("기타 오류: " + e.getMessage());
+    }
+    ```
+
+    3. finally 블록
+    ```Java
+    try {
+        // 예외 발생 가능 코드
+    } catch (Exception e) {
+        // 예외 처리
+    } finally {
+        // 항상 실행되는 코드 (리소스 정리 등)
+    }
+    ```
+
+3. try-with-resource 문
+    - 자동으로 리소스를 닫아주는 구문 (Java 7 이상)
+    ```Java
+    try (FileInputStream fis = new FileInputStream("file.txt")) {
+        // 파일 처리 코드
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    ```
+
+4. 사용자 정의 예외
+```Java
+public class CustomException extends Exception {
+    public CustomException(String message) {
+        super(message);
+    }
+}
+
+// 사용
+if (someCondition) {
+    throw new CustomException("사용자 정의 오류 발생");
+}
+```
+
+5. 예외 전파
+    - 메서드 시그니처에 `throws` 키워드를 사용하여 예외를 호출자에게 전파할 수 있습니다.
+    ```Java
+    public void someMethod() throws IOException {
+        // 메서드 내용
+    }
+    ```
+
+6. 예외 연쇄 (Exception Chaining)
+    - 한 예외를 다른 예외의 원인으로 설정할 수 있습니다.
+    ```Java
+    try {
+        // 예외 발생 코드
+    } catch (SQLException e) {
+        throw new RuntimeException("데이터베이스 오류", e);
+    }
+    ```
+
+7. 멀티 catch (Java 7 이상)
+```Java
+try {
+    // 예외 발생 가능 코드
+} catch (IOException | SQLException e) {
+    System.out.println("IO 또는 SQL 오류: " + e.getMessage());
+}
+```
+
+8. 예외 처리 모범 사례:
+    1. 구체적인 예외 처리: 가능한 한 구체적인 예외 타입을 사용하세요.
+    2. 로깅: 예외 발생 시 적절한 로깅을 수행하세요.
+    3. 예외 무시 금지: 빈 catch 블록을 사용하지 마세요.
+    4. 리소스 관리: try-with-resources 구문을 사용하여 리소스를 자동으로 닫으세요.
+    5. 예외 래핑: 저수준 예외를 고수준 예외로 래핑하여 의미있는 정보를 제공하세요.
+
+9. 고급 예외 처리 기법
+    1. 예외 필터링 (Java 7 이상)
+    ```Java
+    try {
+        // 예외 발생 가능 코드
+    } catch (Exception e) {
+        if (e instanceof IOException) {
+            // IO 예외 처리
+        } else if (e instanceof SQLException) {
+            // SQL 예외 처리
+        }
+    }
+    ```
+
+    2. try-finally 대신 try-with-resources 사용
+    ```Java
+        // 이전 방식
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    try {
+        return br.readLine();
+    } finally {
+        if (br != null) br.close();
+    }
+
+    // 새로운 방식 (Java 7 이상)
+    try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        return br.readLine();
+    }
+    ```
+
+    3. Optional을 사용한 예외 처리 (Java 8 이상)
+    ```Java
+    Optional<Integer> result = Optional.ofNullable(someObject)
+        .map(obj -> obj.someMethod())
+        .orElse(null);
+    ```
+
+10. 예외 처리와 성능
+    1. 예외는 정상적인 흐름에 사용하지 마세요.
+    2. 예외 객체 생성 비용을 고려하세요.
+    3. 예외 처리 구문은 try 블록 외부에 두세요.
+
+    ```Java
+    Connection conn = null;
+    try {
+        conn = getConnection();
+        // 데이터베이스 작업
+    } catch (SQLException e) {
+        // 예외 처리
+    } finally {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                // 연결 닫기 실패 처리
+            }
+        }
+    }
+    ```
