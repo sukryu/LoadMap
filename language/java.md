@@ -1425,3 +1425,333 @@ Java에서 메서드는 특정 작업을 수행하는 코드 블록입니다. �
         Optional<String> optionalName = Optional.ofNullable(getName());
         String name = optionalName.orElse("Unknown");
         ```
+
+### 패키지와 모듈 ###
+
+1. 패키지 (Packages): 
+    - 패키지는 관련된 클래스와 인터페이스를 그룹화하는 메커니즘입니다.
+
+    1. 패키지의 목적:
+        1. 이름 충돌 방지
+        2. 관련 클래스들의 논리적 그룹화
+        3. 접근 제어 제공
+    
+    2. 패키지 선언:
+    ```Java
+    package com.example.myapp;
+
+    public class MyClass {
+        // 클래스 내용
+    }
+    ```
+
+    3. 패키지 사용:
+    ```Java
+    import com.example.myapp.MyClass;
+    // 또는
+    import com.example.myapp.*;
+
+    public class Main {
+        public static void main(String[] args) {
+            MyClass obj = new MyClass();
+        }
+    }
+    ```
+
+    4. 패키지 구조:
+    ```bash
+    src/
+    com/
+        example/
+            myapp/
+                MyClass.java
+                AnotherClass.java
+    ```
+
+    5. 주요 Java 패키지
+        - `java.lang`: 기본 클래스 (String, Math 등)
+        - `java.util`: 유틸리티 클래스 (Colletions, Scanner 등)
+        - `java.io`: 입출력 관련 클래스
+        - `java.net`: 네트워킹 관련 클래스
+
+2. 모듈 시스템 (Module System)
+    - Java 9에서 도입된 모듈 시스템은 대규모 애플리케이션의 구조화와 캡슐화를 개선합니다.
+
+    1. 모듈의 목적:
+        1. 강력한 캡슐화
+        2. 명시적 의존성 선언
+        3. 신뢰할 수 있는 구성
+        4. 향상된 성능
+
+    2. module-info.java
+        - 모듈은 `module-info.java` 파일로 정의됩니다.
+        ```Java
+        module com.example.mymodule {
+            requires java.base;  // 기본적으로 포함됨
+            requires java.sql;
+
+            exports com.example.mymodule.api;
+            
+            provides com.example.mymodule.spi.MyService 
+                with com.example.mymodule.internal.MyServiceImpl;
+        }
+        ```
+
+    3. 주요 모듈 지시어
+        - `requires`: 의존하는 모듈 지정
+        - `exports`: 다른 모듈에서 사용할 수 있는 패키지 지정
+        - `opens`: 리플렉션을 통해 접근 가능한 패키지 지정
+        - `provides ... with ...`: 서비스 제공
+        - `uses`: 사용할 서비스지정
+
+
+    4. 모듈 사용 예시
+    ```Java
+    // Module A (module-info.java)
+    module moduleA {
+        exports com.example.moduleA;
+    }
+
+    // Module B (module-info.java)
+    module moduleB {
+        requires moduleA;
+    }
+
+    // Module B (SomeClass.java)
+    package com.example.moduleB;
+
+    import com.example.moduleA.SomeApiClass;
+
+    public class SomeClass {
+        public void doSomething() {
+            SomeApiClass api = new SomeApiClass();
+            // Use the API
+        }
+    }
+    ```
+
+    5. 모듈 명령어
+        - `java --list-modules`: 사용 가능한 모듈 나열
+        - `java --discribe-module <moduel-name>`: 모듈 설명 보기
+        - `jdeps`: 모듈 종속성 분석 도구
+
+3. 패키지와 모듈의 차이점
+    1. 범위:
+        - 패키지: 관련 클래스의 논리적 그룹
+        - 모듈: 관련 패키지의 더 큰 그룹
+
+    2. 캡슐화:
+        - 패키지: 패키지 수준의 접근 제어
+        - 모듈: 모듈 수준의 강력한 캡슐화
+
+    3. 의존성:
+        - 패키지: 암시적 의존성
+        - 모듈: 명시적 의존성 선언
+
+    4. 버전:
+        - 패키지: Java 1.0부터 존재
+        - 모듈: Java 9에서 도입
+
+4. 모범사례
+    1. 의미 있는 패키지 이름 사용 (예: `com.company.project.feature`)
+    2. 패키지 내 관련 클래스만 포함
+    3. 순환 종속성 피하기
+    4. 필요한 경우에만 패키지를 `exports`
+    5. 모듈 간 느슨한 결합 유지
+
+### 파일 처리 ###
+
+Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서드를 제공합니다. 이를 통해 파일 읽기, 쓰기, 생성, 삭제 등의 작업을 수행할 수 있습니다.
+
+1. 기본 파일 처리
+    1. File 클래스:
+        - `File`클래스는 파일 시스템의 파일이나 디렉토리를 표현합니다.
+        ```Java
+        import java.io.File;
+
+        File file = new File("example.txt");
+        boolean exists = file.exists();
+        long length = file.length();
+        boolean isDirectory = file.isDirectory();
+        String[] fileList = file.list();  // 디렉토리인 경우
+        ```
+
+    2. 파일 생성 및 삭제:
+    ```Java
+    File newFile = new File("newFile.txt");
+    boolean created = newFile.createNewFile();
+    boolean deleted = newFile.delete();
+    ```
+
+2. 텍스트 파일 읽기와 쓰기
+
+    1. FileReader와 FileWriter
+    ```Java
+    // 파일 읽기
+    try (FileReader reader = new FileReader("input.txt");
+        BufferedReader bufferedReader = new BufferedReader(reader)) {
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            System.out.println(line);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    // 파일 쓰기
+    try (FileWriter writer = new FileWriter("output.txt");
+        BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
+        bufferedWriter.write("Hello, World!");
+        bufferedWriter.newLine();
+        bufferedWriter.write("This is a new line.");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    ```
+
+    2. Scanner 클래스 사용
+    ```Java
+    try (Scanner scanner = new Scanner(new File("input.txt"))) {
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            System.out.println(line);
+        }
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    }
+    ```
+
+3. 바이너리 파일 처리
+
+    1. FileInputStream과 FileOutputStream
+    ```Java
+    // 파일 읽기
+    try (FileInputStream fis = new FileInputStream("input.bin");
+        BufferedInputStream bis = new BufferedInputStream(fis)) {
+        int data;
+        while ((data = bis.read()) != -1) {
+            System.out.print((char) data);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    // 파일 쓰기
+    try (FileOutputStream fos = new FileOutputStream("output.bin");
+        BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+        byte[] data = {65, 66, 67, 68, 69}; // ABCDE
+        bos.write(data);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    ```
+
+4. NIO (New I/O)
+    - Java NIO는 더 효율적인 I/O 작업을 위해 도입되었습니다.
+
+    1. Files 클래스
+    ```Java
+    import java.nio.file.*;
+
+    // 파일 읽기
+    List<String> lines = Files.readAllLines(Paths.get("input.txt"));
+
+    // 파일 쓰기
+    Files.write(Paths.get("output.txt"), lines);
+
+    // 파일 복사
+    Files.copy(Paths.get("source.txt"), Paths.get("destination.txt"), StandardCopyOption.REPLACE_EXISTING);
+
+    // 파일 이동
+    Files.move(Paths.get("old.txt"), Paths.get("new.txt"), StandardCopyOption.REPLACE_EXISTING);
+    ```
+
+    2. Channel과 Buffer
+    ```Java
+    try (FileChannel channel = FileChannel.open(Paths.get("file.txt"), StandardOpenOption.READ)) {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int bytesRead = channel.read(buffer);
+        while (bytesRead != -1) {
+            buffer.flip();
+            while (buffer.hasRemaining()) {
+                System.out.print((char) buffer.get());
+            }
+            buffer.clear();
+            bytesRead = channel.read(buffer);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    ```
+
+5. 직렬화 (Serialization)
+    - 객체를 파일에 저장하거나 네트워크로 전송할 수 있게 해줍니다.
+    ```Java
+    import java.io.*;
+
+    class Person implements Serializable {
+        private String name;
+        private int age;
+
+        // 생성자, getter, setter 생략
+    }
+
+    // 객체 직렬화
+    try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("person.ser"))) {
+        Person person = new Person("John Doe", 30);
+        oos.writeObject(person);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    // 객체 역직렬화
+    try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("person.ser"))) {
+        Person person = (Person) ois.readObject();
+        System.out.println(person.getName() + ", " + person.getAge());
+    } catch (IOException | ClassNotFoundException e) {
+        e.printStackTrace();
+    }
+    ```
+
+6. 파일 및 디렉토리 관리
+
+    1. 디렉토리 생성
+    ```Java
+    Files.createDirectory(Paths.get("newDir"));
+    Files.createDirectories(Paths.get("path/to/newDir"));
+    ```
+
+    2. 파일 목록 가져오기
+    ```Java
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get("."))) {
+        for (Path file : stream) {
+            System.out.println(file.getFileName());
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    ```
+
+    3. 파일 속성 관리
+    ```Java
+    Path file = Paths.get("example.txt");
+    System.out.println("Size: " + Files.size(file));
+    System.out.println("Last Modified: " + Files.getLastModifiedTime(file));
+    System.out.println("Is Hidden: " + Files.isHidden(file));
+    ```
+
+7. 파일 감시 (File Watching)
+```Java
+WatchService watchService = FileSystems.getDefault().newWatchService();
+Path path = Paths.get(".");
+path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, 
+              StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+
+while (true) {
+    WatchKey key = watchService.take();
+    for (WatchEvent<?> event : key.pollEvents()) {
+        System.out.println("Event kind: " + event.kind() + ". File affected: " + event.context() + ".");
+    }
+    key.reset();
+}
+```
