@@ -1928,3 +1928,190 @@ try {
         }
     }
     ```
+
+### 제네릭 ###
+
+제네릭은 클래스, 인터페이스, 메서드를 정의할 때 타입을 파라미터로 사용할 수 있게 해주는 기능입니다. 이를 통해 컴파일 시점에 타입 체크를 수행하여
+타입 안정성을 높이고, 불필요한 타입 캐스팅을 줄일 수 있습니다.
+
+1. 제네릭의 기본 개념
+    1. 제네릭 클래스
+    ```Java
+    public class Box<T> {
+        private T content;
+
+        public void set(T content) {
+            this.content = content;
+        }
+
+        public T get() {
+            return content;
+        }
+    }
+
+    // 사용 예
+    Box<String> stringBox = new Box<>();
+    stringBox.set("Hello Generics");
+    String content = stringBox.get();
+    ```
+
+    2. 제네릭 메서드
+    ```Java
+    public class Util {
+        public static <T> void printArray(T[] array) {
+            for (T element : array) {
+                System.out.print(element + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    // 사용 예
+    Integer[] intArray = {1, 2, 3, 4, 5};
+    Util.printArray(intArray);
+    ```
+
+2. 타입 파라미터 명명 규칙
+    - 일반적으로 사용되는 타입 파라미터 이름:
+        - E: 요소 (Element)
+        - K: 키(Key)
+        - N: 숫자(Number)
+        - T: 타입(Type)
+        - V: 값(Value)
+        - S, U, V 등: 여러 타입 파라미터가 필요할 때 사용
+
+3. 제한된 타입 파라미터
+    - 특정 타입의 하위 타입으로만 타입 파라미터를 제한할 수 있습니다.
+    ```Java
+    public class NumberBox<T extends Number> {
+        private T number;
+
+        public void set(T number) {
+            this.number = number;
+        }
+
+        public double sqrt() {
+            return Math.sqrt(number.doubleValue());
+        }
+    }
+
+    // 사용 예
+    NumberBox<Integer> intBox = new NumberBox<>();
+    intBox.set(16);
+    System.out.println(intBox.sqrt()); // 출력: 4.0
+    ```
+
+4. 와일드 카드
+    1. "?"와일드 카드
+        - 알 수 없는 타입을 나타냅니다.
+        ```Java
+        public static void printList(List<?> list) {
+            for (Object elem : list) {
+                System.out.print(elem + " ");
+            }
+            System.out.println();
+        }
+        ```
+
+    2. 상한 경계 와일드카드
+    ```Java
+    public static double sumOfList(List<? extends Number> list) {
+        double sum = 0.0;
+        for (Number num : list) {
+            sum += num.doubleValue();
+        }
+        return sum;
+    }
+    ```
+
+    3. 하한 경계 와일드카드
+    ```Java
+    public static void addNumbers(List<? super Integer> list) {
+        for (int i = 1; i <= 10; i++) {
+            list.add(i);
+        }
+    }
+    ```
+
+5. 타입 소거
+    - 제네릭은 컴파일 시에만 타입 체크를 수행하고, 런타임에는 타입 정보가 소거됩니다.
+    ```Java
+    List<String> strList = new ArrayList<>();
+    List<Integer> intList = new ArrayList<>();
+
+    System.out.println(strList.getClass() == intList.getClass()); // true
+    ```
+
+6. 제네릭과 배열
+    - 제네릭 타입으로 배열을 직접 생성할 수 있습니다.
+    ```Java
+    // 컴파일 에러
+    T[] array = new T[10]; // 불가능
+
+    // 대신 이렇게 사용
+    T[] array = (T[]) new Object[10];
+    ```
+
+7. 다중 경계
+```Java
+public class Multiplebounds<T extends Number & Comparable<T>> {
+    private T number;
+
+    public void set(T number) {
+        this.number = number;
+    }
+
+    public T getNumber() {
+        return number;
+    }
+
+    public int compareTo(T other) {
+        return number.compareTo(other);
+    }
+}
+```
+
+8. 재귀적 타입 경계
+```Java
+public class RecursiveBound<T extends Comparable<T>> {
+    private T value;
+
+    public void set(T value) {
+        this.value = value;
+    }
+
+    public T get() {
+        return value;
+    }
+
+    public boolean isGreaterThan(T other) {
+        return value.compareTo(other) > 0;
+    }
+}
+```
+
+10. 제네릭 메서드와 가변인자
+```Java
+public static <T> List<T> asList(T... elements) {
+    List<T> list = new ArrayList<>();
+    for (T element : elements) {
+        list.add(element);
+    }
+    return list;
+}
+
+// 사용 예
+List<String> stringList = asList("a", "b", "c");
+```
+
+11. 제네릭의 장단점
+
+    - 장점:
+        1. 타입 안정성 향상
+        2. 명시적 캐스팅 제거
+        3. 코드 재사용성 증가
+
+    - 단점:
+        1. 복잡성 증가
+        2. 제네릭 타입 소거로 인한 런타임 정보 부재
+        3. 기본 타입 사용 불가 (래퍼 클래스 사용 필요)
