@@ -2490,3 +2490,246 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
         }
     }
     ```
+
+### 동시성 프로그래밍 ###
+
+동시성 프로그래밍은 여러 작업을 동시에 실행하여 프로그램의 효율성을 높이는 기법입니다. Java는 강력한 동시성 지원을 제공하며,
+이를 통해 복잡한 멀티스레드 애플리케이션을 개발할 수 있습니다.
+
+1. 스레드 기초
+    1. 스레드 생성
+        - 스레드를 생성하는 두 가지 방법:
+
+        1. Thread 클래스 상속
+
+        ```Java
+        class MyThread extends Thread {
+            public void run() {
+                System.out.println("Thread is running");
+            }
+        }
+
+        MyThread thread = new MyThread();
+        thread.start();
+        ```
+
+        2. Runnable 인터페이스 구현
+
+        ```Java
+        class MyRunnable implements Runnable {
+            public void run() {
+                System.out.println("Thread is running");
+            }
+        }
+
+        Thread thread = new Thread(new MyRunnable());
+        thread.start();
+        ```
+
+    2. 스레드 생명 주기
+
+        - New: 스레드 객체 생성
+        - Runnable:start() 메서드 호출 후
+        - Running: 실행 중
+        - Blocked/Waiting: I/O 작업이나 동기화로 인해 대기
+        - Terminated: 실행 종료
+
+    3. 스레드 우선순위
+
+    ```Java
+    thread.setPriority(Thread.MAX_PRIORITY); // 1 ~ 10
+    ```
+
+2. 동기화
+    1. synchronized 키워드
+
+    ```Java
+    public synchronized void method() {
+        // 임계 영역
+    }
+
+    // 또는
+    public void method() {
+        synchronized(this) {
+            // 임계 영역
+        }
+    }
+    ```
+
+    2. volatile 키워드
+        - 멀티 스레드 환경에서 변수의 가시성 보장:
+
+        ```Java
+        private volatile boolean flag = false;
+        ```
+
+    3. wait(), notify(), notifyAll()
+        - 스레드 간 통신:
+
+        ```Java
+        synchronized(obj) {
+            while(!condition) {
+                obj.wait();
+            }
+            // 작업 수행
+            obj.notify();
+        }
+        ```
+
+3. java.util.concurrent 패키지
+    1. ExecutorService
+        - 스레드 풀 관리:
+
+        ```Java
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        executor.submit(() -> {
+            System.out.println("Task executed by " + Thread.currentThread().getName());
+        });
+        executor.shutdown();
+        ```
+
+    2. Future와 Callable
+        - 비동기 작업 결과 처리
+
+        ```Java
+        Callable<Integer> task = () -> {
+            TimeUnit.SECONDS.sleep(1);
+            return 123;
+        };
+
+        Future<Integer> future = executor.submit(task);
+        Integer result = future.get(); // 결과를 기다림
+        ```
+
+    3. CompletableFuture
+        - 비동기 작업의 조합과 처리
+
+        ```Java
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> "Hello")
+            .thenApply(s -> s + " World")
+            .thenAccept(System.out::println);
+        ```
+
+    4. 동시성 컬렉션
+
+        - ConcurrentHashMap
+        - CopyOnWriteArrayList
+        - BlockingQueue
+
+        ```Java
+        ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
+        map.put("key", value);
+        ```
+
+4. 락(Lock)과 조건(Condition)
+    1. ReentrantLock
+
+    ```Java
+    ReentrantLock lock = new ReentrantLock();
+    lock.lock();
+    try {
+        // 임계 영역
+    } finally {
+        lock.unlock();
+    }
+    ```
+
+    2. ReadWriteLock
+
+    ```Java
+    ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    rwLock.readLock().lock();
+    try {
+        // 읽기 작업
+    } finally {
+        rwLock.readLock().unlock();
+    }
+    ```
+
+    3. Condition
+
+    ```Java
+    Lock lock = new ReentrantLock();
+    Condition condition = lock.newCondition();
+
+    lock.lock();
+    try {
+        while (!conditionMet) {
+            condition.await();
+        }
+        // 작업 수행
+        condition.signalAll();
+    } finally {
+        lock.unlock();
+    }
+    ```
+
+5. 원자적 연산 (Atomic Operation)
+
+```Java
+AtomicInteger counter = new AtomicInteger(0);
+counter.incrementAndGet();
+```
+
+6. 스레드 로컬 변수 (ThreadLocal)
+
+```Java
+ThreadLocal<Integer> threadLocal = new ThreadLocal<>();
+threadLocal.set(42);
+Integer value = threadLocal.get();
+```
+
+7. Fork/Join 프레임워크
+    - 분할 정복 알고리즘을 병렬로 실행:
+
+    ```Java
+    class SumTask extends RecursiveTask<Long> {
+        private final long[] numbers;
+        private final int start;
+        private final int end;
+
+        // 생성자
+
+        @Override
+        protected Long compute() {
+            if (end - start <= 1000) {
+                long sum = 0;
+                for (int i = start; i < end; i++) {
+                    sum += numbers[i];
+                }
+                return sum;
+            } else {
+                int mid = (start + end) / 2;
+                SumTask left = new SumTask(numbers, start, mid);
+                SumTask right = new SumTask(numbers, mid, end);
+                left.fork();
+                Long rightResult = right.compute();
+                Long leftResult = left.join();
+                return leftResult + rightResult;
+            }
+        }
+    }
+
+    ForkJoinPool pool = new ForkJoinPool();
+    Long result = pool.invoke(new SumTask(numbers, 0, numbers.length));
+    ```
+
+8. 병렬 스트림
+
+```Java
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+int sum = numbers.parallelStream().sum();
+```
+
+9. 동시성 프로그래밍 주의사항
+
+    1. 데드락 방지: 락 획득 순서 일관성 유지
+    2. 스레드 안정성 확보: 공유 자원 접근 시 적절한 동기화
+    3. 가시성 문제 해결: volatile 키워드나 원자적 연산 사용
+    4. 과도한 동기화 피하기: 성능 저하 유발 가능
+    5. 컨텍스트 스위칭 최소화: 너무 많은 스레드 생성 자제
+
+10. 성능과 확장성
+    - 적절한 스레드 수 선택: 보통 (CPU 코어 수 + 1)
+    - 작업 크기 조절: 너무 작은 작업은 오버헤드 증가
+    - 병렬화 임계값 설정: 일정 크기 이상의 데이터셋에만 병렬처리 적용.
