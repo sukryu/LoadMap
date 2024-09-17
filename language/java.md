@@ -2733,3 +2733,367 @@ int sum = numbers.parallelStream().sum();
     - 적절한 스레드 수 선택: 보통 (CPU 코어 수 + 1)
     - 작업 크기 조절: 너무 작은 작업은 오버헤드 증가
     - 병렬화 임계값 설정: 일정 크기 이상의 데이터셋에만 병렬처리 적용.
+
+### 네트워킹 ###
+
+Java는 네트워크 프로그래밍을 위한 강력한 API를 제공합니다. 이를 통해 웹 애플리케이션, 분산 시스템, 클라이언트-서버 애플리케이션 등을 개발할 수 있습니다.
+
+1. 네트워킹 기본 개념
+    - IP 주소: 네트워크상의 컴퓨터를 식별하는 주소
+    - 포트: 특정 프로세스를 식별하는 번호 (0 ~ 65535)
+    - 프로토콜: 통신 규칙 (예: TCP/UDP)
+
+2. 소켓 프로그래밍
+    - 소켓은 네트워크 통신의 엔드포인트입니다.
+
+    1. TCP 소켓
+        - 서버 측 코드:
+
+        ```Java
+        try (ServerSocket serverSocket = new ServerSocket(8080)) {
+            System.out.println("Server is listening on port 8080");
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
+                
+                try (
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+                ) {
+                    String inputLine;
+                    while ((inputLine = in.readLine()) != null) {
+                        System.out.println("Received: " + inputLine);
+                        out.println("Server received: " + inputLine);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ```
+
+        - 클라이언트 측 코드:
+
+        ```Java
+        try (
+            Socket socket = new Socket("localhost", 8080);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+        ) {
+            String userInput;
+            while ((userInput = stdIn.readLine()) != null) {
+                out.println(userInput);
+                System.out.println("Server response: " + in.readLine());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ```
+
+    2. UDP 소켓
+        - 서버 측 코드:
+
+        ```Java
+        try (DatagramSocket socket = new DatagramSocket(8080)) {
+            byte[] receiveBuffer = new byte[1024];
+            while (true) {
+                DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+                socket.receive(receivePacket);
+                String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received: " + received);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ```
+
+        - 클라이언트 측 코드:
+        
+        ```Java
+        try (DatagramSocket socket = new DatagramSocket()) {
+            InetAddress address = InetAddress.getByName("localhost");
+            String message = "Hello, server!";
+            byte[] sendBuffer = message.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, address, 8080);
+            socket.send(sendPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ```
+
+    3. URL 처리
+        - Java의 `URL` 클래스를 사용하여 웹 리소스에 접근할 수 있습니다.
+
+        ```Java
+        try {
+            URL url = new URL("https://api.example.com/data");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            
+            int responseCode = connection.getResponseCode();
+            System.out.println("Response Code: " + responseCode);
+            
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                System.out.println("Response Content: " + content.toString());
+            }
+            
+            connection.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ```
+
+    4. 네트워크 인터페이스 정보
+        - `NetworkInterface` 클래스를 사용하여 시스템의 네트워크 인터페이스 정보를 얻을 수 있습니다.
+
+        ```Java
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface ni = interfaces.nextElement();
+                System.out.println("Interface: " + ni.getName());
+                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress address = addresses.nextElement();
+                    System.out.println("  Address: " + address.getHostAddress());
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        ```
+        
+    5. NIO (Non-blocking I/O)
+        - Java NIO는 확장성 있는 네트워크 애플리케이션을 위한 논블로킹 I/O를 제공합니다.
+
+        ```Java
+        try (Selector selector = Selector.open();
+            ServerSocketChannel serverSocket = ServerSocketChannel.open()) {
+            
+            serverSocket.bind(new InetSocketAddress("localhost", 8080));
+            serverSocket.configureBlocking(false);
+            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+            
+            while (true) {
+                selector.select();
+                Set<SelectionKey> selectedKeys = selector.selectedKeys();
+                Iterator<SelectionKey> iter = selectedKeys.iterator();
+                
+                while (iter.hasNext()) {
+                    SelectionKey key = iter.next();
+                    
+                    if (key.isAcceptable()) {
+                        // 새 연결 수락
+                    } else if (key.isReadable()) {
+                        // 데이터 읽기
+                    }
+                    
+                    iter.remove();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ```
+
+    6. 고급 네트워킹 
+
+        1. SSL/TLS
+            - SSL(Secure Sockets Layer)과 그 후속인 TLS(Transport Layer Security)는 네트워크 통신을 암호화하여 보안을 제공합니다.
+            Java는 JSSE(Java Secure Socket Extension)를 통해 SSL/TLS를 지원합니다.
+
+            1. KeyStore와 TrustStore 설정
+                - SSL/TLS를 사용하기 위해서는 먼저 인증서와 키를 관리해야 합니다.
+
+                ```Java
+                // KeyStore 생성 (서버의 개인 키와 인증서 저장)
+                KeyStore keyStore = KeyStore.getInstance("JKS");
+                keyStore.load(new FileInputStream("keystore.jks"), "keystorepassword".toCharArray());
+
+                // TrustStore 생성 (신뢰할 수 있는 인증서 저장)
+                KeyStore trustStore = KeyStore.getInstance("JKS");
+                trustStore.load(new FileInputStream("truststore.jks"), "truststorepassword".toCharArray());
+                ```
+
+            2. SSL 서버 구현
+
+            ```Java
+            public class SSLServer {
+                public static void main(String[] args) throws Exception {
+                    // SSL 컨텍스트 설정
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                    kmf.init(keyStore, "keystorepassword".toCharArray());
+                    sslContext.init(kmf.getKeyManagers(), null, null);
+
+                    // SSL 서버 소켓 생성
+                    SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
+                    SSLServerSocket serverSocket = (SSLServerSocket) ssf.createServerSocket(8443);
+
+                    while (true) {
+                        SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
+                        // 클라이언트 처리 로직
+                    }
+                }
+            }
+            ```
+
+            3. SSL 클라이언트 구현
+
+            ```Java
+            public class SSLClient {
+                public static void main(String[] args) throws Exception {
+                    // SSL 컨텍스트 설정
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    tmf.init(trustStore);
+                    sslContext.init(null, tmf.getTrustManagers(), null);
+
+                    // SSL 소켓 생성
+                    SSLSocketFactory sf = sslContext.getSocketFactory();
+                    SSLSocket socket = (SSLSocket) sf.createSocket("localhost", 8443);
+
+                    // 서버와 통신
+                }
+            }
+            ```
+
+        2. 멀티캐스트
+            - 멀티캐스트는 하나의 송신자가 여러 수신자에게 동시에 데이터를 전송하는 방식입니다.
+            Java는 `MulticastSocket` 클래스를 통해 UDP 멀티캐스트를 지원합니다.
+
+            - 멀티캐스트 송신자
+
+            ```Java
+            public class MulticastSender {
+                public static void main(String[] args) throws Exception {
+                    InetAddress group = InetAddress.getByName("239.0.0.1");
+                    int port = 8888;
+
+                    try (MulticastSocket socket = new MulticastSocket()) {
+                        String message = "Hello, Multicast!";
+                        byte[] buffer = message.getBytes();
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
+                        
+                        socket.send(packet);
+                        System.out.println("Multicast message sent");
+                    }
+                }
+            }
+            ```
+
+            - 멀티캐스트 수신자
+
+            ```Java
+            public class MulticastReceiver {
+                public static void main(String[] args) throws Exception {
+                    InetAddress group = InetAddress.getByName("239.0.0.1");
+                    int port = 8888;
+
+                    try (MulticastSocket socket = new MulticastSocket(port)) {
+                        socket.joinGroup(group);
+                        
+                        byte[] buffer = new byte[1024];
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                        
+                        socket.receive(packet);
+                        String received = new String(packet.getData(), 0, packet.getLength());
+                        System.out.println("Received: " + received);
+                        
+                        socket.leaveGroup(group);
+                    }
+                }
+            }
+            ```
+
+        3. 비동기 I/O (AIO)
+            - Java 7부터 도입된 AIO(Asynchronous I/O)는 논블로킹 I/O의 개선된 버전으로, 완전한 비동기 네트워크 프로그래밍을 가능하게 합니다.
+
+            1. 비동기 서버:
+            
+            ```Java
+            public class AsyncServer {
+                public static void main(String[] args) throws Exception {
+                    AsynchronousServerSocketChannel server = AsynchronousServerSocketChannel.open();
+                    server.bind(new InetSocketAddress("localhost", 8080));
+
+                    server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
+                        @Override
+                        public void completed(AsynchronousSocketChannel client, Void attachment) {
+                            server.accept(null, this); // 다음 클라이언트 대기
+
+                            ByteBuffer buffer = ByteBuffer.allocate(1024);
+                            client.read(buffer, buffer, new CompletionHandler<Integer, ByteBuffer>() {
+                                @Override
+                                public void completed(Integer result, ByteBuffer attachment) {
+                                    attachment.flip();
+                                    String message = StandardCharsets.UTF_8.decode(attachment).toString();
+                                    System.out.println("Received: " + message);
+                                    
+                                    // 응답 전송
+                                    client.write(ByteBuffer.wrap("Hello, Client!".getBytes()));
+                                }
+
+                                @Override
+                                public void failed(Throwable exc, ByteBuffer attachment) {
+                                    exc.printStackTrace();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void failed(Throwable exc, Void attachment) {
+                            exc.printStackTrace();
+                        }
+                    });
+
+                    System.out.println("Server started on port 8080");
+                    Thread.currentThread().join(); // 메인 스레드 대기
+                }
+            }
+            ```
+
+            2. 비동기 클라이언트
+
+            ```Java
+            public class AsyncClient {
+                public static void main(String[] args) throws Exception {
+                    AsynchronousSocketChannel client = AsynchronousSocketChannel.open();
+                    Future<Void> future = client.connect(new InetSocketAddress("localhost", 8080));
+                    future.get(); // 연결 완료 대기
+
+                    ByteBuffer buffer = ByteBuffer.wrap("Hello, Server!".getBytes());
+                    Future<Integer> writeFuture = client.write(buffer);
+                    writeFuture.get(); // 쓰기 완료 대기
+
+                    ByteBuffer readBuffer = ByteBuffer.allocate(1024);
+                    Future<Integer> readFuture = client.read(readBuffer);
+                    readFuture.get(); // 읽기 완료 대기
+
+                    readBuffer.flip();
+                    String response = StandardCharsets.UTF_8.decode(readBuffer).toString();
+                    System.out.println("Server response: " + response);
+
+                    client.close();
+                }
+            }
+            ```
+
+        7. 네트워크 모범 사례
+            1. 항상 리소스를 적절히 닫습니다. (try-with-resources)
+            2. 예외 처리를 철저히 합니다.
+            3. 타임아웃을 설정하여 무한 대기를 방지합니다.
+            4. 스레드 풀을 사용하여 다중 클라이언트를 호율적으로 처리합니다.
+            5. 버퍼 크기를 적절히 조절하여 성능을 최적화합니다.
+            6. 보안에 주의를 기울입니다. (입력 검증, SSL/TLS 사용 등).
+        
+
+    - SSL/TLS는 보안이 중요한 애플리케이션에 필수적입니다.
+    - 멀티캐스트는 실시간 스트리밍, 게임, 분산 시스템 등에서 효율적인 그룹 통신을 가능하게 합니다.
+    - AIO는 높은 확장성이 요구되는 서버 애플리케이션에 적합합니다.
