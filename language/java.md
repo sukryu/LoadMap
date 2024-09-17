@@ -3097,3 +3097,215 @@ Java는 네트워크 프로그래밍을 위한 강력한 API를 제공합니다.
     - SSL/TLS는 보안이 중요한 애플리케이션에 필수적입니다.
     - 멀티캐스트는 실시간 스트리밍, 게임, 분산 시스템 등에서 효율적인 그룹 통신을 가능하게 합니다.
     - AIO는 높은 확장성이 요구되는 서버 애플리케이션에 적합합니다.
+
+### 테스팅 ###
+
+Java에서의 테스팅은 주로 JUnit을 사용한 단위 테스트와 Mockito를 사용한 목 객체 생성을 중심으로 이루어집니다.
+이러한 도구들을 사용하여 코드의 품질을 높이고 버그를 조기에 발견할 수 있습니다.
+
+1. JUnit
+    - JUnit은 Java의 대표적인 단위 테스트 프레임워크입니다.
+
+    1. 기본 테스트 구조
+
+    ```Java
+    import org.junit.jupiter.api.Test;
+    import static org.junit.jupiter.api.Assertions.*;
+
+    public class CalculatorTest {
+        @Test
+        public void testAddition() {
+            Calculator calc = new Calculator();
+            assertEquals(5, calc.add(2, 3));
+        }
+    }
+    ```
+
+    2. 테스트 생명 주기 어노테이션
+
+    ```Java
+    import org.junit.jupiter.api.*;
+
+    public class LifecycleTest {
+        @BeforeAll
+        static void setUpAll() {
+            System.out.println("Before all tests");
+        }
+
+        @BeforeEach
+        void setUp() {
+            System.out.println("Before each test");
+        }
+
+        @Test
+        void test1() {
+            System.out.println("Test 1");
+        }
+
+        @Test
+        void test2() {
+            System.out.println("Test 2");
+        }
+
+        @AfterEach
+        void tearDown() {
+            System.out.println("After each test");
+        }
+
+        @AfterAll
+        static void tearDownAll() {
+            System.out.println("After all tests");
+        }
+    }
+    ```
+
+    3. Assertions
+        - JUnit은 다양한 assertion 메서드를 제공합니다.
+
+        ```Java
+        @Test
+        void testAssertions() {
+            assertEquals(4, 2 + 2);
+            assertTrue(5 > 3);
+            assertFalse(2 > 5);
+            assertNull(null);
+            assertNotNull("Hello");
+            assertArrayEquals(new int[]{1, 2, 3}, new int[]{1, 2, 3});
+            assertThrows(ArithmeticException.class, () -> {
+                int result = 1 / 0;
+            });
+        }
+        ```
+
+    4. 파라미터화된 테스트
+
+    ```Java
+    import org.junit.jupiter.params.ParameterizedTest;
+    import org.junit.jupiter.params.provider.ValueSource;
+
+    public class ParameterizedTests {
+        @ParameterizedTest
+        @ValueSource(ints = {1, 3, 5, -3, 15, Integer.MAX_VALUE})
+        void testIsOdd(int number) {
+            assertTrue(number % 2 != 0);
+        }
+    }
+    ```
+
+2. Mockito
+    - Mockito는 Java에서 가장 널리 사용되는 목 프레임워크입니다.
+
+    1. 목 객체 생성
+
+    ```Java
+    import static org.mockito.Mockito.*;
+
+    @Test
+    void testWithMock() {
+        // 목 객체 생성
+        List<String> mockedList = mock(List.class);
+
+        // 목 객체 사용
+        mockedList.add("one");
+        mockedList.clear();
+
+        // 검증
+        verify(mockedList).add("one");
+        verify(mockedList).clear();
+    }
+    ```
+
+    2. 스텁 (Stub) 설정
+    
+    ```Java
+    @Test
+    void testWithStub() {
+        // 목 객체 생성
+        List<String> mockedList = mock(List.class);
+
+        // 스텁 설정
+        when(mockedList.get(0)).thenReturn("first");
+        when(mockedList.get(1)).thenThrow(new RuntimeException());
+
+        // 스텁 사용
+        assertEquals("first", mockedList.get(0));
+        assertThrows(RuntimeException.class, () -> mockedList.get(1));
+    }
+    ```
+
+    3. 행동 검증
+
+    ```Java
+    @Test
+    void testBehaviorVerification() {
+        List<String> mockedList = mock(List.class);
+
+        mockedList.add("one");
+        mockedList.add("two");
+
+        verify(mockedList).add("one");
+        verify(mockedList, times(2)).add(anyString());
+        verify(mockedList, never()).add("three");
+    }
+    ```
+
+3. 테스트 커버리지
+    - 테스트 커버리지는 코드의 어느 부분이 테스트되었는지를 측정합니다. Java에서는 주로 JaCoCo를 사용합니다.
+
+    1. JaCoCo 설정 (Maven)
+
+    ```yaml
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.7</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    ```
+
+4. 통합 테스트
+    - 통합 테스트는 여러 컴포넌트가 함께 동작하는 것을 테스트합니다. Spring Boot를 사용한 통합 테스트 예시:
+
+    ```Java
+    @SpringBootTest
+    @AutoConfigureMockMvc
+    public class UserControllerIntegrationTest {
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @Test
+        public void testGetUser() throws Exception {
+            mockMvc.perform(get("/api/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("John Doe")));
+        }
+    }
+    ```
+
+5. 테스팅 모범 사례
+
+    1. 단위 테스트 작성: 각 메서드와 클래스에 대한 단위 테스트를 작성합니다.
+    2. 테스트 격리: 각 테스트는 독립적으로 실행될 수 있어야 합니다.
+    3. 테스트 가독성: 테스트 코드도 실제 코드만큼 깔끔하고 이해하기 쉽게 작성합니다.
+    4. 엣지 케이스 테스트: 경계값, 예외 상황 등을 꼼꼼히 테스트합니다.
+    5. 테스트 주도 개발 (TDD) 고려: 테스트를 먼저 작성하고 그에 맞춰 코드를 개발하는 방식을 고려합니다.
+    6. 지속적 통합(CI): 테스트를 자동화하고 CI 시스템에 통합합니다.
+    7. 성능 테스트: 중요한 기능에 대해서는 성능 테스트도 수행합니다. 
