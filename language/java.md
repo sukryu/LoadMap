@@ -1579,6 +1579,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
         ```
 
     2. 파일 생성 및 삭제:
+
     ```Java
     File newFile = new File("newFile.txt");
     boolean created = newFile.createNewFile();
@@ -1588,6 +1589,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
 2. 텍스트 파일 읽기와 쓰기
 
     1. FileReader와 FileWriter
+
     ```Java
     // 파일 읽기
     try (FileReader reader = new FileReader("input.txt");
@@ -1612,6 +1614,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
     ```
 
     2. Scanner 클래스 사용
+
     ```Java
     try (Scanner scanner = new Scanner(new File("input.txt"))) {
         while (scanner.hasNextLine()) {
@@ -1626,6 +1629,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
 3. 바이너리 파일 처리
 
     1. FileInputStream과 FileOutputStream
+
     ```Java
     // 파일 읽기
     try (FileInputStream fis = new FileInputStream("input.bin");
@@ -1652,6 +1656,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
     - Java NIO는 더 효율적인 I/O 작업을 위해 도입되었습니다.
 
     1. Files 클래스
+
     ```Java
     import java.nio.file.*;
 
@@ -1669,6 +1674,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
     ```
 
     2. Channel과 Buffer
+
     ```Java
     try (FileChannel channel = FileChannel.open(Paths.get("file.txt"), StandardOpenOption.READ)) {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -1688,6 +1694,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
 
 5. 직렬화 (Serialization)
     - 객체를 파일에 저장하거나 네트워크로 전송할 수 있게 해줍니다.
+
     ```Java
     import java.io.*;
 
@@ -1718,12 +1725,14 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
 6. 파일 및 디렉토리 관리
 
     1. 디렉토리 생성
+
     ```Java
     Files.createDirectory(Paths.get("newDir"));
     Files.createDirectories(Paths.get("path/to/newDir"));
     ```
 
     2. 파일 목록 가져오기
+
     ```Java
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get("."))) {
         for (Path file : stream) {
@@ -1735,6 +1744,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
     ```
 
     3. 파일 속성 관리
+
     ```Java
     Path file = Paths.get("example.txt");
     System.out.println("Size: " + Files.size(file));
@@ -1743,6 +1753,7 @@ Java는 파일 및 입출력(I/O) 작업을 위한 다양한 클래스와 메서
     ```
 
 7. 파일 감시 (File Watching)
+
 ```Java
 WatchService watchService = FileSystems.getDefault().newWatchService();
 Path path = Paths.get(".");
@@ -1774,6 +1785,7 @@ Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정
                 - 체크 예외: 컴파일러가 처리를 강제하는 예외
     
     2. 예외 발생 시키기
+
     ```Java
     throw new IllegalArgumentException("Invalid argument");
     ```
@@ -1781,6 +1793,7 @@ Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정
 2. try-catch 문
 
     1. 기본 구조
+
     ```Java
     try {
         // 예외가 발생할 수 있는 코드
@@ -1790,6 +1803,7 @@ Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정
     ```
 
     2. 다중 catch 블록
+
     ```Java
     try {
         // 예외 발생 가능 코드
@@ -1803,6 +1817,7 @@ Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정
     ```
 
     3. finally 블록
+
     ```Java
     try {
         // 예외 발생 가능 코드
@@ -1815,6 +1830,7 @@ Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정
 
 3. try-with-resource 문
     - 자동으로 리소스를 닫아주는 구문 (Java 7 이상)
+
     ```Java
     try (FileInputStream fis = new FileInputStream("file.txt")) {
         // 파일 처리 코드
@@ -1824,6 +1840,7 @@ Java는 강력한 예외 처리 시스템을 제공하여 프로그램의 안정
     ```
 
 4. 사용자 정의 예외
+
 ```Java
 public class CustomException extends Exception {
     public CustomException(String message) {
@@ -1839,6 +1856,7 @@ if (someCondition) {
 
 5. 예외 전파
     - 메서드 시그니처에 `throws` 키워드를 사용하여 예외를 호출자에게 전파할 수 있습니다.
+
     ```Java
     public void someMethod() throws IOException {
         // 메서드 내용
@@ -1847,6 +1865,7 @@ if (someCondition) {
 
 6. 예외 연쇄 (Exception Chaining)
     - 한 예외를 다른 예외의 원인으로 설정할 수 있습니다.
+
     ```Java
     try {
         // 예외 발생 코드
@@ -1856,6 +1875,7 @@ if (someCondition) {
     ```
 
 7. 멀티 catch (Java 7 이상)
+
 ```Java
 try {
     // 예외 발생 가능 코드
@@ -1873,6 +1893,7 @@ try {
 
 9. 고급 예외 처리 기법
     1. 예외 필터링 (Java 7 이상)
+
     ```Java
     try {
         // 예외 발생 가능 코드
@@ -1886,6 +1907,7 @@ try {
     ```
 
     2. try-finally 대신 try-with-resources 사용
+
     ```Java
         // 이전 방식
     BufferedReader br = new BufferedReader(new FileReader(path));
@@ -1902,6 +1924,7 @@ try {
     ```
 
     3. Optional을 사용한 예외 처리 (Java 8 이상)
+
     ```Java
     Optional<Integer> result = Optional.ofNullable(someObject)
         .map(obj -> obj.someMethod())
@@ -1938,6 +1961,7 @@ try {
 
 1. 제네릭의 기본 개념
     1. 제네릭 클래스
+
     ```Java
     public class Box<T> {
         private T content;
@@ -1958,6 +1982,7 @@ try {
     ```
 
     2. 제네릭 메서드
+
     ```Java
     public class Util {
         public static <T> void printArray(T[] array) {
@@ -1984,6 +2009,7 @@ try {
 
 3. 제한된 타입 파라미터
     - 특정 타입의 하위 타입으로만 타입 파라미터를 제한할 수 있습니다.
+
     ```Java
     public class NumberBox<T extends Number> {
         private T number;
@@ -2006,6 +2032,7 @@ try {
 4. 와일드 카드
     1. "?"와일드 카드
         - 알 수 없는 타입을 나타냅니다.
+
         ```Java
         public static void printList(List<?> list) {
             for (Object elem : list) {
@@ -2016,6 +2043,7 @@ try {
         ```
 
     2. 상한 경계 와일드카드
+
     ```Java
     public static double sumOfList(List<? extends Number> list) {
         double sum = 0.0;
@@ -2027,6 +2055,7 @@ try {
     ```
 
     3. 하한 경계 와일드카드
+
     ```Java
     public static void addNumbers(List<? super Integer> list) {
         for (int i = 1; i <= 10; i++) {
@@ -2037,6 +2066,7 @@ try {
 
 5. 타입 소거
     - 제네릭은 컴파일 시에만 타입 체크를 수행하고, 런타임에는 타입 정보가 소거됩니다.
+
     ```Java
     List<String> strList = new ArrayList<>();
     List<Integer> intList = new ArrayList<>();
@@ -2046,6 +2076,7 @@ try {
 
 6. 제네릭과 배열
     - 제네릭 타입으로 배열을 직접 생성할 수 있습니다.
+
     ```Java
     // 컴파일 에러
     T[] array = new T[10]; // 불가능
@@ -2055,6 +2086,7 @@ try {
     ```
 
 7. 다중 경계
+
 ```Java
 public class Multiplebounds<T extends Number & Comparable<T>> {
     private T number;
@@ -2074,6 +2106,7 @@ public class Multiplebounds<T extends Number & Comparable<T>> {
 ```
 
 8. 재귀적 타입 경계
+
 ```Java
 public class RecursiveBound<T extends Comparable<T>> {
     private T value;
@@ -2093,6 +2126,7 @@ public class RecursiveBound<T extends Comparable<T>> {
 ```
 
 10. 제네릭 메서드와 가변인자
+
 ```Java
 public static <T> List<T> asList(T... elements) {
     List<T> list = new ArrayList<>();
@@ -2138,6 +2172,7 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
     ```
 
     2. 예제
+
     ```Java
     // 단일 매개변수, 단일 표현식
     Runnable r = () -> System.out.println("Hello World");
@@ -2153,6 +2188,7 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
     - 함수형 인터페이스는 단 하나의 추상 메서드만을 가진 인터페이스입니다. 람다 표현식은 이러한 함수형 인터페이스의 인스턴스를 생성하는 데 사용됩니다.
 
     1. `@FunctionalInterface` 어노테이션
+
     ```Java
     @FunctionalInterface
     public interface MyFunction {
@@ -2163,21 +2199,25 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
     2. 주요 내장 함수형 인터페이스
 
         1. Function<T,R>:T 타입을 인자로 받아 R 타입을 변환
+
         ```Java
         Function<String, Integer> strLength = s -> s.length();
         ```
 
         2. Predicate<T>:T 타입을 인자로 받아 boolean을 반환
+        
         ```Java
         Predicate<String> isEmpty = s -> s.isEmpty();
         ```
 
         3. Consumer<T>:T 타입을 인자로 받아 처리하지만 반환값은 없음
+
         ```Java
         Consumer<String> printer = s -> System.out.println(s);
         ```
 
         4. Supplier<T>: 인자 없이 T 타입의 결과를 제공
+
         ```Java
         Supplier<Double> randomValue = () -> Math.random();
         ```
@@ -2186,12 +2226,14 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
     - 메서드 참조는 람다 표현식을 더 간단히 표현하는 방법입니다.
 
     1. 정적 메서드 참조
+
     ```Java
     Function<String, Integer> parseIntLambda = s -> Integer.parseInt(s);
     Function<String, Integer> parseIntReference = Integer::parseInt;
     ```
 
     2. 인스턴스 메서드 참조
+
     ```Java
     String str = "Hello";
     Predicate<String> startsWithLambda = s -> str.startsWith(s);
@@ -2199,12 +2241,14 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
     ```
 
     3. 생성자 참조
+
     ```Java
     Supplier<List<String>> listSupplier = ArrayList::new;
     ```
 
 4. 람다 표현식의 변수 캡처
     - 람다 표현식은 외부 범위의 변수를 캡처할 수 있습니다. 그러나 캡처된 변수는 실질적으로 final이어야 합니다.
+
     ```Java
     int factor = 2;
     Function<Integer, Integer> multiplier = n -> n * factor;
@@ -2213,6 +2257,7 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
 
 5. 스트림 API와의 결합
     - 람다 표현식은 스트림 API와 함께 사용될 때 그 힘을 발휘합니다.
+
     ```Java
     List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
     names.stream()
@@ -2224,6 +2269,7 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
 6. 효과적인 람다 사용
     1. 가독성
         - 람다 표현식은 코드를 간결하게 만들지만, 너무 복잡한 로직을 람다로 표현하면 가독성이 떨어질 수 있습니다.
+
         ```Java
         // 좋음
         Predicate<String> isLongString = s -> s.length() > 10;
@@ -2243,6 +2289,7 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
 
     3. 예외 처리
         - 람다 표현식에서 예외를 처리할 때는 주의가 필요합니다.
+
         ```Java
         Function<String, Integer> safeParseInt = s -> {
             try {
@@ -2258,3 +2305,188 @@ Java 8에서 도입된 람다 표현식과 함수형 인터페이스는 Java에 
     2. 불변성: 함수형 프로그래밍은 불변성을 강조하여 부작용을 줄입니다.
     3. 병렬 처리: 함수형 스타일은 병렬 처리에 더 작합합니다.
     4. 지연 연산: 필요한 시점까지 연산을 미룰 수 있어 효과적입니다.
+
+### 스트림 API ###
+
+스트림 API는 Java 8에서 도입된 기능으로, 컬렉션의 요소를 선언적으로 처리할 수 있게 해줍니다.
+이를 통해 더 간결하고 가독성 높은 코드를 작성할 수 있으며, 병렬 처리도 쉽게 구현할 수 있습니다.
+
+1. 스트림의 기본 개념
+    - 스트림은 데이터의 흐름을 나타내며, 소스(컬렉션, 배열)로부터 생성되어 중간 연산을 거쳐 최종 연산으로 결과를 만들어냅니다.
+
+    ```Java
+    List<String> names = Arrays.asList("Alice", "Bob", "Charlie", "David");
+    names.stream()
+        .filter(name -> name.startsWith("A"))
+        .map(String::toUpperCase)
+        .forEach(System.out::println);
+    ```
+
+2. 스트림 생성
+    1. 컬렉션으로부터 생성
+
+    ```Java
+    List<String> list = Arrays.asList("a", "b", "c");
+    Stream<String> stream = list.stream();
+    ```
+
+    2. 배열로부터 생성
+
+    ```Java
+    String[] arr = {"a", "b", "c"};
+    Stream<String> stream = Arrays.stream(arr);
+    ```
+
+    3. Stream.of() 메서드 사용
+
+    ```Java
+    Stream<Integer> stream = Stream.of(1, 2, 3, 4, 5);
+    ```
+
+    4. 무한 스트림 생성
+
+    ```Java
+    Stream<Integer> infiniteStream = Stream.iterate(0, n -> n + 2);
+    ```
+
+3. 중간 연산
+    - 중간 연산은 다른 스트림을 반환하므로 여러 개를 연결할 수 있습니다.
+
+    1. filter()
+        - 조건에 맞는 요소만 선택합니다.
+
+        ```Java
+        Stream<String> filtered = names.stream().filter(name -> name.length() > 3);
+        ```
+
+    2. map()
+        - 각 요소를 변환합니다.
+
+        ```Java
+        Stream<Integer> lengths = names.stream().map(String::length);
+        ```
+
+    3. flatMap()
+        - 중첩된 구조를 평탄화합니다.
+
+        ```Java
+        List<List<Integer>> numbers = Arrays.asList(
+            Arrays.asList(1, 2), Arrays.asList(3, 4)
+        );
+        Stream<Integer> flattened = numbers.stream().flatMap(List::stream);
+        ```
+
+    4. distinct()
+        - 중복을 제거합니다.
+
+        ```Java
+        Stream<String> unique = names.stream().distinct();
+        ```
+
+    5. sorted()
+        - 요소를 정렬합니다.
+        ```Java
+        Stream<String> sorted = names.stream().sorted();
+        ```
+
+    6. peek()
+        - 요소를 소비하지 않고 확인만 합니다.
+        ```Java
+        Stream<String> peeked = names.stream().peek(System.out::println);
+        ```
+
+4. 최종 연산
+    - 최종 연산은 스트림을 소비하고 결과를 반환합니다.
+
+    1. forEach()
+        - 각 요소에 대해 작업을 수행합니다.
+        
+        ```Java
+        names.stream().forEach(System.out::println);
+        ```
+
+    2. collect()
+        - 결과를 컬렉션으로 모읍니다.
+
+        ```Java
+        List<String> collected = names.stream().collect(Collectors.toList());
+        ```
+
+    3. reduce()
+        - 요소를 하나로 줄입니다.
+
+        ```Java
+        Optional<String> reduced = names.stream().reduce((a, b) -> a + ", " + b);
+        ```
+
+    4. count(), anyMatch(), allMatch(), noneMatch()
+    
+        ```Java
+        long count = names.stream().count();
+        boolean anyStartsWithA = names.stream().anyMatch(name -> name.startsWith("A"));
+        boolean allLongerThan2 = names.stream().allMatch(name -> name.length() > 2);
+        boolean noneStartWithZ = names.stream().noneMatch(name -> name.startsWith("Z"));
+        ```
+
+    5. findFirst(), findAny()
+
+        ```Java
+        Optional<String> first = names.stream().findFirst();
+        Optional<String> any = names.stream().findAny();
+        ```
+
+5. 병렬 스트림
+    - 스트림 API는 쉽게 병렬 처리를 할 수 있게 해줍니다.
+
+    ```Java
+    List<String> parallelProcessed = names.parallelStream()
+                                          .map(String::toUpperCase)
+                                          .collect(Collectors.toList());
+    ```
+
+6. 커스텀 Collector 만들기
+    - 필요에 따라 커스텀 Collector를 만들 수 있습니다.
+    
+    ```Java
+    Collector<String, StringJoiner, String> customCollector = Collector.of(
+        () -> new StringJoiner(", "),          // supplier
+        StringJoiner::add,                     // accumulator
+        StringJoiner::merge,                   // combiner
+        StringJoiner::toString                 // finisher
+    );
+
+    String result = names.stream().collect(customCollector);
+    ```
+
+7. 스트림 디버깅
+    - 스트림 연산을 디버깅하기 위해 peek() 메서드를 사용할 수 있습니다.
+
+    ```Java
+    List<String> result = names.stream()
+        .filter(name -> name.startsWith("A"))
+        .peek(name -> System.out.println("Filtered: " + name))
+        .map(String::toUpperCase)
+        .peek(name -> System.out.println("Mapped: " + name))
+        .collect(Collectors.toList());
+    ```
+
+8. 스트림 성능 고려사항
+    1. 병렬 스트림은 항상 더 빠른 것은 아닙니다. 데이터 크기와 작업의 복잡성을 고려해야 합니다.
+    2. 무한 스트림 사용 시 limit() 등으로 크기를 제한해야 합니다.
+    3. 상태 유지 중간 연산(sorted(), distinct() 등)은 전체 스트림을 버퍼링해야 하므로 큰 데이터셋에서는 주의가 필요합니다.
+
+9. 스트림 vs 루프
+    - 스트림은 간결성과 가독성을 제공하지만, 항상 전통적인 루프보다 효율적인 것은 아닙니다. 상황에 따라 적절한 방법을 선택해야 합니다.
+
+    ```Java
+    // 스트림 사용
+    int sum = numbers.stream().filter(n -> n % 2 == 0).mapToInt(n -> n * 2).sum();
+
+    // 전통적인 루프
+    int sum = 0;
+    for (int n : numbers) {
+        if (n % 2 == 0) {
+            sum += n * 2;
+        }
+    }
+    ```
