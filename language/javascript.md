@@ -726,3 +726,1049 @@ function factorial(n) {
 
 console.log(factorial(5));  // 출력: 120
 ```
+
+### 객체 지향 프로그래밍 ###
+
+JavaScript는 프로토타입 기반의 객체 지향 프로그래밍을 지원합니다.
+ES6부터는 클래스 문법도 도입되어 더욱 직관적인 객체 지향 프로그래밍이 가능해졌습니다.
+
+1. 객체 생성과 프로토타입
+
+    1. 객체 리터럴
+        - 가장 간단한 객체 생성 방법입니다.
+        ```javascript
+        const person = {
+            name: "Alice",
+            age: 30,
+            greet: function() {
+                console.log(`Hello, I'm ${this.name}`);
+            }
+        };
+
+        person.greet();  // 출력: Hello, I'm Alice
+        ```
+
+    2. 생성자 함수
+    ```javascript
+    function Person(name, age) {
+        this.name = name;
+        this.age = age;
+        this.greet = function() {
+            console.log(`Hello, I'm ${this.name}`);
+        };
+    }
+
+    const alice = new Person("Alice", 30);
+    alice.greet();  // 출력: Hello, I'm Alice
+    ```
+
+    3. 프로토타입
+        - 프로토타입을 사용하면 모든 인스턴스가 공유하는 메서드를 정의할 수 있습니다.
+        ```javascript
+        function Person(name, age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        Person.prototype.greet = function() {
+            console.log(`Hello, I'm ${this.name}`);
+        };
+
+        const alice = new Person("Alice", 30);
+        alice.greet();  // 출력: Hello, I'm Alice
+        ```
+
+2. 클래스
+    - ES6부터 도입된 클래스 문법은 객체 지향 프로그래밍을 더 직관적으로 만듭니다.
+
+    ```javascript
+    class Person {
+        constructor(name, age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        greet() {
+            console.log(`Hello, I'm ${this.name}`);
+        }
+    }
+
+    const alice = new Person("Alice", 30);
+    alice.greet();  // 출력: Hello, I'm Alice
+    ```
+
+3. 상속
+    - 프로토타입 체인을 이용한 상속
+
+    ```javascript
+    function Animal(name) {
+        this.name = name;
+    }
+
+    Animal.prototype.speak = function() {
+        console.log(`${this.name} makes a sound.`);
+    };
+
+    function Dog(name) {
+        Animal.call(this, name);
+    }
+
+    Dog.prototype = Object.create(Animal.prototype);
+    Dog.prototype.constructor = Dog;
+
+    Dog.prototype.bark = function() {
+        console.log(`${this.name} barks.`);
+    };
+
+    const dog = new Dog("Buddy");
+    dog.speak();  // 출력: Buddy makes a sound.
+    dog.bark();   // 출력: Buddy barks.
+    ```
+
+    - 클래스를 이용한 상속
+
+    ```javascript
+    class Animal {
+        constructor(name) {
+            this.name = name;
+        }
+
+        speak() {
+            console.log(`${this.name} makes a sound.`);
+        }
+    }
+
+    class Dog extends Animal {
+        bark() {
+            console.log(`${this.name} barks.`);
+        }
+    }
+
+    const dog = new Dog("Buddy");
+    dog.speak();  // 출력: Buddy makes a sound.
+    dog.bark();   // 출력: Buddy barks.
+    ```
+
+4. 캡슐화
+    - javascript에서는 진정한 의미의 private 속성을 지원하지 않지만,
+    몇 가지 방법으로 캡슐화를 구현할 수 있습니다.
+
+    1. 클로저를 이용한 캡슐화
+    
+    ```javascript
+    function Counter() {
+        let count = 0;  // private 변수
+
+        this.increment = function() {
+            count++;
+        };
+
+        this.getCount = function() {
+            return count;
+        };
+    }
+
+    const counter = new Counter();
+    counter.increment();
+    console.log(counter.getCount());  // 출력: 1
+    console.log(counter.count);  // 출력: undefined
+    ```
+
+    2. Symbol을 이용한 캡슐화
+
+    ```javascript
+    const _count = Symbol('count');
+
+    class Counter {
+        constructor() {
+            this[_count] = 0;
+        }
+
+        increment() {
+            this[_count]++;
+        }
+
+        get count() {
+            return this[_count];
+        }
+    }
+
+    const counter = new Counter();
+    counter.increment();
+    console.log(counter.count);  // 출력: 1
+    console.log(counter[_count]);  // 출력: 1 (하지만 이는 권장되지 않음)
+    ```
+
+5. 다형성
+    - 다형성은 같은 인터페이스를 사용하여 다양한 객체 타입을 다룰 수 있는 능력입니다.
+
+    ```javascript
+    class Shape {
+        area() {
+            throw new Error("Area method should be implemented");
+        }
+    }
+
+    class Circle extends Shape {
+        constructor(radius) {
+            super();
+            this.radius = radius;
+        }
+
+        area() {
+            return Math.PI * this.radius ** 2;
+        }
+    }
+
+    class Rectangle extends Shape {
+        constructor(width, height) {
+            super();
+            this.width = width;
+            this.height = height;
+        }
+
+        area() {
+            return this.width * this.height;
+        }
+    }
+
+    function printArea(shape) {
+        console.log(`Area: ${shape.area()}`);
+    }
+
+    const circle = new Circle(5);
+    const rectangle = new Rectangle(4, 5);
+
+    printArea(circle);     // 출력: Area: 78.53981633974483
+    printArea(rectangle);  // 출력: Area: 20
+    ```
+
+6. 정적 메서드와 속성
+    - 클래스나 생성자 함수에 직접 연결된 메서드와 속성입니다.
+
+    ```javascript
+    class MathOperations {
+        static PI = 3.14159;
+
+        static square(x) {
+            return x * x;
+        }
+    }
+
+    console.log(MathOperations.PI);  // 출력: 3.14159
+    console.log(MathOperations.square(5));  // 출력: 25
+    ```
+
+7. getter와 setter
+    - 객체의 속성에 접근하거나 수정할 때 특별한 동작을 정의할 수 있습니다.
+
+    ```javascript
+    class Person {
+        constructor(name) {
+            this._name = name;
+        }
+
+        get name() {
+            return this._name.toUpperCase();
+        }
+
+        set name(newName) {
+            if (newName.length > 0) {
+                this._name = newName;
+            } else {
+                console.log("Name cannot be empty");
+            }
+        }
+    }
+
+    const person = new Person("Alice");
+    console.log(person.name);  // 출력: ALICE
+    person.name = "Bob";
+    console.log(person.name);  // 출력: BOB
+    person.name = "";  // 출력: Name cannot be empty
+    ```
+
+### 비동기 프로그래밍 ###
+
+JavaScript는 단일 스레드 언어이지만, 비동기 프로그래밍을 통해 효율적으로
+I/O 작업을 처리하고 반응성 있는 애플리케이션을 만들 수 있습니다. 비동기 프로그래밍은
+시간이 걸리는 작업(예: 네트워크 요청, 파일 읽기/쓰기)을 처리할 때 특히 유용합니다.
+
+1. 콜백 (Callbacks)
+    - 콜백은 JavaScript에서 비동기 프로그래밍을 구현하는 가장 기본적인 방법입니다.
+
+    ```javascript
+    function fetchData(callback) {
+        setTimeout(() => {
+            const data = { id: 1, name: "John Doe" };
+            callback(data);
+        }, 1000);
+    }
+
+    fetchData((data) => {
+        console.log(data);  // 1초 후 출력: { id: 1, name: "John Doe" }
+    });
+
+    console.log("Fetching data...");  // 즉시 출력
+    ```
+
+    하지만 콜백을 중첩해서 사용하면 "콜백 지옥"이라고 불리는
+    가독성 떨어지는 코드가 만들어질 수 있습니다.
+
+    ```javascript
+    fetchUser(function(user) {
+        fetchPosts(user.id, function(posts) {
+            fetchComments(posts[0].id, function(comments) {
+                // 이렇게 계속 중첩될 수 있습니다...
+            });
+        });
+    });
+    ```
+
+2. Promise
+    - Promise는 ES6에서 도입된 비동기 작업의 최종 완료 또는 실패를 나타내는 객체입니다.
+
+    ```javascript
+    function fetchData() {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                const data = { id: 1, name: "John Doe" };
+                resolve(data);
+                // 에러가 발생했다면: reject(new Error("Failed to fetch data"));
+            }, 1000);
+        });
+    }
+
+    fetchData()
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
+
+    console.log("Fetching data...");
+    ```
+
+    Promise를 사용하면 콜백 지옥 문제를 해결할 수 있습니다.
+
+    ```javascript
+    fetchUser()
+        .then(user => fetchPosts(user.id))
+        .then(posts => fetchComments(posts[0].id))
+        .then(comments => {
+            // 처리 로직
+        })
+        .catch(error => console.error(error));
+    ```
+
+    1. Promise.all()
+        - 여러 개의 Promise를 병렬로 처리할 때 사용합니다.
+
+        ```javascript
+        const promise1 = fetchUser();
+        const promise2 = fetchPosts();
+
+        Promise.all([promise1, promise2])
+            .then(([user, posts]) => {
+                // user와 posts 데이터를 모두 받은 후 처리
+            })
+            .catch(error => console.error(error));
+        ```
+
+    2. Promise.race()
+        - 여러 Promise 중 가장 먼저 완료되는 것만 처리합니다.
+
+        ```javascript
+        const promise1 = new Promise(resolve => setTimeout(() => resolve("First"), 500));
+        const promise2 = new Promise(resolve => setTimeout(() => resolve("Second"), 100));
+
+        Promise.race([promise1, promise2])
+            .then(result => console.log(result))  // 출력: "Second"
+            .catch(error => console.error(error));
+        ``` 
+    
+3. async/await
+    - async/await는 ES2017에서 도입된 기능으로, Promise를 더 쉽고 직관적으로 사용할 수 있게 해줍니다.
+
+    ```javascript
+    async function fetchUserData() {
+        try {
+            const user = await fetchUser();
+            const posts = await fetchPosts(user.id);
+            const comments = await fetchComments(posts[0].id);
+            return { user, posts, comments };
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    fetchUserData().then(data => console.log(data));
+    ```
+
+    async 함수는 항상 Promise를 반환합니다. await 키워드는 Promise가 처리될 때까지
+    함수의 실행을 일시 중지합니다.
+
+    - 병렬 처리
+    ```javascript
+    async function fetchAllData() {
+        const [user, posts] = await Promise.all([fetchUser(), fetchPosts()]);
+        return { user, posts };
+    }
+    ```
+
+4. 이벤트 루프
+    - JavaScript의 비동기 동작을 이해하려면 이벤트 루프의 개념을 아는 것이 중요합니다.
+
+    1. 콜 스택: 동기적으로 실행되는 코드가 쌓입니다.
+    2. 태스크 큐: setTimeout, setInterval 등의 비동기 작업이 완료된 후 실행될 콜백이 쌓입니다.
+    3. 마이크로태스크 큐: Promise의 then/catch/finally 핸들러가 쌓입니다.
+
+    - 이벤트 루프는 다음과 같은 순서로 작동합니다:
+        1. 콜 스택이 비어있는지 확인합니다.
+        2. 마이크로태스크 큐에 작업이 있으면 실행합니다.
+        3. 렌더링 작업을 수행합니다. (브라우저 환경의 경우).
+        4. 태스크 큐에서 하나의 작업을 가져와 실행합니다.
+        5. 1번으로 돌아갑니다.
+
+5. Web API
+    - 브라우저 환경에서 JavaScript는 Web API를 통해 비동기 작업을 수행합니다.
+
+    - setTimeout/setInterval: 일정 시간 후에 콜백을 실행합니다.
+    - fetch: HTTP 요청을 보냅니다.
+    - addEventListner: 이벤트 리스너를 등록합니다.
+
+    ```javascript
+    console.log("Start");
+
+    setTimeout(() => console.log("Timeout"), 0);
+
+    Promise.resolve().then(() => console.log("Promise"));
+
+    console.log("End");
+
+    // 출력 순서:
+    // Start
+    // End
+    // Promise
+    // Timeout
+    ```
+
+6. 에러 처리
+    - 비동기 코드에서의 에러 처리는 동기 코드와는 다르게 작동합니다.
+
+    ```javascript
+    // Promise
+    fetchData()
+        .then(data => {
+            // 데이터 처리
+        })
+        .catch(error => {
+            console.error("An error occurred:", error);
+        });
+
+    // async/await
+    async function fetchData() {
+        try {
+            const data = await fetchAPI();
+            // 데이터 처리
+        } catch (error) {
+            console.error("An error occurred:", error);
+        }
+    }
+    ```
+
+### 모듈 시스템 ###
+
+모듈 시스템은 코드를 구조화하고 재사용 가능한 단위로 분리하는 메커니즘입니다.
+JavaScript에서는 여러 모듈 시스템이 발전해 왔으며, 현재는 ES6(ES2015)모듈이 표준으로 사용되고 있습니다.
+
+1. 모듈의 필요성
+    - 코드 구조화 및 네임스페이스 관리
+    - 코드 재사용성 향상
+    - 의존성 관리
+    - 전역 스코프 오염 방지
+
+2. CommonJS
+    - Node.js에서 주로 사용되는 모듈 시스템입니다.
+
+    1. 내보내기 (Exporting)
+
+    ```javascript
+    // math.js
+    function add(a, b) {
+        return a + b;
+    }
+
+    function subtract(a, b) {
+        return a - b;
+    }
+
+    module.exports = {
+        add: add,
+        subtract: subtract
+    };
+
+    // 또는 개별적으로 내보내기
+    // exports.add = add;
+    // exports.subtract = subtract;
+    ```
+
+    2. 가져오기 (Importing)
+
+    ```javascript
+    const math = require('./math');
+
+    console.log(math.add(5, 3));      // 출력: 8
+    console.log(math.subtract(5, 3)); // 출력: 2
+
+    // 구조 분해 할당을 사용할 수도 있습니다
+    // const { add, subtract } = require('./math');
+    ```
+
+3. ES6 모듈
+    - ES6에서 도입된 표준 모듈 시스템입니다. 브라우저와 최신 Node.js 버전에서 지원됩니다.
+
+    1. 내보내기 (Exporting)
+
+    ```javascript
+    // math.js
+    export function add(a, b) {
+        return a + b;
+    }
+
+    export function subtract(a, b) {
+        return a - b;
+    }
+
+    // 기본 내보내기
+    export default function multiply(a, b) {
+        return a * b;
+    }
+    ```
+
+    2. 가져오기 (Importing)
+
+    ```javascript
+    import { add, subtract } from './math.js';
+    import multiply from './math.js';  // 기본 내보내기 가져오기
+
+    console.log(add(5, 3));      // 출력: 8
+    console.log(subtract(5, 3)); // 출력: 2
+    console.log(multiply(5, 3)); // 출력: 15
+
+    // 모든 내보내기를 한 번에 가져오기
+    // import * as math from './math.js';
+    // console.log(math.add(5, 3));
+    ```
+
+4. 동적 임포트
+    - ES2020에서 도입된 기능으로, 필요한 시점에 모듈을 동적으로 가져올 수 있습니다.
+
+    ```javascript
+    async function loadModule() {
+        if (someCondition) {
+            const { default: myModule } = await import('./myModule.js');
+            myModule.doSomething();
+        }
+    }
+    ```
+
+5. 모듈 번들러
+    - 대규모 애플리케이션에서는 모듈 번들러를 사용하여 여러 모듈을 하나의 파일로 묶어 성능을 최적화합니다.
+
+    - Webpack
+    - Rollup
+    - Parcel
+
+    - 예: Webpack 설정 (webpack.config.js)
+
+    ```javascript
+    const path = require('path');
+
+    module.exports = {
+        entry: './src/index.js',
+        output: {
+            filename: 'bundle.js',
+            path: path.resolve(__dirname, 'dist'),
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env']
+                        }
+                    }
+                }
+            ]
+        }
+    };
+    ```
+
+6. 순환 의존성
+    - 모듈 간 순환 의존성이 발생할 수 있으며, 이는 주의해서 다뤄야 합니다.
+
+    ```javascript
+    // a.js
+    import { b } from './b.js';
+    export const a = 1;
+    console.log(b);
+
+    // b.js
+    import { a } from './a.js';
+    export const b = 2;
+    console.log(a);
+
+    // 이런 경우, a는 undefined로 출력될 수 있습니다.
+    ```
+
+7. Node.js에서의 ES 모듈 사용
+    - Node.js에서 ES 모듈을 사용하려면 다음 방법 중 하나를 선택할 수 있습니다.
+
+    1. 파일 확장자를 `.mjs`로 변경
+    2. 가장 가까운 `package.json`에 `"type":"module"` 추가
+
+    ```json
+    {
+        "name": "my-project",
+        "version": "1.0.0",
+        "type": "module"
+    }
+    ```
+
+8. 모듈 패턴(클로저를 이용한 모듈)
+    - ES6 이전에 모듈과 유사한 패턴을 구현하는 방법입니다.
+
+    ```javascript
+    const myModule = (function() {
+        let privateVariable = 0;
+
+        function privateFunction() {
+            console.log('This is private');
+        }
+
+        return {
+            publicMethod: function() {
+                privateFunction();
+                console.log(privateVariable);
+            },
+            publicVariable: 42
+        };
+    })();
+
+    myModule.publicMethod();  // 출력: This is private, 0
+    console.log(myModule.publicVariable);  // 출력: 42
+    // console.log(myModule.privateVariable);  // undefined
+    ```
+
+9. 모듈의 장점
+    1. 코드 재사용성: 모듈화된 코드는 여러 프로젝트에서 쉽게 사용할 수 있습니다.
+    2. 의존성 관리: 모듈 간의 의존성을 명확하게 관리할 수 있습니다.
+    3. 네임스페이스 관리: 전역 스코프 오염을 방지하고 변수명 충돌을 줄일 수 있습니다.
+    4. 코드 구조화: 큰 프로그램을 작은 단위로 나누어 관리할 수 있습니다.
+    5. 성능 최적화: 필요한 모듈만 로드하여 초기 로딩 시간을 줄일 수 있습니다.
+
+### DOM 조작 ###
+
+DOM(Document Object Model)은 HTML 문서의 프로그래밍 인터페이스입니다.
+JavaScript를 사용하여 DOM을 조작함으로써 웹 페이지의 내용, 구조, 스타일을 동적으로 변경할 수 있습니다.
+
+1. DOM 요소 선택
+    1. 단일 요소 선택
+    ```javascript
+    // ID로 선택
+    const element = document.getElementById('myId');
+
+    // CSS 선택자로 첫 번째 일치하는 요소 선택
+    const element = document.querySelector('.myClass');
+    ```
+
+    2. 여러 요소 선택
+    ```javascript
+    // 클래스명으로 선택
+    const elements = document.getElementsByClassName('myClass');
+
+    // 태그명으로 선택
+    const elements = document.getElementsByTagName('div');
+
+    // CSS 선택자로 일치하는 모든 요소 선택
+    const elements = document.querySelectorAll('p.intro');
+    ```
+
+2. DOM 요소 생성 및 추가
+    1. 요소 생성
+    ```javascript
+    const newDiv = document.createElement('div');
+    const newText = document.createTextNode('Hello, World!');
+    newDiv.appendChild(newText);
+    ```
+
+    2. 요소 추가
+    ```javascript
+    // 부모 요소의 마지막 자식으로 추가
+    parentElement.appendChild(newDiv);
+
+    // 특정 위치에 삽입
+    parentElement.insertBefore(newDiv, referenceNode);
+    ```
+
+3. DOM 요소 수정
+    1. 내용 수정
+    ```javascript
+    element.textContent = 'New text content';
+    element.innerHTML = '<span>New HTML content</span>';
+    ```
+
+    2. 속성 수정
+    ```javascript
+    element.setAttribute('class', 'newClass');
+    element.id = 'newId';
+    ```
+
+    3. 스타일 수정
+    ```javascript
+    element.style.color = 'red';
+    element.style.backgroundColor = '#f0f0f0';
+    ```
+
+4. DOM 요소 제거
+```javascript
+// 요소 자체 제거
+element.remove();
+
+// 부모 요소에서 자식 요소 제거
+parentElement.removeChild(childElement);
+```
+
+5. 이벤트 처리
+    - 이벤트 리스너 추가
+
+    ```javascript
+    element.addEventListener('click', function(event) {
+        console.log('Element clicked!');
+    });
+    ```
+
+    - 이벤트 객체 사용
+
+    ```javascript
+    element.addEventListener('click', function(event) {
+        console.log('Clicked at: ', event.clientX, event.clientY);
+        event.preventDefault(); // 기본 동작 방지
+    });
+    ```
+
+6. DOM 탐색
+    - 부모, 자식, 형제요소 접근
+
+    ```javascript
+    const parent = element.parentNode;
+    const children = element.children;
+    const nextSibling = element.nextElementSibling;
+    const previousSibling = element.previousElementSibling;
+    ```
+
+7. 클래스 조작
+```javascript
+element.classList.add('newClass');
+element.classList.remove('oldClass');
+element.classList.toggle('toggleClass');
+element.classList.contains('checkClass');
+```
+
+8. 데이터 속성 사용
+
+    - HTML:
+    ```html
+    <div id="myElement" data-info="Some information"></div>
+    ```
+
+    - JavaScript:
+    ```javascript
+    const element = document.getElementById('myElement');
+    console.log(element.dataset.info); // "Some information"
+    element.dataset.newInfo = "New information";
+    ```
+
+9. DOM 요소 복제
+
+```javascript
+const clone = element.cloneNode(true); // true는 깊은 복사를 의미
+parentElement.appendChild(clone);
+```
+
+10. 프래그먼트 사용
+    - 여러 요소를 한 번에 추가할 때 성능 향상을 위해 사용합니다.
+
+    ```javascript
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < 1000; i++) {
+        const newElement = document.createElement('div');
+        newElement.textContent = `Element ${i}`;
+        fragment.appendChild(newElement);
+    }
+    parentElement.appendChild(fragment);
+    ```
+
+11. 요소의 크기와 위치
+```javascript
+const rect = element.getBoundingClientRect();
+console.log(rect.top, rect.left, rect.width, rect.height);
+```
+
+12. DOM 변경 감지 (MutationObserver)
+```javascript
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        console.log(mutation.type);
+    });
+});
+
+observer.observe(targetNode, { childList: true, subtree: true });
+```
+
+13. 성능 고려사항
+    1. DOM 조작을 최소화하세요. 여러 변경사항을 한 번에 적용하는 것이 좋습니다.
+    2. `innerHTML`보다 `textContent`를 사용하면 더 빠르고 안전합니다.
+    3. 요소를 자주 선택해야 할 경우, 변수에 저장하여 재사용하세요.
+    4. 큰 리스트를 렌더링할 때는 가상 스크롤을 고려하세요.
+
+14. 브라우저 지원 및 폴리필
+    - 일부 DOM API는 구현 브라우저에서 지원되지 않을 수 있습니다.
+    필요한 경우 폴리필을 사용하여 호환성을 확보하세요.
+
+    ```javascript
+    if (!Element.prototype.matches) {
+        Element.prototype.matches = Element.prototype.msMatchesSelector || 
+                                    Element.prototype.webkitMatchesSelector;
+    }
+    ```
+
+### AJAX와 API 통신
+
+AJAX(Asynchronous JavaScript and XML)는 웹 페이지가 서버와 동기적으로 데이터를 교환할 수 있게 해주는 기술입니다.
+현대 웹 애플리케이션에서는 AJAX를 사용하여 RESTful API와 통신하는 것이 일반적입니다.
+
+1. XMLHttpRequest
+    - XMLHttpRequest는 AJAX의 가장 기본적인 방식입니다.
+
+    ```javascript
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://api.example.com/data', true);
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            console.log(response);
+        } else {
+            console.error('Request failed. Status:', xhr.status);
+        }
+    };
+
+    xhr.onerror = function() {
+        console.error('Request failed. Network error');
+    };
+
+    xhr.send();
+    ```
+
+2. Fetch API
+    - Fetch API는 XMLHttpRequest보다 더 강력하고 유연한 최신 API입니다.
+
+    ```javascript
+    fetch('https://api.example.com/data')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => console.log(data))
+        .catch(error => console.error('Fetch error:', error));
+    ```
+
+    - POST 요청 예시
+
+    ```javascript
+    fetch('https://api.example.com/post', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ key: 'value' })
+    })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    ```
+
+3. Axios
+    - Axios는 브라우저와 Node.js에서 사용할 수 있는 인기 있는 HTTP 클라이언트 라이브러리입니다.
+
+    ```javascript
+    axios.get('https://api.example.com/data')
+        .then(response => console.log(response.data))
+        .catch(error => console.error('Error:', error));
+
+    // POST 요청
+    axios.post('https://api.example.com/post', { key: 'value' })
+        .then(response => console.log(response.data))
+        .catch(error => console.error('Error:', error));
+    ```
+
+4. async/await와 함께 사용
+    - modern JavaScript에서는 async/await를 사용하여 비동기 코드를 더 읽기 쉽게 만들 수 있습니다.
+
+    ```javascript
+    async function fetchData() {
+        try {
+            const response = await fetch('https://api.example.com/data');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            console.log(data);
+        } catch (error) {
+            console.error('Fetch error:', error);
+        }
+    }
+
+    fetchData();
+    ```
+
+5. 에러 처리
+    - API 통신 시 적절한 에러 처리는 매우 중요합니다.
+
+    ```javascript
+    fetch('https://api.example.com/data')
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('Data not found');
+                } else if (response.status === 500) {
+                    throw new Error('Server error');
+                } else {
+                    throw new Error('Unknown error');
+                }
+            }
+            return response.json();
+        })
+        .then(data => console.log(data))
+        .catch(error => {
+            console.error('Error:', error.message);
+            // 사용자에게 에러 메시지 표시
+    });
+    ```
+
+6. CORS (Cross-Origin Resource Sharing)
+    - 브라우저의 동일 출처 정책으로 인해 다른 도메인의 리소스에 접근할 때 CORS 설정이 필요합니다.
+
+    - 서버 측에서 적절한 CORS 헤더를 설정해야 하며, 클라이언트 측에서는 다음과 같이 처리할 수 있습니다.
+
+    ```javascript
+    fetch('https://api.example.com/data', {
+        mode: 'cors', // 'no-cors', 'cors', 'same-origin'
+        credentials: 'include', // 'include', 'same-origin', 'omit'
+    })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    ```
+
+7. API 인증
+    - 많은 API는 인증을 요구합니다. 일반적인 인증 방식으로는 API키, Oauth, JWT 등이 있습니다.
+
+    ```javascript
+    // API 키를 사용한 예시
+    fetch('https://api.example.com/data', {
+        headers: {
+            'Authorization': 'Bearer YOUR_API_KEY'
+        }
+    })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    ```
+
+8. 요청 취소
+    - fetch API를 사용할 때 AbortController를 사용하여 요청을 취소할 수 있습니다.
+
+    ```javascript
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    fetch('https://api.example.com/data', { signal })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => {
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted');
+            } else {
+                console.error('Error:', error);
+            }
+        });
+
+    // 요청 취소
+    controller.abort();
+    ```
+
+9. 동시 요청
+    - 여러 API를 동시에 호출해야 할 때는 Promise.all을 사용할 수 있습니다.
+
+    ```javascript
+    const urls = [
+        'https://api.example.com/data1',
+        'https://api.example.com/data2',
+        'https://api.example.com/data3'
+    ];
+
+    Promise.all(urls.map(url => fetch(url).then(resp => resp.json())))
+        .then(results => {
+            console.log(results);
+        })
+        .catch(error => console.error('Error:', error));
+    ```
+
+10. 재시도 로직
+    - 네트워크 불안정 등의 이유로 요청이 실패할 경우, 재시도 로직을 구현할 수 있습니다.
+
+    ```javascript
+    async function fetchWithRetry(url, options = {}, retries = 3) {
+        try {
+            return await fetch(url, options);
+        } catch (err) {
+            if (retries > 0) {
+                return await fetchWithRetry(url, options, retries - 1);
+            } else {
+                throw err;
+            }
+        }
+    }
+
+    fetchWithRetry('https://api.example.com/data')
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    ```
+
+11. 캐싱
+    - 반복적인 API 호출을 줄이기 위해 응답을 캐싱할 수 있습니다.
+
+    ```javascript
+    const cache = new Map();
+
+    async function fetchWithCache(url) {
+        if (cache.has(url)) {
+            return cache.get(url);
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        cache.set(url, data);
+        return data;
+    }
+
+    fetchWithCache('https://api.example.com/data')
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    ```
