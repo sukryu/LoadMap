@@ -1416,3 +1416,762 @@ TypeScript는 기본 타입 외에도 복잡한 타입 관계를 표현할 수 �
         }
     }
     ```
+
+7. 데코레이터 팩토리
+    - 데이터 팩토리는 데코레이터가 런타임에 호출할 표현식을 반환하는 함수입니다.
+
+    ```typescript
+    function color(value: string) {
+        return function (target) {
+            // 이 함수가 데코레이터입니다
+        }
+    }
+
+    @color("red")
+    class Greeter {
+        // ...
+    }
+    ```
+
+8. 데코레이터 합성
+    - 여러 데코레이터를 한 선언에 적용할 때, 그 평가는 수학의 함수 합성과 유사합니다.
+
+    ```typescript
+    function f() {
+        console.log("f(): evaluated");
+        return function (target, propertyKey: string, descriptor: PropertyDescriptor) {
+            console.log("f(): called");
+        }
+    }
+
+    function g() {
+        console.log("g(): evaluated");
+        return function (target, propertyKey: string, descriptor: PropertyDescriptor) {
+            console.log("g(): called");
+        }
+    }
+
+    class C {
+        @f()
+        @g()
+        method() {}
+    }
+    ```
+
+    이 코드는 다음과 같은 출력을 생성합니다.
+
+    ```bash
+    f(): evaluated
+    g(): evaluated
+    g(): called
+    f(): called
+    ```
+
+9. 데코레이터 평가
+    - 클래스에서 다양한 선언에 데코레이터를 적용하는 방법은 다음과 같습니다.
+
+    1. 매개변수 데코레이터, 그 다음 메서드, 접근자, 또는 프로퍼티 데코레이터가 각 인스턴스 멤버에 적용됩니다.
+
+    2. 매개변수 데코레이터, 그 다음 메서드, 접근자, 또는 프로퍼티 데코레이터가 각 정적 멤버에 적용됩니다.
+
+    3. 매개변수 데코레이터가 생성자에 적용됩니다.
+
+    4. 클래스 데코레이터가 클래스에 적용됩니다.
+
+
+### 비동기 프로그래밍 (Promise, async/await)
+
+TypeScript는 JavaScript의 비동기 프로그래밍 패턴을 모두 지원하면서 추가적인 타입 안정성을 제공합니다.
+
+1. Promise
+    - Promise는 비동기 작업의 최종 완료 또는 실패를 나타내는 객체입니다.
+
+    1. Promise 생성
+
+        ```typescript
+        function delay(ms: number): Promise<void> {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        const promise = delay(1000); // 1초 후에 resolve되는 Promise
+        ```
+
+    2. Promise 사용
+
+        ```typescript
+        delay(1000).then(() => {
+            console.log('1초가 지났습니다.');
+        }).catch(error => {
+            console.error('에러 발생:', error);
+        });
+        ```
+
+    3. Promise 체이닝
+
+        ```typescript
+        function fetchUser(id: number): Promise<string> {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (id > 0) {
+                        resolve(`User ${id}`);
+                    } else {
+                        reject('Invalid user id');
+                    }
+                }, 1000);
+            });
+        }
+
+        fetchUser(1)
+            .then(user => {
+                console.log(user);
+                return fetchUser(2);
+            })
+            .then(user => {
+                console.log(user);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        ```
+
+2. async/await
+    - async/await는 Promise를 더 쉽게 사용할 수 있게 해주는 문법적 설탕입니다.
+
+    1. async 함수 정의
+
+        ```typescript
+        async function fetchUserAsync(id: number): Promise<string> {
+            if (id <= 0) {
+                throw new Error('Invalid user id');
+            }
+            await delay(1000);
+            return `User ${id}`;
+        }
+        ```
+
+    2. async/await 사용
+
+        ```typescript
+        async function main() {
+            try {
+                const user1 = await fetchUserAsync(1);
+                console.log(user1);
+                const user2 = await fetchUserAsync(2);
+                console.log(user2);
+            } catch (error) {
+                console.error('에러 발생:', error);
+            }
+        }
+
+        main();
+        ```
+
+3. 병렬 처리
+    - 여러 비동기 작업을 병렬로 처리할 때는 `Promise.all()`을 사용할 수 있습니다.
+
+    ```typescript
+    async function fetchMultipleUsers(ids: number[]): Promise<string[]> {
+        const promises = ids.map(id => fetchUserAsync(id));
+        return Promise.all(promises);
+    }
+
+    fetchMultipleUsers([1, 2, 3])
+        .then(users => {
+            console.log(users);
+        })
+        .catch(error => {
+            console.error('에러 발생:', error);
+        });
+    ```
+
+4. 타입 안정성
+    - TypeScript는 Promise와 async/await에 대한 타입 추론과 검사를 제공합니다.
+
+    ```typescript
+    async function fetchData<T>(url: string): Promise<T> {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    }
+
+    interface User {
+        id: number;
+        name: string;
+    }
+
+    // 타입 T는 User로 추론됩니다
+    fetchData<User>('https://api.example.com/user/1')
+        .then(user => {
+            console.log(user.name); // 타입 안전: user는 User 타입
+        })
+        .catch(error => {
+            console.error('에러 발생:', error);
+        });
+    ```
+
+5. 고급 패턴
+    1. Promise.race
+        - 여러 Promise 중 가장 먼저 완료되는 것만 처리합니다.
+
+        ```typescript
+        function timeout(ms: number): Promise<never> {
+            return new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms));
+        }
+
+        Promise.race([
+            fetchUserAsync(1),
+            timeout(500)
+        ])
+            .then(result => console.log(result))
+            .catch(error => console.error(error));
+        ```
+
+    2. async 이터레이터
+        - 비동기 이터레이터를 사용하여 비동기 스트림을 처리할 수 있습니다.
+
+        ```typescript
+        async function* generateAsyncNumbers() {
+            yield await Promise.resolve(1);
+            yield await Promise.resolve(2);
+            yield await Promise.resolve(3);
+        }
+
+        async function sumAsyncNumbers() {
+            let sum = 0;
+            for await (const num of generateAsyncNumbers()) {
+                sum += num;
+            }
+            return sum;
+        }
+
+        sumAsyncNumbers().then(console.log); // 출력: 6
+        ```
+    
+    3. 에러 처리
+        - 비동기 코드에서의 에러 처리는 매우 중요합니다. try/catch 블록을 사용하거나 Promise의 catch 메서드를 사용할 수 있습니다.
+
+        ```typescript
+        async function fetchAndProcessData() {
+            try {
+                const data = await fetchData<User>('https://api.example.com/user/1');
+                // 데이터 처리
+            } catch (error) {
+                if (error instanceof Error) {
+                    console.error('에러 메시지:', error.message);
+                } else {
+                    console.error('알 수 없는 에러:', error);
+                }
+            }
+        }
+        ```
+
+### 컴파일러 및 구성 ###
+
+TypeScript  컴파일러 (tsc)는 TypeScript 코드를 JavaScript로 변환합니다. 이 과정에서 다양한 옵션을 통해 출력 결과를 제어할 수 있습니다.
+
+1. TypeScript 컴파일러 설치
+    - TypeScript 컴파일러는 npm을 통해 설치할 수 있습니다.
+
+    ```bash
+    npm install -g typescript
+    ```
+
+2. 기본 사용법
+    - 단일 파일 컴파일:
+    
+    ```bash
+    tsc filename.ts
+    ```
+
+    위 명령은 `filename.js`를 생성합니다.
+
+3. tsconfig.json
+
+    - `tsconfig.json` 파일은 TypeScript 프로젝트의 루트 디렉토리에 위치하며, 컴파일 옵션과 컴파일할 파일들을 지정합니다.
+
+    - 기본 `tsconfig.json` 생성:
+
+    ```bash
+    tsc --init
+    ```
+
+    - 기본 tsconfig.json 구조
+
+    ```json
+    {
+        "compilerOptions": {
+            "target": "es5",
+            "module": "commonjs",
+            "strict": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "forceConsistentCasingInFileNames": true
+        }
+    }
+    ```
+
+    - 주요 컴파일러 옵션
+
+        1. target
+            - 컴파일된 JavaScript의 ECMAScript 버전을 지정합니다.
+
+            ```json
+            "target": "es5"  // ES5로 컴파일
+            ```
+
+            - 가능한 값: "none", "commonjs", "amd", "system", "umd", "es6"/"es2015", "esnext"
+
+        2. strict
+            - 모든 엄격한 타입-체킹 옵션을 활성화합니다.
+
+            ```json
+            "strict": true
+            ```
+
+        3. outDir
+            - 컴파일된 파일들이 위치할 디렉토리를 지정합니다.
+
+            ```json
+            "outDir": "./dist"
+            ```
+
+        4. rootDir
+            - 입력 파일들의 루트 디렉토리를 지정합니다.
+
+            ```json
+            "rootDir": "./src"
+            ```
+
+        5. sourceMap
+            - 소스맵 파일 생성 여부를 지정합니다.
+
+            ```json
+            "sourceMap": true
+            ```
+
+        6. declaration
+            - `.d.ts` 선언 파일 생성 여부를 지정합니다.
+
+            ```json
+            "declaration": true
+            ```
+
+        7. noImplicitAny
+            - 암시적 'any' 타입 사용 시 에러를 발생시킵니다.
+
+            ```json
+            "noImplicitAny": true
+            ```
+
+        8. esModuleInterop
+            - 모든 Imports에 대한 namespace 생성을 통해 CommonJS와 ES Modules 간 상호 운용성을 개선합니다.
+
+            ```json
+            "esModuleInterop": true
+            ```
+
+    - 파일 포함 및 제외
+        - 특정 파일이나 디렉토리를 컴파일에 포함하거나 제외할 수 있습니다.
+
+        ```json
+        {
+            "include": [
+                "src/**/*"
+            ],
+            "exclude": [
+                "node_modules",
+                "**/*.spec.ts"
+            ]
+        }
+        ```
+
+    - 확장 (extends)
+        - 다른 tsconfig 파일을 확장할 수 있습니다.
+
+        ```json
+        {
+            "extends": "./tsconfig.base.json"
+        }
+        ```
+
+    - 프로젝트 참조 (Project References)
+        - 큰 프로젝트를 여러 개의 작은 프로젝트로 나누어 관리할 수 있습니다.
+
+        ```json
+        {
+            "references": [
+                { "path": "../otherProject" }
+            ]
+        }
+        ```
+
+    - 조건부 컴파일
+        - TypeScript 3.8부터 조건부 타입 내보내기가 가능합니다.
+
+        ```typescript
+        // @ts-ignore: Unreachable code error
+        if (process.env.NODE_ENV === 'production') {
+            console.log('Production mode');
+        } else {
+            console.log('Development mode');
+        }
+        ```
+
+    - 웹팩과의 통합
+        - TypeScript를 웹팩과 함께 사용할 때는 `ts-loader`나 `babel-loader`와 `@babel/preset-typescript`를 사용할 수 있습니다.
+
+        - webpack.config.js 예시:
+
+        ```javascript
+        module.exports = {
+            entry: './src/index.ts',
+            module: {
+                rules: [
+                {
+                    test: /\.tsx?$/,
+                    use: 'ts-loader',
+                    exclude: /node_modules/,
+                },
+                ],
+            },
+            resolve: {
+                extensions: ['.tsx', '.ts', '.js'],
+            },
+            output: {
+                filename: 'bundle.js',
+                path: path.resolve(__dirname, 'dist'),
+            },
+        };
+        ```
+
+### 테스팅 및 디버깅 ###
+
+TypeScript의 정적 타입 시스템은 많은 오류를 컴파일 시점에 잡아낼 수 있게 해주지만, 여전히 단위 테스트와 통합 테스트,
+그리고 효과적인 디버깅 기술이 중요합니다.
+
+1. 테스팅
+    1. Jest를 사용한 테스팅
+        - Jest는 JavaScript와 TypeScript 프로젝트에서 널리 사용되는 테스팅 프레임워크입니다.
+
+        - 설정
+            1. Jest와 관련 패키지 설치:
+            ```bash
+            npm install --save-dev jest ts-jest @types/jest
+            ```
+
+            2. Jest 설정 파일 생성 (jest.config.js):
+            ```javascript
+            module.exports = {
+                preset: 'ts-jest',
+                testEnvironment: 'node',
+            };
+            ```
+
+        - 테스트 작성 예시:
+            ```typescript
+            // sum.ts
+            export function sum(a: number, b: number): number {
+            return a + b;
+            }
+
+            // sum.test.ts
+            import { sum } from './sum';
+
+            test('adds 1 + 2 to equal 3', () => {
+            expect(sum(1, 2)).toBe(3);
+            });
+            ```
+
+        - 테스트 실행 
+        ```bash
+        npx jest
+        ```
+
+
+    2. Mocha와 Chai를 사용한 테스팅
+        - Mocha는 테스트 러너이고, Chai는 assertion 라이브러리입니다.
+
+        - 설정:
+            1. 필요한 패키지 설치
+            ```bash
+            npm install --save-dev mocha chai @types/mocha @types/chai ts-node
+            ```
+
+            2. test 스크립트 추가 (package.json)
+            ```json
+            "scripts": {
+                "test": "mocha -r ts-node/register tests/**/*.test.ts"
+            }
+            ```
+
+            3. 테스트 작성 예시:
+
+            ```typescript
+            // tests/sum.test.ts
+            import { expect } from 'chai';
+            import { sum } from '../src/sum';
+
+            describe('sum function', () => {
+                it('should add two numbers correctly', () => {
+                    expect(sum(1, 2)).to.equal(3);
+                });
+            });
+            ```
+
+            4. 테스트 실행
+            ```bash
+            npm test
+            ```
+
+    3. 디버깅
+        - VS Code를 사용한 디버깅
+
+        - vs code는 TypeScript 디버깅을 위한 강력한 도구를 제공합니다.
+
+        - launch.json 설정
+
+        ```json
+        {
+            "version": "0.2.0",
+            "configurations": [
+                {
+                "type": "node",
+                "request": "launch",
+                "name": "Debug TypeScript",
+                "program": "${workspaceFolder}/src/index.ts",
+                "preLaunchTask": "tsc: build - tsconfig.json",
+                "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+                }
+            ]
+        }
+        ```
+
+        - 브레이크 포인트 설정
+            - 코드 편집기의 왼쪽 여백을 클릭하여 브레이크 포인트를 설정할 수 있습니다.
+
+        - 디버깅 시작
+            - F5를 누르거나 디버그 뷰에서 "Start Debugging" 버튼을 클릭하여 디버깅을 시작합니다.
+
+        - Chrome DevTools를 사용한 디버깅
+            - 브라우저에서 실행되는 TypeScript코드는 Chrome DevTools를 사용하여 디버깅할 수 있습니다.
+
+            1. 소스맵 생성을 위해 `tsconfig.json`에 `"sourceMap":true`옵션을 추가합니다.
+            2. Chrome DevTools의 Sources 탭에서 TypeScript 파일을 찾아 브레이크 포인트를 설정합니다.
+            3. 페이지를 새로고침하여 디버깅을 시작합니다.
+
+        - 콘솔 로깅
+            - `console.log`를 사용한 로깅도 여전히 유용한 디버깅 방법입니다.
+
+            ```typescript
+            function calculateTotal(items: { price: number; quantity: number }[]) {
+                console.log('Calculating total for:', items);
+                const total = items.reduce((acc, item) => {
+                    const itemTotal = item.price * item.quantity;
+                    console.log(`Item total: ${itemTotal}`);
+                    return acc + itemTotal;
+                }, 0);
+                console.log('Final total:', total);
+                return total;
+            }
+            ```
+
+    4. 타입 단언을 사용한 디버깅
+        - 때때로 TypeScript의 타입 추론이 예상과 다를 수 있습니다. 이럴 때는 타입 단언을 사용하여 문제를 해결할 수 있습니다.
+
+        ```typescript
+        interface User {
+            id: number;
+            name: string;
+        }
+
+        const user = JSON.parse(userJson) as User;
+        console.log(user.id, user.name);
+        ```
+
+### 성능 최적화 및 모범 사례 ###
+
+TypeScript는 JavaScript에 정적 타입 검사를 추가하여 개발 경험을 향상시키고 많은 버그를 사전에 방지할 수 있게 해줍니다.
+하지만 TypeScript를 효과적으로 사용하기 위해서는 성능 최적화와 모범 사례를 숙지하는 것이 중요합니다.
+
+1. 컴파일 성능 최적화
+    1. 증분 컴파일 사용
+        - `tsconfig.json`에서 `incremental`옵션을 활성화하여 증분 컴파일을 사용할 수 있습니다:
+
+        ```json
+        {
+            "compilerOptions": {
+                "incremental": true
+            }
+        }
+        ```
+
+        - 이 옵션은 마지막 컴파일 이후 변경된 파일만 다시 컴파일하여 빌드 시간을 단축시킵니다.
+
+    2. 프로젝트 참조 사용
+        - 대규모 프로젝트의 경우, 프로젝트를 여러 개의 작은 프로젝트로 나누고 프로젝트 참조를 사용하여 빌드 시간을 단축할 수 있습니다.
+
+        ```json
+        {
+            "references": [
+                { "path": "./tsconfig.shared.json" },
+                { "path": "./tsconfig.frontend.json" },
+                { "path": "./tsconfig.backend.json" }
+            ]
+        }
+        ```
+
+    3. TypeScript 버전 최신화
+        - 최신 버전의 TypeScript는 종종 성능 개선을 포함하고 있으므로, 가능한 최신 버전을 사용하는 것이 좋습니다.
+
+2. 런타임 성능 최적화
+    1. `const assertions`사용
+        - 객체나 배열이 변경되지 않아야 할 때는 `as const`를 사용하여 타입을 좁힐 수 있습니다.
+
+        ```typescript
+        const config = {
+            endpoint: 'https://api.example.com',
+            timeout: 3000
+        } as const;
+        ```
+
+        - 이는 컴파일러가 더 정확한 타입을 추론하도록 하여 성능을 개선할 수 있습니다.
+
+    2. 루프 최적화
+        - 가능한 경우 `for...of` 루프 대신 `for` 루프를 사용하세요:
+
+        ```typescript
+        const arr = [1, 2, 3, 4, 5];
+        for (let i = 0; i < arr.length; i++) {
+            // 작업 수행
+        }
+        ```
+
+        `for..of`루프는 이터레이터를 사용하므로 일반적으로 더 느립니다.
+
+    3. 메모이제이션 사용
+        - 비용이 많이 드는 연산의 결과를 캐시하여 성능을 개선할 수 있습니다:
+
+        ```typescript
+        function memoize<T>(fn: (...args: any[]) => T): (...args: any[]) => T {
+        const cache = new Map();
+        return (...args: any[]) => {
+            const key = JSON.stringify(args);
+            if (cache.has(key)) {
+            return cache.get(key);
+            }
+            const result = fn(...args);
+            cache.set(key, result);
+            return result;
+        };
+        }
+
+        const expensiveFunction = memoize((n: number) => {
+        // 비용이 많이 드는 연산
+        });
+        ```
+
+3. 코드 품질 및 유지보수성 개선
+    1. 엄격한 타입 검사 사용
+        - `tsconfig.json`에서  엄격한 타입 검사 옵션을 활성화하세요:
+
+        ```json
+        {
+            "compilerOptions": {
+                "strict": true,
+                "noImplicitAny": true,
+                "strictNullChecks": true,
+                "strictFunctionTypes": true,
+                "strictBindCallApply": true,
+                "strictPropertyInitialization": true,
+                "noImplicitThis": true,
+                "alwaysStrict": true
+            }
+        }
+        ```
+
+        - 이러한 옵션들은 더 많은 타입 관련 오류를 잡아내어 코드의 안정성을 높입니다.
+
+    2. 명시적 타입 사용
+        - 타입 추론에 의존하기보다는 명시적으로 타입을 지정하는 것이 좋습니다.
+
+        ```typescript
+        function calculateTotal(items: Array<{ price: number; quantity: number }>): number {
+            return items.reduce((total, item) => total + item.price * item.quantity, 0);
+        }
+        ```
+
+        - 이는 코드의 가독성을 높이고 의도를 명확히 합니다.
+
+    3. 인터페이스 대신 타입 별칭 사용
+        - 가능한 경우 인터페이스 대신 타입 별칭을 사용하세요. 타입 별칭은 더 제한적이며, 중복 선언이 불가능합니다.
+
+        ```typescript
+        type User = {
+            id: number;
+            name: string;
+            email: string;
+        };
+        ```
+
+    4. `any`타입 피하기
+        - `any`타입은 TypeScript의 타입 검사를 무력화시키므로 가능한 피해야 합니다. 대신 `unknown` 타입을 사용하고
+        필요한 경우 타입 가드를 이용하세요:
+
+        ```typescript
+        function processValue(value: unknown) {
+            if (typeof value === 'string') {
+                // value는 여기서 string 타입으로 처리됩니다
+            } else if (typeof value === 'number') {
+                // value는 여기서 number 타입으로 처리됩니다
+            }
+        }
+        ```
+
+    5. 코드 분할 및 지연 로딩
+        - 대규모 애플리케이션의 경우, 코드 분할과 지연 로딩을 사용하여 초기 로딩 시간을 줄일 수 있습니다.
+
+        ```typescript
+        const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
+
+        function MyComponent() {
+            return (
+                <React.Suspense fallback={<div>Loading...</div>}>
+                <HeavyComponent />
+                </React.Suspense>
+            );
+        }
+        ```
+
+4. 도구 활용
+    1. ESLint 사용
+        - TypeScript 프로젝트에 ESLint를 설정하여 코드 품질을 개선하세요.
+
+        ```bash
+        npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+        ```
+
+        - `.eslintrc.js` 파일:
+        ```javascript
+        module.exports = {
+            parser: '@typescript-eslint/parser',
+            plugins: ['@typescript-eslint'],
+            extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+        };
+        ```
+
+    2. Prettier 사용
+        - Prettier를 사용하여 일관된 코드 스타일을 유지하세요:
+        ```bash
+        npm install --save-dev prettier
+        ```
+
+        - `.prettierrc`파일:
+        ```json
+        {
+            "singleQuote": true,
+            "trailingComma": "es5",
+            "printWidth": 100
+        }
+        ```
