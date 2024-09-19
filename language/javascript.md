@@ -2280,7 +2280,569 @@ RegExp 객체를 통해 정규 표현식을 지원합니다.
     ```
 
 3. 메타 문자
-    - `.`:
-    - `^`:
-    - `$`:
-    - 
+    - `.`: 임의의 한 문자
+    - `^`: 문자열의 시작
+    - `$`: 문자열의 끝
+    - `*`: 0회 이상 반복
+    - `+`: 1회 이상 반복
+    - `?`: 0회 또는 1회
+    - `{n}`: 정확히 n회 반복
+    - `{n,}`: n회 이상 반복
+    - `{n,m}`: n외 이상 m회 이하 반복
+
+    ```javascript
+    console.log(/^The/.test("The quick brown fox")); // true
+    console.log(/fox$/.test("The quick brown fox")); // true
+    console.log(/qu.ck/.test("quick")); // true
+    console.log(/fo*x/.test("fx")); // true
+    console.log(/fo+x/.test("foox")); // true
+    ```
+
+4. 문자 클래스
+    - `[abc]`: a, b, 또는 c중 하나
+    - `[^abc]`: a,b,c를 제외한 모든 문자
+    - `[a-z]`: a ~ z까지의 모든 소문자
+    - `\d`: 숫자 [0-9]
+    - `\w`: 단어 문자 [a-zA-z0-9]
+    - `\s`: 공백 문자
+
+    ```javascript
+    console.log(/[aeiou]/.test("hello")); // true
+    console.log(/[^aeiou]/.test("sky")); // true
+    console.log(/\d{3}/.test("123")); // true
+    ```
+
+5. 그룹과 캡쳐
+    - 괄호 `()`를 사용하여 그룹을 만들고 캡처할 수 있습니다.
+
+    ```javascript
+    const phoneRegex = /(\d{3})-(\d{3})-(\d{4})/;
+    const phone = "123-456-7890";
+    const match = phone.match(phoneRegex);
+
+    console.log(match[1]); // "123"
+    console.log(match[2]); // "456"
+    console.log(match[3]); // "7890"
+    ```
+
+6. 수량자와 탐욕적/비탐욕적 매칭
+    - 기본적으로 수량자는 탐욕적입니다. 비탐욕적 매칭을 위해 `?`를 사용합니다.
+
+    ```javascript
+    const html = "<div>Hello</div><div>World</div>";
+    console.log(html.match(/<div>.*<\/div>/)[0]); // "<div>Hello</div><div>World</div>"
+    console.log(html.match(/<div>.*?<\/div>/)[0]); // "<div>Hello</div>"
+    ```
+
+7. 전방 탐색과 후방 탐색
+    - `(?=...)`: 긍정적 전방 탐색
+    - `(?!...)`: 부정적 전방 탐색
+    - `(?<=...)`: 긍정적 후방 탐색 (ES2018+)
+    - `(?<!...)`: 부정적 후방 탐색 (ES2018+)
+
+    ```javascript
+    console.log("1234".match(/\d+(?=\d)/)[0]); // "123"
+    console.log("1234".match(/\d+(?!\d)/)[0]); // "1234"
+    console.log("$123".match(/(?<=\$)\d+/)[0]); // "123"
+    console.log("123".match(/(?<!\$)\d+/)[0]); // "123"
+    ```
+
+8. 플래그
+    - `g`: 전역 검색
+    - `i`: 대소문자 구분 없음
+    - `m`: 다중 행 모드
+    - `s`: dotAll 모드 (ES2018+)
+    - `u`: 유니코드 모드
+    - `y`: sticky 모드
+
+    ```javascript
+    const text = "Hello hello HELLO";
+    console.log(text.match(/hello/gi)); // ["Hello", "hello", "HELLO"]
+    ```
+
+9. 정규 표현식과 메서드
+    - String 메서드
+
+        - `match()`: 매칭되는 부분을 찾아 배열로 반환
+        - `replace()`: 매칭되는 부분을 다른 문자열로 교체
+        - `search()`: 매칭되는 부분의 인덱스를 반환
+        - `split()`: 정규 표현식을 구분자로 사용하여 문자열을 분할
+
+        ```javascript
+        const str = "The quick brown fox";
+        console.log(str.match(/quick/)); // ["quick"]
+        console.log(str.replace(/quick/, "slow")); // "The slow brown fox"
+        console.log(str.search(/brown/)); // 10
+        console.log(str.split(/\s/)); // ["The", "quick", "brown", "fox"]
+        ```
+
+    - RegExp 메서드
+
+        - `test()`: 매칭되는 부분이 있으면 true, 없으면 false 반환
+        - `exec()`: 매칭되는 정보를 담은 배열 반환
+
+        ```javascript
+        const regex = /fox/;
+        console.log(regex.test("The quick brown fox")); // true
+        console.log(regex.exec("The quick brown fox")); // ["fox", index: 16, input: "The quick brown fox", groups: undefined]
+        ```
+
+10. 정규 표현식 예제
+
+    1. 이메일 주소 유효성 검사:
+    ```javascript
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    console.log(emailRegex.test("example@email.com")); // true
+    ```
+
+    2. URL 추출:
+    ```javascript
+    const text = "Visit https://www.example.com and http://another.com";
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    console.log(text.match(urlRegex)); // ["https://www.example.com", "http://another.com"]
+    ```
+
+    3. HTML 태그 제거:
+    ```javascript
+    const html = "<p>This is <b>bold</b> text</p>";
+    console.log(html.replace(/<[^>]+>/g, '')); // "This is bold text"
+    ```
+
+    4. 비밀번호 강도 검사:
+    ```javascript
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    console.log(strongPasswordRegex.test("StrongP@ssw0rd")); // true
+    ```
+
+11. 성능 고려사항
+
+    - 과도하게 복잡한 정규 표현식은 성능 문제를 일으킬 수 있습니다.
+    - 가능한 경우 정규 펴현식 대신 문자열 메서드를 사용하는 것이 더 빠를 수 있습니다.
+    - 반복적으로 사용되는 정규 표현식은 변수에 저장하여 재사용하세요.
+
+    ```javascript
+    // 비효율적
+    for (let i = 0; i < 1000; i++) {
+        /complex regex/.test(someString);
+    }
+
+    // 효율적
+    const regex = /complex regex/;
+    for (let i = 0; i < 1000; i++) {
+        regex.test(someString);
+    }
+    ```
+
+### 함수형 프로그래밍 ###
+
+함수형 프로그래밍은 프로그램 구조와 요소를 구성하는 데 수학적 함수의 개념을 사용하는 프로그래밍 패러다임입니다.
+JavaScript는 함수형 프로그래밍을 지원하는 다중 패러다임 언어입니다.
+
+1. 함수형 프로그래밍의 핵심 개념
+
+    1. 순수 함수
+        - 순수 함수는 동일한 입력에 대해 항상 동일한 출력을 반환하며, 부작용(side effects)이 없는 함수입니다.
+
+        ```javascript
+        // 순수 함수
+        function add(a, b) {
+            return a + b;
+        }
+
+        // 비순수 함수 (외부 상태에 의존)
+        let c = 0;
+        function addWithSideEffect(a, b) {
+            c++;
+            return a + b + c;
+        }
+        ```
+
+    2. 불변성
+        - 함수형 프로그래밍에서는 데이터의 불변성을 중요시합니다.
+
+        ```javascript
+        // 불변성을 지키지 않는 예
+        const arr = [1, 2, 3];
+        arr.push(4); // 원본 배열 변경
+
+        // 불변성을 지키는 예
+        const newArr = [...arr, 4]; // 새로운 배열 생성
+        ```
+
+    3. 고차 함수
+        - 고차 함수는 함수를 인자로 받거나 함수를 반환하는 함수입니다.
+
+        ```javascript
+        function multiplyBy(factor) {
+            return function(number) {
+                return number * factor;
+            }
+        }
+
+        const double = multiplyBy(2);
+        console.log(double(5)); // 10
+        ```
+
+2. JavaScript의 함수형 프로그래밍 기능
+
+    1. map, filter, reduce
+        - 이 메서드들은 배열을 변환하거나 처리하는 데 사용되는 대표적인 함수형 프로그래밍 도구입니다.
+
+        ```javascript
+        const numbers = [1, 2, 3, 4, 5];
+
+        // map: 각 요소를 변환
+        const doubled = numbers.map(n => n * 2);
+
+        // filter: 조건에 맞는 요소만 선택
+        const evens = numbers.filter(n => n % 2 === 0);
+
+        // reduce: 배열을 단일 값으로 축소
+        const sum = numbers.reduce((acc, n) => acc + n, 0);
+
+        console.log(doubled); // [2, 4, 6, 8, 10]
+        console.log(evens);   // [2, 4]
+        console.log(sum);     // 15
+        ```
+
+    2. 함수 합성
+        - 여러 함수를 조합하여 새로운 함수를 만드는 기법입니다.
+
+        ```javascript
+        const compose = (...fns) => x => fns.reduceRight((y, f) => f(y), x);
+
+        const addOne = x => x + 1;
+        const double = x => x * 2;
+        const addOneThenDouble = compose(double, addOne);
+
+        console.log(addOneThenDouble(3)); // 8
+        ```
+
+    3. 커링
+        - 여러 개의 인자를 받는 함수를 하나의 인자만 받는 함수들의 체인으로 변환하는 기법입니다.
+
+        ```javascript
+        const curry = (fn) => {
+            return function curried(...args) {
+                if (args.length >= fn.length) {
+                    return fn.apply(this, args);
+                } else {
+                    return function(...args2) {
+                        return curried.apply(this, args.concat(args2));
+                    }
+                }
+            };
+        }
+
+        const add = curry((a, b, c) => a + b + c);
+        console.log(add(1)(2)(3)); // 6
+        console.log(add(1, 2)(3)); // 6
+        ```
+
+3. 함수형 프로그래밍의 장점
+    1. 코드의 가독성과 유지보수성 향상
+    2. 테스트와 디버깅이 용이함
+    3. 병렬 처리에 적합
+    4. 부작용을 줄여 예측 가능한 코드 작성 가능
+
+4. 실제 예제
+    1. 데이터 처리 파이프라인
+
+    ```javascript
+    const people = [
+        { name: 'Alice', age: 25 },
+        { name: 'Bob', age: 30 },
+        { name: 'Charlie', age: 35 },
+        { name: 'David', age: 40 }
+    ];
+
+    const pipeline = compose(
+        (people) => people.filter(p => p.age > 30),
+        (people) => people.map(p => p.name),
+        (names) => names.join(', ')
+    );
+
+    console.log(pipeline(people)); // "Charlie, David"
+    ```
+
+    2. 함수형 방식으로 상태 관리(Redux 예시)
+
+    ```javascript
+    const createStore = (reducer) => {
+        let state;
+        let listeners = [];
+
+        const getState = () => state;
+
+        const dispatch = (action) => {
+            state = reducer(state, action);
+            listeners.forEach(listener => listener());
+        };
+
+        const subscribe = (listener) => {
+            listeners.push(listener);
+            return () => {
+                listeners = listeners.filter(l => l !== listener);
+            };
+        };
+
+        dispatch({});
+
+        return { getState, dispatch, subscribe };
+    };
+
+    // 사용 예
+    const countReducer = (state = 0, action) => {
+        switch (action.type) {
+            case 'INCREMENT':
+                return state + 1;
+            case 'DECREMENT':
+                return state - 1;
+            default:
+                return state;
+        }
+    };
+
+    const store = createStore(countReducer);
+
+    store.subscribe(() => console.log(store.getState()));
+
+    store.dispatch({ type: 'INCREMENT' }); // 1
+    store.dispatch({ type: 'INCREMENT' }); // 2
+    store.dispatch({ type: 'DECREMENT' }); // 1
+    ```
+
+5. 함수형 프로그래밍 라이브러리
+
+- JavaScript에서 함수형 프로그래밍을 더 쉽게 적용할 수 있도록 도와주는 라이브러리들이 있습니다:
+
+    1. Ramda: 순수 함수형 프로그래밍을 위한 실용적인 도구 모음
+    2. Ladash/FP: Lodash의 함수형 프로그래밍 변형
+    3. Immutable.js: 불변 데이터 구조를 제공하는 라이브러리
+
+    ```javascript
+    // Ramda 예제
+    const R = require('ramda');
+
+    const numbers = [1, 2, 3, 4, 5];
+    const doubleOddNumbers = R.pipe(
+        R.filter(n => n % 2 !== 0),
+        R.map(n => n * 2)
+    );
+
+    console.log(doubleOddNumbers(numbers)); // [2, 6, 10]
+    ```
+
+### 테스팅 ###
+
+소프트웨어 테스팅은 프로그램의 품질을 보장하고 버그를 찾아내는 중요한 과정입니다.
+JavaScript에서는 다양한 테스팅 도구와 프레임워크를 사용할 수 있습니다.
+
+1. 테스트 유형
+    1. 단위 테스트:
+        - 개별 함수나 컴포넌트의 동작을 검증합니다.
+
+    2. 통합 테스트:
+        - 여러 컴포넌트나 모듈이 함께 작동하는 방식을 테스트합니다.
+
+    3. 엔드-투-엔드 (E2E)테스트
+        - 실제 사용자 시나리오를 시뮬레이션하여 전체 애플리케이션을 테스트합니다.
+
+2. 테스팅 프레임워크
+    1. Jest
+        - Facebook에서 개발한 JavaScript 테스팅 프레임워크로, 단위 테스트와 통합 테스트에 주로 사용됩니다.
+
+        ```javascript
+        // sum.js
+        function sum(a, b) {
+            return a + b;
+        }
+        module.exports = sum;
+
+        // sum.test.js
+        const sum = require('./sum');
+
+        test('adds 1 + 2 to equal 3', () => {
+            expect(sum(1, 2)).toBe(3);
+        });
+        ```
+
+    2. Mocha
+        -  유연한 JavaScript 테스트 프레임워크로, Node.js와 브라우저에서 모두 실행 가능합니다.
+
+        ```javascript
+        const assert = require('assert');
+
+        describe('Array', function() {
+            describe('#indexOf()', function() {
+                it('should return -1 when the value is not present', function() {
+                    assert.equal([1, 2, 3].indexOf(4), -1);
+                });
+            });
+        });
+        ```
+
+    3. Jasmine
+        - 행동 주도 개발(BDD) 스타일의 테스팅 프레임워크입니다.
+
+        ```javascript
+        describe("A suite", function() {
+            it("contains spec with an expectation", function() {
+                expect(true).toBe(true);
+            });
+        });
+        ```
+
+3. assertion 라이브러리
+    1. Chai
+        - TDD, BDD, Assert 스타일을 지원하는 assertion 라이브러리입니다.
+
+        ```javascript
+        const expect = require('chai').expect;
+
+        describe('Array', function() {
+            it('should start empty', function() {
+                const arr = [];
+                expect(arr).to.be.empty;
+            });
+        });
+        ```
+
+4. 모킹 (Mocking)
+    - 외부 의존성을 시뮬레이션하여 테스트를 격리시킵니다.
+
+    1. Sinon.JS
+        - 독립적인 테스트 스파이, 스텁, 목을 제공합니다.
+
+        ```javascript
+        const sinon = require('sinon');
+
+        describe('User', function() {
+            it('should call save once', function() {
+                const user = new User('John');
+                const saveSpy = sinon.spy(user, 'save');
+                
+                user.saveAndNotify();
+                
+                sinon.assert.calledOnce(saveSpy);
+            });
+        });
+        ```
+
+5. 코드 커버리지
+    - 테스트가 코드베이스의 얼마나 많은 부분을 실행하는지 측정합니다.
+
+    1. Istanbul
+        - JavaScript 코드 커버리지 도구입니다.
+
+        ```bash
+        nyc mocha tests/
+        ```
+
+6. 브라우저 테스팅
+    1. Selenium WebDriver
+        - 브라우저 자동화 도구로, 다양한 브라우저에서 테스트를 실행할 수 있습니다.
+
+        ```javascript
+        const {Builder, By, Key, until} = require('selenium-webdriver');
+
+        (async function example() {
+            let driver = await new Builder().forBrowser('firefox').build();
+            try {
+                await driver.get('http://www.google.com');
+                await driver.findElement(By.name('q')).sendKeys('webdriver', Key.RETURN);
+                await driver.wait(until.titleIs('webdriver - Google Search'), 1000);
+            } finally {
+                await driver.quit();
+            }
+        })();
+        ```
+
+    2. Cypress
+        - 현대적인 웹 애플리케이션을 위한 E2E 테스팅 도구입니다.
+
+        ```javascript
+        describe('My First Test', () => {
+            it('Visits the Kitchen Sink', () => {
+                cy.visit('https://example.cypress.io')
+                cy.contains('type').click()
+                cy.url().should('include', '/commands/actions')
+                cy.get('.action-email')
+                    .type('fake@email.com')
+                    .should('have.value', 'fake@email.com')
+            })
+        })
+        ```
+
+7. 컴포넌트 테스팅
+    1. React Testing Library
+        - React 컴포넌트를 테스트하기 위한 라이브러리입니다.
+
+        ```javascript
+        import { render, screen } from '@testing-library/react';
+        import userEvent from '@testing-library/user-event';
+        import '@testing-library/jest-dom';
+        import Fetch from './Fetch';
+
+        test('loads and displays greeting', async () => {
+            render(<Fetch url="/greeting" />);
+
+            await screen.findByRole('heading');
+
+            expect(screen.getByRole('heading')).toHaveTextContent('hello there');
+            expect(screen.getByRole('button')).toBeDisabled();
+        });
+        ```
+
+8. 성능 테스팅
+    1. Lighthouse
+        - 웹 앱의 성능, 접근성, 프로그레시브 웹 앱 기능 등을 측정하는 도구입니다.
+
+        ```bash
+        lighthouse https://www.example.com
+        ```
+
+9. API 테스팅
+    1. Supertest
+        - HTTP assertion을 쉽게 만들 수 있게 해주는 라이브러리입니다.
+
+        ```javascript
+        const request = require('supertest');
+        const express = require('express');
+
+        const app = express();
+
+        app.get('/user', function(req, res) {
+            res.status(200).json({ name: 'john' });
+        });
+
+        request(app)
+            .get('/user')
+            .expect('Content-Type', /json/)
+            .expect('Content-Length', '15')
+            .expect(200)
+            .end(function(err, res) {
+                if (err) throw err;
+            });
+        ```
+
+10. 테스트 주도 개발 (TDD)
+    - 테스트를 먼저 작성한 후 실제 코드를 구현하는 개발 방법론입니다.
+
+    1. 실패하는 테스트 작성
+    2. 테스트를 통과하는 최소한의 코드 작성
+    3. 리팩토링
+
+    ```javascript
+    // 1. 실패하는 테스트 작성
+    test('reverseString reverses a string', () => {
+        expect(reverseString('hello')).toBe('olleh');
+    });
+
+    // 2. 테스트를 통과하는 코드 작성
+    function reverseString(str) {
+        return str.split('').reverse().join('');
+    }
+
+    // 3. 리팩토링 (필요한 경우)
+    ```
