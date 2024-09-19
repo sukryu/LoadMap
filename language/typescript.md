@@ -1280,3 +1280,139 @@ TypeScript는 기본 타입 외에도 복잡한 타입 관계를 표현할 수 �
 
     type FReturnType = ReturnType<typeof f>;  // { x: number; y: number; }
     ```
+
+### 데코레이터 ###
+
+데코레이터는 클래스 선언, 메서드 접근자, 프로퍼티 또는 매개변수에 첨부할 수 있는 특별한 종류의 선언입니다.
+데코레이터는 `@expression`형식을 사용하여, 여기서 `expression`은 데코레이팅 된 선언에 대한 정보화 함께 런타임에 호출되는 함수여야 합니다.
+
+1. 데코레이터 활성화
+    - 데코레이터를 사용하려면 `tsconfig.json`파일에서 `exprimentalDecorators` 컴파일러 옵션을 활성화해야 합니다.
+
+    ```json
+    {
+        "compilerOptions": {
+            "experimentalDecorators": true
+        }
+    }
+    ```
+
+2. 클래스 데코레이터
+    - 클래스 데코레이터는 클래스 선언 직전에 적용됩니다. 클래스 데코레이터는 클래스 생성자에 적용되며
+    클래스 정의를 관찰, 수정, 또는 대체하는 데 사용할 수 있습니다.
+
+    ```typescript
+    function sealed(constructor: Function) {
+        Object.seal(constructor);
+        Object.seal(constructor.prototype);
+    }
+
+    @sealed
+    class Greeter {
+        greeting: string;
+        constructor(message: string) {
+            this.greeting = message;
+        }
+        greet() {
+            return "Hello, " + this.greeting;
+        }
+    }
+    ```
+
+3. 메서드 데코레이터
+    - 메서드 데코레이터는 메서드 선언 직전에 사용됩니다. 이는 메서드의 속성 설명자를 관찰, 수정 또는 대체하는 데 사용될 수 있습니다.
+
+    ```typescript
+    function enumerable(value: boolean) {
+        return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+            descriptor.enumerable = value;
+        };
+    }
+
+    class Greeter {
+        greeting: string;
+        constructor(message: string) {
+            this.greeting = message;
+        }
+
+        @enumerable(false)
+        greet() {
+            return "Hello, " + this.greeting;
+        }
+    }
+    ```
+
+4. 접근자 데코레이터
+    - 접근자 데코레이터는 접근자 선언 직전에 선언됩니다. 접근자 데코레이터는 속성 설명자에 적용되며
+    접근자의 정의를 관찰, 수정 또는 대체하는 데 사용될 수 있습니다.
+
+    ```typescript
+    function configurable(value: boolean) {
+        return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+            descriptor.configurable = value;
+        };
+    }
+
+    class Point {
+        private _x: number;
+        private _y: number;
+        constructor(x: number, y: number) {
+            this._x = x;
+            this._y = y;
+        }
+
+        @configurable(false)
+        get x() { return this._x; }
+
+        @configurable(false)
+        get y() { return this._y; }
+    }
+    ```
+
+5. 프로퍼티 데코레이터
+    - 프로퍼티 데코레이터는 프로퍼티 선언 직전에 선언됩니다. 프로퍼티 데코레이터는 프로퍼티의 정의를 관찰하거나 수정하는 데 사용할 수 있습니다.
+
+    ```typescript
+    function format(formatString: string) {
+        return function (target: any, propertyKey: string): any {
+            let value = target[propertyKey];
+
+            const getter = function () {
+                return `${formatString} ${value}`;
+            };
+
+            const setter = function (newVal: string) {
+                value = newVal;
+            };
+
+            return {
+                get: getter,
+                set: setter,
+                enumerable: true,
+                configurable: true
+            };
+        };
+    }
+
+    class Greeter {
+        @format("Hello,")
+        greeting: string;
+    }
+    ```
+
+6. 매개변수 데코레이터
+    - 매개변수 데코레이터는 매개변수 선언 직전에 선언됩니다. 매개변수 데코레이터는 메서드의 매개변수에 대한 정보를 관찰하는 데 사용할 수 있습니다.
+
+    ```typescript
+    function required(target: Object, propertyKey: string | symbol, parameterIndex: number) {
+        let existingRequiredParameters: number[] = Reflect.getOwnMetadata("required", target, propertyKey) || [];
+        existingRequiredParameters.push(parameterIndex);
+        Reflect.defineMetadata("required", existingRequiredParameters, target, propertyKey);
+    }
+
+    class Greeter {
+        greet(@required name: string) {
+            return "Hello " + name;
+        }
+    }
+    ```
