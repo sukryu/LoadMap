@@ -1772,3 +1772,515 @@ AJAX(Asynchronous JavaScript and XML)는 웹 페이지가 서버와 동기적으
         .then(data => console.log(data))
         .catch(error => console.error('Error:', error));
     ```
+
+### ES6+ 기능 ###
+
+ECMAScript 2015 (ES6)이후로 JavaScript는 많은 새로운 기능과
+개선사항을 도입했습니다. 이러한 기능들은 코드를 더 간결하고 읽기 쉽게 만들며,
+더 강력한 프로그래밍 패턴을 가능하게 합니다.
+
+1. let과 const
+    - 블록 스코프 변수 선언.
+
+    ```javascript
+    let x = 10;
+    const PI = 3.14159;
+
+    if (true) {
+        let x = 20; // 블록 스코프 내의 새로운 변수
+        console.log(x); // 20
+    }
+    console.log(x); // 10
+    ```
+
+2. 화살표 함수
+    - 더 간결한 함수 문법
+    
+    ```javascript
+    // 기존 함수
+    function add(a, b) {
+        return a + b;
+    }
+
+    // 화살표 함수
+    const add = (a, b) => a + b;
+
+    // this 바인딩 차이
+    const obj = {
+        name: 'John',
+        greet: function() {
+            setTimeout(() => {
+                console.log(`Hello, ${this.name}`);
+            }, 1000);
+        }
+    };
+    ```
+
+3. 템플릿 리터럴
+    - 문자열 삽입과 멀티라인 문자열 지원
+
+    ```javascript
+    const name = 'John';
+    const age = 30;
+
+    const greeting = `Hello, my name is ${name} and I'm ${age} years old.
+
+    This is a multi-line string.`;
+    ```
+
+4. 구조 분해 할당
+    - 배열이나 객체의 값을 개별 변수에 쉽게 할당
+
+    ```javascript
+    // 배열 구조 분해
+    const [a, b] = [1, 2];
+
+    // 객체 구조 분해
+    const { name, age } = { name: 'John', age: 30 };
+
+    // 함수 매개변수에서의 구조 분해
+    function greet({ name, age }) {
+        console.log(`Hello, ${name}. You are ${age} years old.`);
+    }
+    ```
+
+5. 전개 연산자
+    - 배열이나 객체를 펼치는데 사용
+
+    ```javascript
+    const arr1 = [1, 2, 3];
+    const arr2 = [...arr1, 4, 5]; // [1, 2, 3, 4, 5]
+
+    const obj1 = { x: 1, y: 2 };
+    const obj2 = { ...obj1, z: 3 }; // { x: 1, y: 2, z: 3 }
+
+    function sum(...numbers) {
+        return numbers.reduce((total, num) => total + num, 0);
+    }
+    ```
+
+6. 기본 매개변수
+    - 함수 매개변수의 기본값 설정.
+
+    ```javascript
+    function greet(name = 'Guest') {
+        console.log(`Hello, ${name}!`);
+    }
+
+    greet(); // "Hello, Guest!"
+    greet('John'); // "Hello, John!"
+    ```
+
+7. 클래스
+    - 객체 지향 프로그래밍을 위한 문법.
+
+    ```javascript
+    class Animal {
+        constructor(name) {
+            this.name = name;
+        }
+
+        speak() {
+            console.log(`${this.name} makes a sound.`);
+        }
+    }
+
+    class Dog extends Animal {
+        speak() {
+            console.log(`${this.name} barks.`);
+        }
+    }
+
+    const dog = new Dog('Rex');
+    dog.speak(); // "Rex barks."
+    ```
+
+8. Promise와 async/await
+    - 비동기 프로그래밍을 위한 기능.
+
+    ```javascript
+    // Promise
+    function fetchData() {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => resolve('Data'), 1000);
+        });
+    }
+
+    fetchData().then(data => console.log(data));
+
+    // async/await
+    async function getData() {
+        const data = await fetchData();
+        console.log(data);
+    }
+
+    getData();
+    ```
+
+9. 모듈
+    - 코드를 모듈화하고 재사용하기 위한 기능
+
+    ```javascript
+    // math.js
+    export function add(a, b) {
+        return a + b;
+    }
+
+    // main.js
+    import { add } from './math.js';
+    console.log(add(2, 3)); // 5
+    ```
+
+10. Map과 Set
+    - 새로운 데이터 구조
+
+    ```javascript
+    // Map
+    const map = new Map();
+    map.set('key', 'value');
+    console.log(map.get('key')); // "value"
+
+    // Set
+    const set = new Set([1, 2, 3, 3, 4]);
+    console.log(set); // Set(4) {1, 2, 3, 4}
+    ```
+
+11. Symbol
+    - 유일한 식별자 생성.
+
+    ```javascript
+    const sym = Symbol('description');
+    const obj = {
+        [sym]: 'Value'
+    };
+    console.log(obj[sym]); // "Value"
+    ```
+
+12. 이터레이터와 제너레이터
+    - 반복 가능한 객체와 함수 제어
+
+    ```javascript
+    // 이터레이터
+    const iterable = {
+        [Symbol.iterator]() {
+            let i = 0;
+            return {
+                next() {
+                    if (i < 3) {
+                        return { value: i++, done: false };
+                    }
+                    return { done: true };
+                }
+            };
+        }
+    };
+
+    for (const num of iterable) {
+        console.log(num); // 0, 1, 2
+    }
+
+    // 제너레이터
+    function* numberGenerator() {
+        yield 1;
+        yield 2;
+        yield 3;
+    }
+
+    const gen = numberGenerator();
+    console.log(gen.next().value); // 1
+    console.log(gen.next().value); // 2
+    ```
+
+13. Object.assign() 및 Object.entries()
+    - 객체 조작을 위한 메서드
+
+    ```javascript
+    const obj1 = { a: 1 };
+    const obj2 = { b: 2 };
+    const merged = Object.assign({}, obj1, obj2);
+    console.log(merged); // { a: 1, b: 2 }
+
+    const obj = { x: 1, y: 2 };
+    for (const [key, value] of Object.entries(obj)) {
+        console.log(`${key}: ${value}`);
+    }
+    ```
+
+14. Optional Chaning(?.)
+    - ES2020에서 도입된 기능으로, 중첩된 객체 속성에 안전하게 접근.
+
+    ```javascript
+    const user = {
+        address: {
+            street: 'Main St'
+        }
+    };
+
+    console.log(user?.address?.street); // "Main St"
+    console.log(user?.contact?.email); // undefined
+    ```
+
+15. Nullish Coalescing Operator (??)
+    - ES2020에서 도입된 기능으로 null 또는 undefined일 대만 대체값 사용.
+
+    ```javascript
+    const value = null;
+    const defaultValue = 'Default';
+
+    console.log(value ?? defaultValue); // "Default"
+    console.log(0 ?? defaultValue); // 0
+    ```
+
+### 에러 처리 ###
+
+에러 처리는 프로그램의 안전성과 신뢰성을 높이는 중요한 부분입니다. JavaScript에서는
+다양한 방법으로 에러를 처리하고 디버깅할 수 있습니다.
+
+1. try..catch 문
+
+    - 기본적인 에러 처리 방법입니다.
+
+    ```javascript
+    try {
+        // 에러가 발생할 수 있는 코드
+        throw new Error('An error occurred');
+    } catch (error) {
+        console.error('Caught an error:', error.message);
+    } finally {
+        // 항상 실행되는 코드
+        console.log('This always runs');
+    }
+    ```
+
+2. 에러 객체
+    - JavaScript에는 여러 내장 에러 타입이 있습니다.
+
+    1. Error: 기본 에러
+    2. SyntaxError: 문법 오류
+    3. ReferenceError: 잘못된 참조
+    4. TypeError: 타입 오류
+    5. RangeError: 범위 오류
+    6. URIError: URI 관련 오류
+
+    ```javascript
+    try {
+        const obj = null;
+        console.log(obj.property);
+    } catch (error) {
+        if (error instanceof TypeError) {
+            console.error('Type error:', error.message);
+        } else {
+            console.error('An error occurred:', error.message);
+        }
+    }
+    ```
+
+3. 커스텀 에러
+    - 사용자 정의 에러를 만들 수 있습니다.
+
+    ```javascript
+    class CustomError extends Error {
+        constructor(message) {
+            super(message);
+            this.name = 'CustomError';
+        }
+    }
+
+    try {
+        throw new CustomError('This is a custom error');
+    } catch (error) {
+        if (error instanceof CustomError) {
+            console.error('Custom error:', error.message);
+        } else {
+            console.error('An error occurred:', error.message);
+        }
+    }
+    ```
+
+4. 비동기 코드에서의 에러 처리
+    - Promise 체인에서의 에러 처리
+
+    ```javascript
+    fetchData()
+        .then(result => processData(result))
+        .then(processed => saveData(processed))
+        .catch(error => console.error('An error occurred:', error));
+    ```
+
+    - async/await에서의 에러 처리
+
+    ```javascript
+    async function fetchAndProcessData() {
+        try {
+            const result = await fetchData();
+            const processed = await processData(result);
+            await saveData(processed);
+        } catch (error) {
+            console.error('An error occurred:', error);
+        }
+    }
+    ```
+
+5. 전역 에러 처리
+    - 브라우저 환경에서 처리되지 않은 에러를 잡을 수 있습니다.
+
+    ```javascript
+    window.addEventListener('error', function(event) {
+        console.error('Uncaught error:', event.error);
+    });
+
+    // 또는
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error('Uncaught error:', error);
+        return true; // 브라우저의 기본 에러 처리를 막음
+    };
+    ```
+
+    - Node.js 환경에서는
+    
+    ```javascript
+    process.on('uncaughtException', (error) => {
+        console.error('Uncaught exception:', error);
+        // 정리 작업 수행
+        process.exit(1);
+    });
+    ```
+
+6. 에러 로깅
+    - 개발 환경과 프로덕션 환경에서 다르게 처리할 수 있습니다.
+
+    ```javascript
+    function logError(error) {
+        if (process.env.NODE_ENV === 'production') {
+            // 프로덕션 환경: 에러 로깅 서비스에 보고
+            errorLoggingService.report(error);
+        } else {
+            // 개발 환경: 콘솔에 상세 정보 출력
+            console.error('Error details:', error);
+        }
+    }
+    ```
+
+7. 에러 스택 추적
+    - 에러 객체의 stack 속성을 사용하여 에러가 발생한 위치를 추적할 수 있습니다.
+
+    ```javascript
+    try {
+        throw new Error('An error occurred');
+    } catch (error) {
+        console.error('Error stack trace:', error.stack);
+    }
+    ```
+
+8. 조건부 에러 발생
+    - 특정 조건에서 에러를 발생시킬 수 있습니다.
+
+    ```javascript
+    function divide(a, b) {
+        if (b === 0) {
+            throw new Error('Division by zero');
+        }
+        return a / b;
+    }
+
+    try {
+        console.log(divide(10, 0));
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+    ```
+
+9. 에러 다시 던지기
+    - catch 블록에서 에러를 처리한 후 다시 던질 수 있습니다.
+
+    ```javascript
+    try {
+        throw new Error('Original error');
+    } catch (error) {
+        console.error('Caught an error:', error.message);
+        // 에러 수정 또는 로깅 후 다시 던지기
+        throw error;
+    }
+    ```
+
+10. Promise.reject()
+    - Promise에서 명시적으로 에러를 발생시킬 수 있습니다.
+
+    ```javascript
+    function fetchData() {
+        return new Promise((resolve, reject) => {
+            if (/* 에러 조건 */) {
+                reject(new Error('Failed to fetch data'));
+            } else {
+                resolve(/* 데이터 */);
+            }
+        });
+    }
+
+    fetchData()
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error.message));
+    ```
+
+11. 에러 처리 모범 사례
+
+    1. 구체적인 에러 메시지 사용
+    2. 적절한 에러 타입 선택
+    3. 에러 처리 로직 분리
+    4. 중요한 정보 로깅
+    5. 사용자에게 친화적인 에러 메시지 제공
+    6. 에러 복구 메커니즘 구현 (가능한 경우)
+
+    ```javascript
+    function handleAPIError(error) {
+        if (error.response) {
+            // 서버가 2xx 범위를 벗어난 상태 코드로 응답
+            console.error('API error:', error.response.data);
+            console.error('Status:', error.response.status);
+        } else if (error.request) {
+            // 요청이 이루어졌으나 응답을 받지 못함
+            console.error('Network error:', error.request);
+        } else {
+            // 요청 설정 중 에러 발생
+            console.error('Error:', error.message);
+        }
+        // 사용자에게 친화적인 메시지 표시
+        showUserFriendlyError('서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+
+    function showUserFriendlyError(message) {
+        // UI에 에러 메시지 표시
+    }
+    ```
+
+### 정규 표현식 ###
+
+정규 표현식(Regular Expressions, 줄여서 RegEx)은 문자열에서
+특정 패턴을 찾거나 매칭하는 데 사용되는 강력한 도구입니다. JavaScript에서는 내장된
+RegExp 객체를 통해 정규 표현식을 지원합니다.
+
+1. 정규 표현식 생성
+    - 정규 표현식은 두 가지 방법으로 생성할 수 있습니다.
+
+    ```javascript
+    // 리터럴 문법
+    const regex1 = /pattern/flags;
+
+    // RegExp 객체 생성자
+    const regex2 = new RegExp('pattern', 'flags');
+    ```
+
+2. 기본 패턴 매칭
+    ```javascript
+    const text = "The quick brown fox jumps over the lazy dog";
+    const pattern = /fox/;
+
+    console.log(pattern.test(text));  // true
+    console.log(text.match(pattern)); // ["fox"]
+    ```
+
+3. 메타 문자
+    - `.`:
+    - `^`:
+    - `$`:
+    - 
