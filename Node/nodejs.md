@@ -462,3 +462,326 @@ NodeJS의 `fs`(File System) 모듈은 파일 시스템과 상호 작용할 수 �
         console.log(`You can find the temp file at: ${tempFile}`);
         });
         ```
+
+### 네트워킹 ###
+
+NodeJS는 강력한 네트워킹 기능을 제공하며, 이를 통해 다양한 네트워크 애플리케이션을 개발할 수 있습니다.
+주요 모듈로는 `net`, `dgram`, `http`, `https`, 그리고 `dns`가 있습니다.
+
+1. TCP 서버 및 클라이언트 생성
+    - TCP(Transmission Control Protocol)는 신뢰성 있는 데이터 전송을 보장하는 연결 지향적 프로토콜입니다.
+    NodeJS의 `net` 모듈을 사용하여 TCP 서버와 클라이언트를 구현할 수 있습니다.
+
+    1. TCP 서버 생성:
+        ```javascript
+        const net = require('net');
+
+        const server = net.createServer((socket) => {
+            console.log('Client connected');
+            
+            socket.on('data', (data) => {
+                console.log('Received data:', data.toString());
+                socket.write('Server received: ' + data);
+            });
+            
+            socket.on('end', () => {
+                console.log('Client disconnected');
+            });
+        });
+
+        const PORT = 3000;
+        server.listen(PORT, () => {
+            console.log(`Server listening on port ${PORT}`);
+        });
+        ```
+
+    2. TCP 클라이언트 생성:
+        ```javascript
+        const net = require('net');
+
+        const client = new net.Socket();
+        const PORT = 3000;
+        const HOST = '127.0.0.1';
+
+        client.connect(PORT, HOST, () => {
+            console.log('Connected to server');
+            client.write('Hello, server!');
+        });
+
+        client.on('data', (data) => {
+            console.log('Received from server:', data.toString());
+            client.destroy(); // 데이터를 받은 후 연결 종료
+        });
+
+        client.on('close', () => {
+            console.log('Connection closed');
+        });
+        ```
+
+    - 이 예제에서 서버는 클라이언트의 연결을 수신하고, 데이터를 받아 응답합니다. 클라이언트는 서버에 연결하여 메시지를 보내고 응답을 받습니다.
+
+2. UDP 소켓 프로그래밍
+    - UDP(User Datagram Protocol)는 연결 없는 프로토콜로, 빠른 데이터 전송이 필요하지만 신뢰성이 덜 중요한 경우에 사용됩니다.
+    NodeJS의 `dgram` 모듈을 사용하여 UDP 통신을 구현할 수 있습니다.
+
+    1. UDP 서버:
+        ```javascript
+        const dgram = require('dgram');
+        const server = dgram.createSocket('udp4');
+
+        server.on('error', (err) => {
+            console.log(`Server error:\n${err.stack}`);
+            server.close();
+        });
+
+        server.on('message', (msg, rinfo) => {
+            console.log(`Server received: ${msg} from ${rinfo.address}:${rinfo.port}`);
+        });
+
+        server.on('listening', () => {
+            const address = server.address();
+            console.log(`Server listening ${address.address}:${address.port}`);
+        });
+
+        server.bind(41234);
+        ```
+
+    2. UDP 클라이언트:
+        ```javascript
+        const dgram = require('dgram');
+        const message = Buffer.from('Hello, UDP server!');
+        const client = dgram.createSocket('udp4');
+
+        client.send(message, 41234, 'localhost', (err) => {
+            if (err) {
+                console.log(err);
+                client.close();
+            } else {
+                console.log('UDP message sent');
+                client.close();
+            }
+        });
+        ```
+    - UDP는 연결 설정 과정이 없어 TCP보다 빠르지만, 메시지 전달의 신뢰성은 보장되지 않습니다.
+
+3. DNS 모듈 사용
+    - DNS(Domain Name System)조회를 수행하기 위해 NodeJS의 `dns`모듈을 사용할 수 있습니다.
+
+    1. 호스트 이름으로 IP주소 조회:
+        ```javascript
+        const dns = require('dns');
+
+        dns.lookup('www.example.com', (err, address, family) => {
+            if (err) throw err;
+            console.log('address: %j family: IPv%s', address, family);
+        });
+        ```
+
+    2. DNS 레코드 조회:
+        ```javascript
+        const dns = require('dns');
+
+        dns.resolve4('www.example.com', (err, addresses) => {
+        if (err) throw err;
+        
+        console.log(`IP addresses: ${JSON.stringify(addresses)}`);
+
+        addresses.forEach((a) => {
+            dns.reverse(a, (err, hostnames) => {
+                if (err) {
+                    throw err;
+                }
+                console.log(`IP address: ${a} reverse for: ${JSON.stringify(hostnames)}`);
+            });
+        });
+        });
+        ```
+    
+    3. Promise API 사용:
+        ```javascript
+        const dns = require('dns').promises;
+
+        async function resolveDNS() {
+            try {
+                const result = await dns.resolve('www.example.com', 'A');
+                console.log('A records:', result);
+                
+                const mxRecords = await dns.resolve('example.com', 'MX');
+                console.log('MX records:', mxRecords);
+            } catch (err) {
+                console.error('DNS resolution error:', err);
+            }
+        }
+
+        resolveDNS();
+        ```
+
+### HTTP/HTTPS 서버 ###
+
+NodeJS는 `http`및 `https`모듈을 통해 웹 서버를 쉽게 생성할 수 있게 해줍니다. 이 모듈들은
+HTTP/HTTPS 프로토콜을 사용하여 클라이언트와 서버 간의 통신을 가능하게 합니다.
+
+1. 기본 HTTP 서버 생성
+    - NodeJS의 `http` 모듈을 사용하여 간단한 HTTP 서버를 만들 수 있습니다.
+
+    ```javascript
+    const http = require('http');
+
+    const server = http.createServer((req, res) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('Hello, World!');
+    });
+
+    const PORT = 3000;
+    server.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}/`);
+    });
+    ```
+
+    - 이 예제는 기본적인 HTTP 서버를 생성하고, 모든 요청에 대해 "Hello, World!"라는 응답을 반환합니다.
+
+    - 요청 객체(`req`)와 응답 객체(`res`)를 더 자세히 살펴보겠습니다:
+        1. 요청 객체(`req`)의 주요 속성/메서드:
+            - `req.url`: 요청된 URL
+            - `req.method`: HTTP 메서드 (GET, POST 등)
+            - `req.headers`: 요청 헤더
+            - `req.on('data', callback)`: 요청 본문 데이터 수신
+
+        2. 응답 객체(`res`)의 주요 메서드:
+            - `res.writeHead(statusCode, headers)`: 상태 코드와 헤더 설정
+            - `res.write(data)`: 응답 본문 작성
+            - `res.end([data])`: 응답 종료
+
+2. 라우팅 구현
+    - 서버에서 다양한 URL 경로에 대해 다른 응답을 제공하려면 라우팅을 구현해야 합니다.
+
+    ```javascript
+    const http = require('http');
+    const url = require('url');
+
+    const server = http.createServer((req, res) => {
+        const parsedUrl = url.parse(req.url, true);
+        const path = parsedUrl.pathname;
+
+        res.setHeader('Content-Type', 'text/plain');
+
+        switch (path) {
+            case '/':
+            res.statusCode = 200;
+            res.end('Home Page');
+            break;
+            case '/about':
+            res.statusCode = 200;
+            res.end('About Page');
+            break;
+            default:
+            res.statusCode = 404;
+            res.end('404 Not Found');
+        }
+    });
+
+    server.listen(3000, () => {
+        console.log('Server running on port 3000');
+    });
+    ```
+
+    - 이 예제는 기본적인 라우팅을 구현하여 다른 URL 경로에 대해 다른 응답을 제공합니다.
+
+3. HTTPS 서버 설정
+    - HTTPS 서버를 설정하려면 SSL/TLS 인증서가 필요합니다. 개발 목적으로는 자체 서명된 인증서를 사용할 수 있습니다.
+    
+    1. 자체 서명 인증서 생성:
+        ```bash
+        openssl req -nodes -new -x509 -keyout server.key -out server.cert
+        ```
+
+    2. HTTPS 서버 생성:
+        ```javascript
+        const https = require('https');
+        const fs = require('fs');
+
+        const options = {
+            key: fs.readFileSync('server.key'),
+            cert: fs.readFileSync('server.cert')
+        };
+
+        const server = https.createServer(options, (req, res) => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/plain');
+            res.end('Hello, secure world!');
+        });
+
+        server.listen(443, () => {
+            console.log('HTTPS server running on port 443');
+        });
+        ```
+        - 이 예제는 HTTPS 서버를 생성하고 SSL/TLS 인증서를 사용하여 암호화된 연결을 제공합니다.
+
+4. 추가 고급 주제:
+    1. 미들웨어 패턴: Express.js와 같은 프레임워크에서 널리 사용되는 미들웨어 패턴을 직접 구현할 수 있습니다.
+
+    ```javascript
+    function logger(req, res, next) {
+        console.log(`${req.method} ${req.url}`);
+        next();
+    }
+
+    function errorHandler(err, req, res, next) {
+        console.error(err.stack);
+        res.status(500).send('Something broke!');
+    }
+
+    // 미들웨어 사용
+    const server = http.createServer((req, res) => {
+        logger(req, res, () => {
+            // 라우팅 로직
+        });
+    });
+    ```
+
+    2. 스트리밍 응답: 대용량 파일을 효율적으로 전송하기 위해 스트리밍을 사용할 수 있습니다.
+
+    ```javascript
+    const http = require('http');
+    const fs = require('fs');
+
+    const server = http.createServer((req, res) => {
+        if (req.url === '/video' && req.method === 'GET') {
+            const videoPath = './video.mp4';
+            const stat = fs.statSync(videoPath);
+            
+            res.writeHead(200, {
+            'Content-Type': 'video/mp4',
+            'Content-Length': stat.size
+            });
+
+            const stream = fs.createReadStream(videoPath);
+            stream.pipe(res);
+        }
+    });
+    ```
+
+    3. WebSocket 지원: HTTP 서버에 WebSocket 지원을 추가하여 실시간 양방향 통신을 구현할 수 있습니다.
+
+    ```javascript
+    const http = require('http');
+    const WebSocket = require('ws');
+
+    const server = http.createServer((req, res) => {
+        res.end('HTTP Server');
+    });
+
+    const wss = new WebSocket.Server({ server });
+
+    wss.on('connection', (ws) => {
+        ws.on('message', (message) => {
+            console.log('Received: %s', message);
+            ws.send(`Echo: ${message}`);
+        });
+    });
+
+    server.listen(8080, () => {
+        console.log('Server is running on http://localhost:8080');
+    });
+    ```
