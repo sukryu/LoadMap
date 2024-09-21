@@ -2523,3 +2523,216 @@ C 언어의 이러한 다양한 용도는 그 효율성, 유연성, 이식성 �
         return 0;
     }
     ```
+
+### 전처리기 ###
+
+1. 전처리기 개요
+    - 전처리기는 C컴파일러의 일부로, 실제 컴파일 전에 소스 코드를 처리합니다. 주요 기능은 다음과 같습니다.
+
+    - 파일 포함
+    - 매크로 확장
+    - 조건부 컴파일
+
+    - 전처리기 지시문은 항상 `#`기호로 시작합니다.
+
+2. 파일 포함: #include
+    - 다른 파일의 내용을 현재 파일에 포함시킵니다.
+
+    ```c
+    #include <stdio.h>  // 시스템 헤더 파일
+    #include "myheader.h"  // 사용자 정의 헤더 파일
+    ```
+
+3. 매크로 정의: #define
+    1. 간단한 매크로
+
+        ```c
+        #define PI 3.14159
+        #define MAX(a, b) ((a) > (b) ? (a) : (b))
+        ```
+
+        - 사용 예:
+
+        ```c
+        float area = PI * radius * radius;
+        int max_value = MAX(x, y);
+        ```
+
+    2. 함수형 매크로
+
+        ```c
+        #define SQUARE(x) ((x) * (x))
+        ```
+
+        사용 예:
+
+        ```c
+        int result = SQUARE(5);  // 25
+        ```
+
+        주의: 매크로 인자를 항상 괄호로 감싸야 합니다.
+
+    3. 다중 행 매크로
+
+        ```c
+        #define DEBUG_PRINT(x) do { \
+            if (debug_mode) { \
+                printf("%s = %d\n", #x, x); \
+            } \
+        } while (0)
+        ```
+
+    4. 문자열화 연산자 (#)
+        - 매크로 인자를 문자열로 변환합니다
+
+        ```c
+        #define STRINGIFY(x) #x
+        ```
+
+        - 사용 예:
+
+        ```c
+        printf("%s\n", STRINGIFY(Hello));  // 출력: "Hello"
+        ```
+
+    5. 토큰 병합 연산자(##)
+        - 두 토큰을 하나로 결합합니다.
+
+        ```c
+        #define CONCAT(a, b) a ## b
+        ```
+
+        - 사용 예:
+
+        ```c
+        int xy = 10;
+        printf("%d\n", CONCAT(x, y));  // 출력: 10
+        ```
+
+4. 조건부 컴파일
+    1. #if, #elif, #else, #endif
+
+        ```c
+        #define DEBUG 1
+
+        #if DEBUG
+            printf("Debug mode is on\n");
+        #elif defined(RELEASE)
+            printf("Release mode\n");
+        #else
+            printf("Unknown mode\n");
+        #endif
+        ```
+
+    2. #ifdef, #ifndef
+
+        ```c
+        #ifdef DEBUG
+            printf("Debugging...\n");
+        #endif
+
+        #ifndef MAX_SIZE
+            #define MAX_SIZE 100
+        #endif
+        ```
+
+5. 기타 전처리기 지시문
+    1. #undef
+        - 매크로 정의를 제거합니다.
+
+        ```c
+        #define MAX 100
+        // ... 코드 ...
+        #undef MAX
+        ```
+    
+    2. #pragma
+        - 컴파일러 특정 기능을 제어합니다.
+
+        ```c
+        #pragma once // 헤더 파일이 한 번만 포함되도록 함.
+        ```
+
+    3. #error
+        - 컴파일 에러를 발생시킵니다.
+
+        ```c
+        #if !defined(MIN_VERSION) || (MIN_VERSION < 5)
+            #error "This program requires version 5 or higher"
+        #endif
+        ```
+
+6. 미리 정의된 매크로
+    - C 언어는 몇 가지 미리 정의된 매크로를 제공합니다:
+
+        - `__FILE__`: 현재 소스 파일 이름
+        - `__LINE__`: 현재 소스 코드 라인 번호
+        - `__DATE__`: 컴파일 날짜
+        - `__TIME__`: 컴파일 시간
+        - `__STDC__`: 표준 C컴파일러면 1
+
+    - 사용 예:
+
+    ```c
+    printf("This file: %s\n", __FILE__);
+    printf("Line number: %d\n", __LINE__);
+    printf("Compiled on: %s at %s\n", __DATE__, __TIME__);
+    ```
+
+7. 실제 사용 예제: 디버그 매크로
+
+    ```c
+    #define DEBUG 1
+
+    #if DEBUG
+        #define DEBUG_PRINT(x) printf("%s = %d\n", #x, x)
+    #else
+        #define DEBUG_PRINT(x)
+    #endif
+
+    int main() {
+        int x = 5;
+        DEBUG_PRINT(x);  // DEBUG가 1일 때만 출력됨
+        return 0;
+    }
+    ```
+
+8. 연습 문제
+    1. 문제: 안전한 배열 접근을 위한 매크로를 작성하세요. 배열의 범위를 벗어나는 접근을 방지해야 합니다.
+
+    ```c
+    #include <stdio.h>
+
+    #define ARRAY_SIZE 5
+    #define SAFE_ACCESS(arr, index) ((index) >= 0 && (index) < ARRAY_SIZE ? arr[index] : 0)
+
+    int main() {
+        int arr[ARRAY_SIZE] = {1, 2, 3, 4, 5};
+
+        printf("%d\n", SAFE_ACCESS(arr, 2));  // 출력: 3
+        printf("%d\n", SAFE_ACCESS(arr, 10)); // 출력: 0 (안전한 접근)
+
+        return 0;
+    }
+    ```
+
+    2. 문제: 조건부 컴ㅁ파일을 사용하여 운영 체제에 따라 다른 코드를 컴파일하는 프로그램을 작성하세요.
+
+    ```c
+    #include <stdio.h>
+
+    #if defined(_WIN32) || defined(_WIN64)
+        #define OS "Windows"
+    #elif defined(__APPLE__) || defined(__MACH__)
+        #define OS "macOS"
+    #elif defined(__linux__)
+        #define OS "Linux"
+    #else
+        #define OS "Unknown"
+    #endif
+
+    int main() {
+        printf("This program is running on %s\n", OS);
+        return 0;
+    }
+    ```
