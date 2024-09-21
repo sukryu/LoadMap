@@ -2736,3 +2736,390 @@ C 언어의 이러한 다양한 용도는 그 효율성, 유연성, 이식성 �
         return 0;
     }
     ```
+
+### 메모리 관리 ###
+
+1. C 프로그램의 메모리 구조
+    - C 프로그램의 메모리는 일반적으로 다음과 같은 세그먼트로 나뉩니다:
+
+        1. 텍스트 세그먼트(코드 세그먼트)
+        2. 데이터 세그먼트(초기화된 데이터)
+        3. BSS 세그먼트(초기화되지 않은 데이터)
+        4. 힙 (동적 메모리 할당)
+        5. 스택(함수 호출, 지역 변수)
+
+    ```
+    높은 주소
+    +------------------+
+    |      스택        |
+    |        ↓         |
+    |                  |
+    |                  |
+    |        ↑         |
+    |       힙         |
+    +------------------+
+    |       BSS        |
+    +------------------+
+    |      데이터      |
+    +------------------+
+    |      텍스트      |
+    +------------------+
+    낮은 주소
+    ```
+
+2. 정적 메모리 할당
+    - 정적 메모리 할당은 컴파일 시간에 이루어집니다.
+
+    1. 전역 변수
+
+        ```c
+        int global_var = 10;  // 데이터 세그먼트
+        int uninitialized_var;  // BSS 세그먼트
+        ```
+
+    2. 정적 지역 변수
+
+        ```c
+        void function() {
+            static int count = 0;  // 데이터 세그먼트
+            count++;
+            printf("%d\n", count);
+        }
+        ```
+
+3. 동적 메모리 할당
+    - 동적 메모리 할당을 프로그램 실행 중에 힙에서 이루어집니다.
+
+    1. malloc()
+
+        ```c
+        #include <stdlib.h>
+
+        int *ptr = (int *)malloc(5 * sizeof(int));
+        if (ptr == NULL) {
+            // 메모리 할당 실패 처리
+        }
+        ```
+
+    2. calloc()
+
+        ```c
+        int *ptr = (int *)calloc(5, sizeof(int));
+        ```
+
+    3. realloc()
+
+        ```c
+        ptr = (int *)realloc(ptr, 10 * sizeof(int));
+        ```
+
+    4. free()
+
+        ```c
+        free(ptr);
+        ptr = NULL;  // 댕글링 포인터 방지
+        ```
+        
+4. 메모리 누수 (Memory Leak)
+    - 메모리 누수는 할당된 메모리를 해제하지 않을 때 발생합니다.
+
+    ```c
+    void memory_leak_example() {
+        int *ptr = (int *)malloc(sizeof(int));
+        *ptr = 10;
+        // free(ptr); // 이 줄이 없으면 메모리 누수 발생
+    }
+    ```
+
+5. 버퍼 오퍼블로우(Buffer Overflow)
+    - 버퍼 오버플로우는 할당된 메모리 범위를 벗어나 데이터를 쓸 때 발생합니다.
+
+    ```c
+    void buffer_overflow_example() {
+        char buffer[5];
+        strcpy(buffer, "This is too long");  // 버퍼 오버플로우 발생
+    }
+    ```
+
+6. 메모리 단편화 (Memory Fragmentation)
+    1. 외부 단편화
+        - 여러 번의 할당과 해제로 인해 사용 가능한 메모리가 작은 조각으로 나뉘는 현상
+
+    2. 내부 단편화
+        - 할당된 메모리 블록이 요청된 크기보다 약간 더 클 때 발생
+
+7. 메모리 정렬 (Memory Alignment)
+    - 데이터 타입의 크기에 따라 메모리 주소를 정렬하는 것
+
+    ```c
+    struct Aligned {
+        char c;   // 1 byte
+        int i;    // 4 bytes
+        char d;   // 1 byte
+    };  // 실제 크기: 12 bytes (패딩 때문)
+    ```
+
+8. 가비지 컬렉션 (Garbage Collection)
+    - C언어는 자동 가비지 컬렉션을 제공하지 않습니다. 프로그래머가 직접 메모리를 관리해야 합니다.
+
+9. 스마트 포인터 (C++의 개념)
+    - C++에서는 스마트 포인터를 통해 자동 메모리 관리를 지원하지만, C에는 이 개념이 없습니다.
+
+10. 메모리 관리 모범 사례:
+    1. 항상 할당한 메모리를 해제하세요.
+    2. NULL 포인터 체크를 하세요.
+    3. 메모리 경계를 넘지 않도록 주의하세요.
+    4. valgrind 같은 도구를 사용하여 메모리 오류를 검사하세요.
+
+11. 실제 사용 예제: 동적 문자열 처리
+
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+
+    char* createDynamicString(const char* input) {
+        char* str = (char*)malloc(strlen(input) + 1);
+        if (str == NULL) {
+            return NULL;
+        }
+        strcpy(str, input);
+        return str;
+    }
+
+    int main() {
+        const char* input = "Hello, World!";
+        char* dynamicStr = createDynamicString(input);
+        
+        if (dynamicStr != NULL) {
+            printf("%s\n", dynamicStr);
+            free(dynamicStr);
+        } else {
+            printf("Memory allocation failed.\n");
+        }
+
+        return 0;
+    }
+    ```
+
+12. 연습 문제
+
+    1. 문제: 동적으로 정수 배열을 생성하고, 사용자로부터 입력받은 값으로 채운 후, 합계를 계산하는 프로그램을 작성하세요.
+
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int* createArray(int size) {
+        return (int*)malloc(size * sizeof(int));
+    }
+
+    int calculateSum(int* arr, int size) {
+        int sum = 0;
+        for (int i = 0; i < size; i++) {
+            sum += arr[i];
+        }
+        return sum;
+    }
+
+    int main() {
+        int size;
+        printf("배열의 크기를 입력하세요: ");
+        scanf("%d", &size);
+
+        int* arr = createArray(size);
+        if (arr == NULL) {
+            printf("메모리 할당 실패\n");
+            return 1;
+        }
+
+        for (int i = 0; i < size; i++) {
+            printf("정수를 입력하세요: ");
+            scanf("%d", &arr[i]);
+        }
+
+        int sum = calculateSum(arr, size);
+        printf("합계: %d\n", sum);
+
+        free(arr);
+        return 0;
+    }
+    ```
+
+    2. 문제: 메모리 누수를 포함한 코드를 찾고 수정하세요.
+    
+    - 오류가 있는 코드
+    ```c
+    #include <stdlib.h>
+
+    void leakyFunction() {
+        int* ptr = (int*)malloc(sizeof(int));
+        *ptr = 10;
+        ptr = NULL;  // 메모리 누수 발생
+    }
+
+    int main() {
+        for (int i = 0; i < 1000; i++) {
+            leakyFunction();
+        }
+        return 0;
+    }
+    ```
+
+    - 수정된 코드
+    ```c
+    #include <stdlib.h>
+
+    void nonLeakyFunction() {
+        int* ptr = (int*)malloc(sizeof(int));
+        if (ptr != NULL) {
+            *ptr = 10;
+            free(ptr);  // 메모리 해제
+        }
+    }
+
+    int main() {
+        for (int i = 0; i < 1000; i++) {
+            nonLeakyFunction();
+        }
+        return 0;
+    }
+    ```
+
+### 추가적인 타입과 타입 수식어 ###
+
+1. 부호 있는/없는 정수 타입 (Signed/Unsigned Integer Types)
+    1. unsigned 키워드
+        - `unsigned`키워드는 변수가 양수 값만 저장할 수 있음을 나타냅니다.
+
+        ```c
+        unsigned int positive_num = 42;
+        unsigned char byte = 255;  // 0 to 255
+        ```
+
+        - 주의: unsigned 변수에 음수를 할당하면 오버플로우가 발생합니다.
+
+    2. signed 키워드
+        `signed`키워드는 변수가 양수와 음수 모두를 저장할 수 있음을 나타냅니다(기본값).
+
+
+2. 크기 지정 정수 타입 (Size-specific Integer Types)
+    - `<stdint.h>`헤더에 정의되어 있습니다.
+
+    ```c
+    #include <stdint.h>
+
+    int8_t i8 = 127;
+    uint8_t ui8 = 255;
+    int16_t i16 = 32767;
+    uint16_t ui16 = 65535;
+    int32_t i32 = 2147483647;
+    uint32_t ui32 = 4294967295;
+    int64_t i64 = 9223372036854775807LL;
+    uint64_t ui64 = 18446744073709551615ULL;
+    ```
+
+3. size_t 타입
+    - `size_t`는 객체의 값의 크기를 나타내는 데 사용되는 unsigned 정수 타입입니다.
+
+    ```c
+    #include <stddef.h>
+
+    size_t size = sizeof(int);
+    size_t length = strlen("Hello");
+    ```
+
+4. ssize_t 타입
+    - `ssize_t`는 `size_t`의 signed 버전으로, POSIX 시스템에서 사용됩니다.
+
+    ```c
+    #include <sys/types.h>
+
+    ssize_t result = read(fd, buffer, count);
+    ```
+
+5. 타입 수식어 (Type Modifiers)
+    1. static 키워드: 참조 범위를 수정하지 않으면서 수명을 프로그램의 수명과 동일하게 맞춘다.
+        1. 지역 변수에 사용:
+            - 변수의 수명을 프로그램 전체로 확장
+            - 초기화는 한 번만 수행
+
+        ```c
+        void count_calls() {
+            static int count = 0;
+            count++;
+            printf("This function has been called %d times\n", count);
+        }
+        ```
+
+        2. 전역 변수나 함수에 사용:
+            - 해당 변수나 함수의 범위를 현재 파일로 제한
+
+        ```c
+        static int file_scope_var = 10;
+        static void file_scope_function() { /* ... */ }
+        ```
+
+    2. const 키워드
+        - 값이 변경되지 않음을 나타냅니다.
+
+        ```c
+        const int MAX_SIZE = 100;
+        const char* str = "Hello";  // str이 가리키는 문자열은 변경 불가
+        char* const ptr = buffer;   // ptr 자체는 변경 불가
+        ```
+
+    3. volatile 키워드
+        - 컴파일러 최적화를 방지하고, 항상 메모리에서 값을 읽도록 합니다.
+
+        ```c
+        volatile int sensor_value;  // 하드웨어에 의해 변경될 수 있는 값
+        ```
+
+6. 실제 사용 예제: 바이트 조작
+
+    ```c
+    #include <stdio.h>
+    #include <stdint.h>
+
+    void print_bits(uint8_t byte) {
+        for (int i = 7; i >= 0; i--) {
+            printf("%d", (byte >> i) & 1);
+        }
+        printf("\n");
+    }
+
+    int main() {
+        uint8_t flags = 0;
+        
+        // 비트 설정
+        flags |= (1 << 2);  // 3번째 비트 설정
+        flags |= (1 << 5);  // 6번째 비트 설정
+        
+        printf("Flags: ");
+        print_bits(flags);
+        
+        // 비트 확인
+        if (flags & (1 << 2)) {
+            printf("3번째 비트가 설정되어 있습니다.\n");
+        }
+        
+        // 비트 클리어
+        flags &= ~(1 << 5);  // 6번째 비트 클리어
+        
+        printf("Updated flags: ");
+        print_bits(flags);
+        
+        return 0;
+    }
+    ```
+
+7. 주의사항
+    1. 부호 없는 정수 타입을 사용할 때는 오버플로우와 언더플로우에 주의해야 합니다.
+    2. `size_t`를 사용할 때는 printf에서 `%zu`포맷 지정자를 사용해야 합니다.
+    3. `static` 지역 변수는 스레드 안정성 문제를 일으킬 수 있으므로 멀티스레드 환경에서 주의해야 합니다.
+    4. `const`와 포인터를 함께 사용할 때는 의미를 정확히 이해해야 합니다(`const int*` vs `int* const`).
+        - `const int*`는 메모리 주소 변경하지 말라의 의미.
+        - `int* const`는 포인터 주소는 변경하지 못하지만 데이터의 값은 변경 가능.'
+
+    5. `volatile`은 필요한 경우에만 사용해야 합니다. 과도한 사용은 성능 저하를 일으킬 수 있습니다.
