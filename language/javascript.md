@@ -2846,3 +2846,126 @@ JavaScript에서는 다양한 테스팅 도구와 프레임워크를 사용할 �
 
     // 3. 리팩토링 (필요한 경우)
     ```
+
+### 프로토타입 (Prototype) ###
+
+1. 프로토타입의 개념
+    - 프로토타입은 JavaScript의 핵심 개념 중 하나로, 객체 지향 프로그래밍의 상속을 구현하는 메커니즘입니다.
+
+    1. JavaScript에서 프로토타입의 정의
+        - 프로토타입은 객체의 원형이 되는 객체입니다. 모든 JavaScript 객체는 다른 객체를 가리키는 내부 링크를 가지고 있으며,
+        이 링크가 가리키는 객체를 해당 객체의 프로토타입이라고 합니다.
+
+        ```javascript
+        let animal = {
+            eats: true
+        };
+
+        let rabbit = {
+            jumps: true
+        };
+
+        rabbit.__proto__ = aniaml; // rabbit의 프로토타입을 animal로 변경
+
+        console.log(rabbit.eats); // true
+        console.log(rabbit.jumps); // true
+        ```
+
+        - 이 예제에서 `rabbit`객체는 `animal` 객체를 프로토타입으로 가집니다. 따라서 `rabbit` 객체는 `animal`객체의 속성을 받아서 사용할 수 있습니다.
+
+    2. 객체 지향 프로그래밍에서의 프로토타입의 역할
+        - 프로토타입은 객체 지향 프로그래밍에서 상속을 구현하는 방법을 제공합니다. 이를 통해 코드 재사용성을 높이고, 메모리 사용을 효율적으로 만들 수 있습니다.
+
+        ```javascript
+        function Animal(name) {
+            this.name = name;
+        }
+
+        Animal.prototype.speak = function() {
+            console.log(this.name + ' makes a noise.');
+        };
+
+        let dog = new Animal('Rex');
+        dog.speak(); // "Rex makes a noise."
+        ```
+
+        - 이 예제에서 `speak`메서드는 `Animal.prototype`에 정의되어 있습니다. 이렇게 하면 `Animal` 생성자로 만든 모든 객체가 `speak` 메서드를 공유할 수 있어, 메모리 사용이 효율적입니다.
+
+    3. 프로토타입 기반 언어로서의 JavaScript
+        - JavaScript는 클래스 기반 언어가 아닌 프로토타입 기반 언어입니다. ES6에서 도입된 `class`문법은 사실 프로토타입 기반 상속의 문법적 설탕(syntactic sugar)에 불가합니다.
+
+        ```javascript
+        // ES6 클래스 문법
+        class Animal {
+            constructor(name) {
+                this.name = name;
+            }
+
+            speak() {
+                console.log(this.name + ' makes a noise.');
+            }
+        }
+
+        // 위 클래스는 내부적으로 다음과 같이 동작합니다
+        function Animal(name) {
+            this.name = name;
+        }
+
+        Animal.prototype.speak = function() {
+            console.log(this.name + ' makes a noise.');
+        };
+        ```
+
+    - 이처럼 JavaScript의 모든 객체 지향적 특징은 프로토타입을 기반으로 구현됩니다. 프로토타입 체인을 통해 객체는 다른 객체의 속성과 메서드를 상속받을 수 있으며, 이는 JavaScript의 유연성과 강력함의 근간이 됩니다.
+
+2. 프로토타입 객체
+    - 프로토타입 객체는 JavaScript에서 객체 간 상속을 구현하는 메커니즘의 핵심입니다. 모든 JavaScript 객체는 프로토타입 객체를 가지며, 이를 통해 속성과 메서드를 상속받습니다.
+
+    1. 모든 객체의 [[Prototype]] 내부 슬롯
+        - 모든 JavaScript 객체는 `[[Prototype]]`이라는 내부 슬롯을 가집니다. 이 슬롯은 객체의 프로토타입을 가리키며, 객체 생성 시 자동으로 설정됩니다.
+
+        ```javascript
+        let obj = {};
+        console.log(Object.getPrototypeOf(obj) === Object.prototype); // true
+        ```
+
+        - 여기서 `Object.getPrototypeOf()`메서드는 객체의 `[[Prototype]]`을 반환합니다.
+
+    2. 객체 리터럴로 생성된 객체의 프로토타입
+        - 객체 리터럴로 생성된 객체의 프로토타입은 `Object.prototype`입니다.
+        
+        ```javascript
+        let obj = {x: 10, y: 20};
+        console.log(obj.__proto__ === Object.prototype); // true
+        ```
+
+        - `__proto__`는 `[[Prototype]]`에 접근하기 위한 접근자 프로퍼티입니다. 그러나 최신 JavaScript에서는 `Object.getPrototypeOf()`와 `Object.setPrototypeOf()`메서드를 사용하는 것이 권장됩니다.
+
+    3. 생성자 함수로 생성된 객체의 프로토타입
+        - 생성자 함수로 생성된 객체의 프로토타입은 해당 생성자 함수의 `prototype`프로퍼티가 가리키는 객체입니다.
+
+        ```javascript
+        function Person(name) {
+            this.name = name;
+        }
+
+        Person.prototype.sayHello = function() {
+            console.log(`Hello, I'm ${this.name}`);
+        };
+
+        let person1 = new Person(Alice);
+        console.log(Object.getPrototypeOf(person1) === Person.prototype) // true
+        person1.sayHello(); // "Hello, I`m Alice"
+        ```
+
+        - 이 예제에서 `person`객체는 `Person.prototype`을 포로토타입으로 가집니다. 따라서 `Person.prototype`에 정의된 `sayHello`메서드를 상속받아 사용할 수 있습니다.
+
+    4. 프로토타입 체인
+        - 객체의 프로퍼티나 메서드에 접근할 때, JavaScript 엔진은 먼저 객체 자체에서 해당 프로퍼티나 메서드를 찾습니다. 찾지 못하면 객체의 프로토타입에서 찾고, 거기에서도 찾지 못하면 프로토타입의 프로토타입에서 찾는 식으로 계속 탐색합니다. 이를 프로토타입 체인이라고 합니다.
+
+        ```javascript
+        let obj = {a: 1};
+        console.log(obj.toString()); // "[object Object]"
+        ```
+
+        - 여기서 `obj`객체는 `toString`메서드를 직접 가지고 있지 않지만, 프로토타입 체인을 통해 `Object.prototype`의 `toString`메서드를 사용할 수 있습니다.
