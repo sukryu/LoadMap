@@ -2969,3 +2969,235 @@ JavaScript에서는 다양한 테스팅 도구와 프레임워크를 사용할 �
         ```
 
         - 여기서 `obj`객체는 `toString`메서드를 직접 가지고 있지 않지만, 프로토타입 체인을 통해 `Object.prototype`의 `toString`메서드를 사용할 수 있습니다.
+
+3. 프로토타입 체인
+    - 프로토타입 체인은 JavaScript에서 객체 간의 상속을 구현하는 메커니즘입니다. 이를 통해 객체는 자신이 직접 정의하지 않은 속성과 메서드에 접근할 수 있습니다.
+
+    1. 프로토타입 체인의 개념
+        - 프로토타입 체인은 객체의 프로토타입을 따라 연결된 일련의 객체들을 의미합니다. 각 객체는 다른 객체를 프로토타입으로 가질 수 있으며, 이 프로토타입 역시 자신의 프로토타입을 가질 수 있습니다.
+
+        ```javascript
+        let animal = {
+            eats: true
+        };
+
+        let rabbit = {
+            jumps: true
+        };
+
+        rabbit.__proto__ = animal;
+
+        console.log(rabbit.eats);  // true
+        console.log(rabbit.jumps); // true
+        ```
+
+        - 이 예제에서 `rabbit`은 `aniaml`을 프로토타입을오 가집니다. 따라서 `rabbit`은 `animal`의 속성을 상속받아 사용할 수 있습니다.
+
+    2. 프로퍼티 검색 과정에서의 프로토타입 체인 동작
+        - JavaScript 엔진이 객체의 프로퍼티를 찾는 과정은 다음과 같습니다:
+
+            1. 객체 자체에서 프로퍼티를 찾습니다.
+            2. 찾지 못하면 객체의 프로토타입에서 찾습니다.
+            3. 프로토타입에서도 찾지 못하면 프로토타입의 프로토타입에서 찾습니다.
+            4. 이 과정을 프로토타입 체인의 끝 (보통 `Object.prototype`)까지 반복합니다.
+            5. 끝까지 찾지 못하면 `undefined`를 반환합니다.
+
+        ```javascript
+        let animal = {
+            eats: true
+        };
+
+        let rabbit = {
+            jumps: true
+        };
+
+        rabbit.__proto__ = animal;
+
+        let longEar = {
+            earLength: 10
+        };
+
+        longEar.__proto__ = rabbit;
+
+        console.log(longEar.jumps);  // true (rabbit에서 상속)
+        console.log(longEar.eats);   // true (animal에서 상속)
+        console.log(longEar.bark);   // undefined
+        ```
+
+    3. Object.prototype과 프로토타입 체인의 종점
+        - 모든 객체의 프로토타입 체인은 궁극적으로 `Object.prototype`에서 끝납니다.
+        - `Object.prototype`은 프로토타입 체인의 종점으로, 그 자체의 프로토타입은 `null`입니다.
+
+        ```javascript
+        console.log(Object.prototype.__proto__ === null);  // true
+        ```
+
+        - `Object.prototype`은 모든 객체가 상속받는 메서드들(예: `toString()`, `hasOwnProperty()` 등)을 제공합니다.
+
+        ```javascript
+        let obj = {};
+        console.log(obj.toString());  // [object Object]
+        console.log(obj.hasOwnProperty('toString'));  // false
+        console.log(Object.prototype.hasOwnProperty('toString'));  // true
+        ```
+
+4. 프로토타입 접근 방법
+    - JavaScript에서는 객체의 프로토타입에 접근하고 조작하는 여러 방법이 있습니다. 각 방법은 특정 상황에 적합하며, 일부는 레거시 코드에서 사용되거나 권장되지 않는 방법도 있습니다.
+
+    1. proto 접근자 프로퍼티 (deprecated)
+        - `__proto__` 접근자 프로퍼티는 객체의 프로토타입에 직접 접근할 수 있게 해줍니다. 그러나 이 방법은 현재 deprecated(사용 권장되지 않음)상태입니다.
+
+        ```javascript
+        let animal = {
+            eats: true
+        };
+
+        let rabbit = {
+            jumps: true
+        };
+
+        console.log(rabbit.__proto__);  // {constructor: ƒ, __defineGetter__: ƒ, …}
+        rabbit.__proto__ = animal;
+        console.log(rabbit.eats);  // true
+        ```
+
+        - `__proto__`는 브라우저 환경에서 널리 지원되지만, 최신 JavaScript 표준에서는 이 방법 대신 다른 방법을 사용하도록 권장하고 있습니다.
+
+    2. Object.getPrototypeOf()와 Object.setPrototypeOf() 메서드
+        - 이 메서드들은 객체의 프로토타입을 안전하게 가져오거나 설정할 수 있는 현대적인 방법입니다.
+
+        ```javascript
+        let animal = {
+            eats: true
+        };
+
+        let rabbit = {
+            jumps: true
+        };
+
+        console.log(Object.getPrototypeOf(rabbit));  // {constructor: ƒ, __defineGetter__: ƒ, …}
+        Object.setPrototypeOf(rabbit, animal);
+        console.log(rabbit.eats);  // true
+        ```
+
+        - 이 방법은 `__proto__`보다 안전하고 표준화되어 있어 권장됩니다.
+
+    3. 생성자 함수의 prototype 프로퍼티
+        - 생성자 함수는 `prototype` 프로퍼티를 통해 생성될 인스턴스의 프로토타입을 설정할 수 있습니다.
+
+        ```javascript
+        function Animal(name) {
+            this.name = name;
+        }
+
+        Animal.prototype.eats = true;
+
+        let rabbit = new Animal('White Rabbit');
+        console.log(rabbit.eats);  // true
+        ```
+
+        - `new`연산자로 객체를 생성할 때, 생성된 객체의 `[[Prototype]]`은 생성자 함수의 `prototype`프로퍼티가 가리키는 객체로 설정됩니다.
+
+    4. Object.create() 메서드
+        - `Object.create()`메서드는 지정된 프로토타입 객체와 프로퍼티를 갖는 새 객체를 생성합니다.
+
+        ```javascript
+        let animal = {
+            eats: true
+        };
+
+        let rabbit = Object.create(animal);
+        rabbit.jumps = true;
+
+        console.log(rabbit.eats);  // true
+        console.log(rabbit.jumps);  // true
+        ```
+
+        - 이 방법은 객체를 생성하면서 동시에 프로토타입을 설정할 수 있어 유용합니다.
+
+    5. 프로토타입 접근 시 주의사항
+        1. 성능: 프로토타입 체인을 따라 프로퍼티를 찾는 것은 직접 객체에서 찾는 것보다 느릴 수 있습니다.
+        2. 보안: `Object.setPrototypeOf()`나 `__proto__`를 사용해 프로토타입을 변경하는 것은 성능에 악영향을 줄 수 있으며, 예기치 않은 동작을 일으킬 수 있습니다.
+        3. 표준: 최신 JavaScript 표준을 따르는 것이 좋습니다. `Object.getPrototypeOf()`, `Object.setPrototypeOf()`를 사용하는 것이 권장됩니다.
+
+5. 프로토타입 상속
+    - 프로토타입 상속은 JavaScript에서 객체 지향 프로그래밍의 핵심 메커니즘입니다. 이를 통해 객체는 다른 객체의 속성과 메서드를 상속받아 재사용할 수 있습니다.
+
+    1. 상속의 구현 방식으로서의 프로토타입
+        - JavaScript에서 상속은 프로토타입 체인을 통해 구현됩니다. 객체는 자신의 프로토타입 객체의 속성과 메서드를 상속받습니다.
+
+        ```javascript
+        let animal = {
+            eats: true,
+            walk() {
+                console.log("Animal walks");
+            }
+        };
+
+        let rabbit = {
+            jumps: true
+        };
+
+        rabbit.__proto__ = animal; // rabbit이 animal을 상속받음
+
+        console.log(rabbit.eats); // true
+        rabbit.walk(); // "Animal walks"
+        ```
+
+        - 이 예제에서 `rabbit`은 `animal`의 속성과 메서드를 상속받아 사용할 수 있습니다.
+
+    2. Object.create()를 이용한 프로토타입 상속
+        - `Object.create()` 메서드는 지정된 프로토타입 객체와 속성을 갖는 새 객체를 생성합니다. 이 방법은 프로토타입 상속을 구현하는 현대적이고 권장되는 방법입니다.
+
+        ```javascript
+        let animal = {
+            eats: true,
+            walk() {
+                console.log("Animal walks");
+            }
+        };
+
+        let rabbit = Object.create(animal);
+        rabbit.jumps = true;
+
+        console.log(rabbit.eats); // true
+        rabbit.walk(); // "Animal walks"
+        console.log(rabbit.jumps); // true
+        ```
+
+        - `Object.create()`를 사용하면 새 객체를 생성하면서 동시에 프로토타입을 설정할 수 있습니다.
+
+    3. 프로토타입 체인을 통한 메서드 공유
+        - 프로토타입 상속의 주요 이점 중 하나는 메서드를 공유할 수 있다는 점입니다. 이는 메모리 사용을 효율적으로 만듭니다.
+
+        ```javascript
+        function Animal(name) {
+            this.name = name;
+        }
+
+        Animal.prototype.walk = function() {
+            console.log(`${this.name} walks`);
+        };
+
+        function Rabbit(name) {
+            Animal.call(this, name);
+        }
+
+        Rabbit.prototype = Object.create(Animal.prototype);
+        Rabbit.prototype.constructor = Rabbit;
+
+        Rabbit.prototype.jump = function() {
+        console.log(`${this.name} jumps`);
+        };
+
+        let rabbit = new Rabbit("White Rabbit");
+        rabbit.walk(); // "White Rabbit walks"
+        rabbit.jump(); // "White Rabbit jumps"
+        ```
+
+        - 이 예제에서 `Rabbit`은 `Animal`을 상속받습니다. `walk` 메서드는 `Animal.prototype`에 정의되어 있지만, `Rabbit`인스턴스에서도 사용할 수 있습니다.
+
+    4. 상속과 프로토타입 체인의 주의사항
+        1. 프로토타입 체인의 깊이: 프로토타입 체인이 너무 길어지면 성능에 영향을 줄 수 있습니다.
+        2. 프로퍼티 섀도잉: 하위 객체에서 상위 객체의 프로퍼티와 같은 이름의 프로퍼티를 정의하면, 하위 객체의 프로퍼티가 상위 객체의 프로퍼티를 가립니다.
+        3. 프로토타입 수정: 프로토타입을 직접 수정하면 해당 프로토타입을 상속받는 모든 객체에 영향을 줄 수 있습니다.

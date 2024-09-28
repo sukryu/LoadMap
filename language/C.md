@@ -3912,7 +3912,707 @@ C 언어의 이러한 다양한 용도는 그 효율성, 유연성, 이식성 �
             bullet->active = false;
         }
         ```
-
-    2. 데이터 패킹
-        - 네트워크 패킷 크기를 최소화하기 위한 데이터 압축
         
+
+### 표준 라이브러리 ###
+
+C 표준 라이브러리는 C 프로그래밍 언어의 핵심 부분으로, 다양한 유용한 함수와 매크로를 제공합니다.
+이 라이브러리는 C언어의 표준 사양의 일부로, 모든 표준 준수 C 구현에서 사용할 수 있습니다.
+
+1. `<stdio.h>`
+    - 이 헤더는 표준 입출력 함수를 포함합니다.
+
+    - 주요 함수:
+
+        1. `printf()`: 포맷된 출력을 화면에 표시
+            ```c
+            printf("Hello, %s! You are %d years old. \n", name, age);
+            ```
+
+        2. `scanf()`: 포맷된 입력을 받음
+            ```c
+            scanf("%d", &number);
+            ```
+
+        3. `fopen()`, `fclose()`: 파일 열기와 닫기
+            ```c
+            FILE *file = fopen("example.txt", "r");
+            if (file == NULL) {
+                printf("파일을 열 수 없습니다.\n");
+                return 1;
+            }
+            // 파일 작업 수행
+            fclose(file);
+            ```
+
+        4. `fread()`, `fwrite()`: 파일에서 읽기와 쓰기
+            ```c
+            char buffer[100];
+            size_t bytesRead = fread(buffer, 1, sizeof(buffer), file);
+            size_t bytesWritten = fwrite(buffer, 1, bytesRead, outputFile);
+            ```
+
+        5. `fprintf()`, `fscanf()`: 파일에서 포맷된 출려과 파일에서 포맷된 입력
+            ```c
+            fprintf(file, "Name: %s, Age: %d\n", name, age);
+            fscanf(file, "%s %d", name, &age);
+            ```
+
+    2. `<string.h>`
+        - 문자열 처리 함수들을 포함합니다.
+
+        - 주요 함수:
+
+            1. `strlen()`: 문자열 길이 계산
+                ```c
+                size_t length = strlen("Hello"); // 결과: 5
+                ```
+
+            2. `strcpy()`, `strncpy()`: 문자열 복사
+                ```c
+                char dest[20];
+                strcpy(dest, "Hello"); // dest에 "Hello" 복사
+                strncpy(dest, "Hello, World!", 5); // dest에 "Hello" 복사 (최대 5글자) 
+                ```
+
+            3. `strcat()`, `strncat()`: 문자열 연결
+                ```c
+                char str[20] = "Hello";
+                strcat(str, " World");  // str은 이제 "Hello World"
+                strncat(str, "!!!", 2);  // str은 이제 "Hello World!!"
+                ```
+
+            4. `strcmp()`, `strncmp()`: 문자열 비교
+                ```c
+                int result = strcmp("hello", "hello");  // 결과: 0 (같음)
+                result = strncmp("hello", "help", 3);  // 결과: 0 (첫 3글자 같음)
+                ```
+
+            5. `strchr()`, `strstr()`: 문자열에서 문자 또는 부분 문자열 찾기
+                ```c
+                char *pos = strchr("Hello", 'e');  // 'e'의 위치를 반환
+                pos = strstr("Hello World", "World");  // "World"의 시작 위치를 반환
+                ```
+
+    3. `<math.h>`
+        - 수학 함수들을 포함합니다.
+
+        - 주요 함수:
+
+            1. `sqrt()`: 제곱근
+                ```c
+                double result = sqrt(16.0);  // 결과: 4.0
+                ```
+
+            2. `pow()`: 거듭제곱
+                ```c
+                double result = pow(2.0, 3.0);  // 결과: 8.0
+                ```
+
+            3. `sin()`, `cos()`, `tan()`: 삼각함수
+                ```c
+                double sine = sin(3.14159 / 2);  // 약 1.0
+                ```
+
+            4. `log()`, `log10()`: 자연로그, 상용로그
+                ```c
+                double natural_log = log(2.71828);  // 약 1.0
+                double common_log = log10(100.0);   // 2.0
+                ```
+
+            5. `ceil`, `floor()`: 올림, 내림
+                ```c
+                double ceiled = ceil(3.7);   // 결과: 4.0
+                double floored = floor(3.7); // 결과: 3.0
+                ```
+
+    4. `<stdlib.h>`
+        - 일반적인 유틸리티 함수들을 포함합니다.
+
+        - 주요 함수:
+
+            1. `malloc()`, `calloc()`, `realloc()`, `free()`: 동적 메모리 관리
+                ```c
+                int *arr = (int *)malloc(5 * sizeof(int));
+                // 사용 후
+                free(arr);
+                ```
+
+            2. `atoi()`, `atof()`: 문자열을 정수 또는 부동소수점으로 변환
+                ```c
+                int num = atoi("123");    // 결과: 123
+                double fnum = atof("3.14"); // 결과: 3.14
+                ```
+
+            3. `rand()`, `srand()`: 난수 생성
+                ```c
+                srand(time(NULL));  // 시드 설정
+                int random_num = rand() % 100;  // 0-99 사이의 난수
+                ```
+
+            4. `qsort()`: 빠른 정렬 알고리즘
+                ```c
+                int compare(const void *a, const void *b) {
+                    return (*(int*)a - *(int*)b);
+                }
+                int arr[] = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3};
+                qsort(arr, 10, sizeof(int), compare);
+                ```
+
+            5. `exit()`: 프로그램 종료
+                ```c
+                exit(EXIT_SUCCESS); // 또는 exit(0);
+                ```
+
+    5. `<time.h>`
+        - 시간 관련 함수들을 포함합니다.
+
+        - 주요 함수:
+
+            1. `time()`: 현재 시간을 얻음
+                ```c
+                time_t now = time(NULL);
+                ```
+
+            2. `localtime()`: time_t를 struct tm으로 변환
+                ```c
+                struct tm *local_time = localtime(&now);
+                ```
+
+            3. `strftime()`: 시간을 포맷된 문자열로 변환
+                ```c
+                char time_str[50];
+                strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", local_time);
+                ```
+
+    6. `<ctype.h>`
+        - 문자 처리 함수들을 포함합니다.
+
+            - `isalpha()`: 알파벳인지 확인
+            - `isdigit()`: 숫자인지 확인
+            - `isalnum()`: 알파벳 또는 숫자인지 확인
+            - `tolower()`: 소문자로 변환
+            - `toupper()`: 대문자로 변환
+
+        - 예제:
+
+            ```c
+            #include <ctype.h>
+            #include <stdio.h>
+
+            int main() {
+                char c = 'A';
+                printf("Is alpha: %d\n", isalpha(c));  // 1
+                printf("To lower: %c\n", tolower(c));  // 'a'
+                return 0;
+            }
+            ```
+
+    7. `<limits.h>`
+        - 정수 타입의 최소값과 최대값을 정의합니다.
+
+            - `INT_MAX`: int의 최대값
+            - `INT_MIN`: int의 최소값
+            - `CHAR_MAX`: char의 최대값
+            - `LONG_MAX`: long의 최대값
+
+        - 예제:
+
+            ```c
+            #include <limits.h>
+            #include <stdio.h>
+
+            int main() {
+                printf("Max int: %d\n", INT_MAX);
+                printf("Min int: %d\n", INT_MIN);
+                return 0;
+            }
+            ```
+
+    8. `<float.h>`
+        - 부동소수점 타입의 특성을 정의합니다.
+
+            - `FLT_MAX`: float의 최대값
+            - `DBL_MAX`: double의 최대값
+            - `FLT_EXSILON`: 1.0과 구분 가능한 가장 작은 float 값
+
+        - 예제:
+
+            ```c
+            #include <float.h>
+            #include <stdio.h>
+
+            int main() {
+                printf("Max float: %e\n", FLT_MAX);
+                printf("Float epsilon: %e\n", FLT_EPSILON);
+                return 0;
+            }
+            ```
+
+    9. `<assert.h>`
+        - 런타임 오류 검사를 위한 매크로를 제공합니다.
+
+            - `assert()`: 조건이 거짓이면 프로그램을 중단
+
+        - 예제:
+
+            ```c
+            #include <assert.h>
+
+            int main() {
+                int x = 5;
+                assert(x == 5);  // 통과
+                assert(x == 10); // 프로그램 중단
+                return 0;
+            }
+            ```
+
+    10. `<signal.h>`
+        - 시그널 처리 함수를 제공합니다.
+
+            - `signal()`: 시그널 핸들러 설정
+            - `raise()`: 시그널 발생
+
+        - 예제:
+
+            ```c
+            #include <signal.h>
+            #include <stdio.h>
+
+            void signal_handler(int signum) {
+                printf("Received signal %d\n", signum);
+            }
+
+            int main() {
+                signal(SIGINT, signal_handler);
+                raise(SIGINT);
+                return 0;
+            }
+            ```
+
+
+### 오류 처리 ###
+
+- C언어에서 오류 처리는 프로그램의 안정성과 신뢰성을 높이는 데 매우 중요합니다. 주요 오류 처리 메커니즘에는 반환 값 확인,
+errno 변수 사용, 그리고 perror()와 strerror() 함수 사용 등이 있습니다.
+
+1. 반환 값 확인
+    - 많은 C 함수들은 오류 발생 시 특정 값(보통 -1이나 NULL)을 반환합니다. 이를 확인하는 것이 가장 기본적인 오류 처리 방법입니다.
+
+    - 예제:
+
+        ```c
+        #include <stdio.h>
+
+        int main() {
+            FILE *file = fopen("non_existent_file.txt", "r");
+            if (file == NULL) {
+                printf("파일을 열 수 없습니다.\n");
+                return 1;
+            }
+            // 파일 처리 코드...
+            fclose(file);
+            return 0;
+        }
+        ```
+
+2. errno 변수
+    - `errno`는 `<errno.h>`헤더에 정의되어 있는 전역 변수로, 최근 발생한 오류의 번호를 저장합니다.
+
+    - 주요 특징:
+        - 오류가 발생하면 시스템 함수가 errno를 설정합니다.
+        - errno 값은 각각 특정 오류 상황을 나타냅니다. (예: ENOENT는 "No such file or directory").
+        - errno를 직접 0으로 설정하는 것은 좋은 관행입니다. 함수들은 성공 시 errno를 0으로 재설정하지 않기 때문입니다.
+
+    - 예제:
+
+        ```c
+        #include <stdio.h>
+        #include <errno.h>
+        #include <string.h>
+
+        int main() {
+            FILE *file = fopen("non_existent_file.txt", "r");
+            if (file == NULL) {
+                printf("오류 번호: %d\n", errno);
+                printf("오류 메시지: %s\n", strerror(errno));
+                return 1;
+            }
+            // 파일 처리 코드...
+            fclose(file);
+            return 0;
+        }
+        ```
+
+3. perror() 함수
+    - `perror()`함수는 현재의 errno 값에 해당하는 오류 메시지를 표준 오류 스트림(stderr)에 출력합니다.
+
+    - 예제:
+
+        ```c
+        #include <stdio.h>
+        #include <errno.h>
+
+        int main() {
+            FILE *file = fopen("non_existent_file.txt", "r");
+            if (file == NULL) {
+                perror("파일 열기 오류");
+                return 1;
+            }
+            // 파일 처리 코드...
+            fclose(file);
+            return 0;
+        }
+        ```
+
+4. strerror() 함수
+    - `strerror()` 함수는 errno 값에 해당하는 오류 메시지 문자열을 반환합니다.
+
+    - 예제:
+
+        ```c
+        #include <stdio.h>
+        #include <string.h>
+        #include <errno.h>
+
+        int main() {
+            FILE *file = fopen("non_existent_file.txt", "r");
+            if (file == NULL) {
+                printf("오류: %s\n", strerror(errno));
+                return 1;
+            }
+            // 파일 처리 코드...
+            fclose(file);
+            return 0;
+        }
+        ```
+
+5. 사용자 정의 오류 처리
+    - 복잡한 프로그램에서는 사용자 정의 오류 처리 시스템을 구현하는 것이 유용할 수 있습니다.
+
+    - 예제:
+
+        ```c
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <string.h>
+
+        #define MAX_ERROR_MSG 100
+
+        void error(const char *msg) {
+            char error_msg[MAX_ERROR_MSG];
+            snprintf(error_msg, sizeof(error_msg), "오류: %s\n", msg);
+            fprintf(stderr, "%s", error_msg);
+            exit(1);
+        }
+
+        int main() {
+            FILE *file = fopen("non_existent_file.txt", "r");
+            if (file == NULL) {
+                error("파일을 열 수 없습니다");
+            }
+            // 파일 처리 코드...
+            fclose(file);
+            return 0;
+        }
+        ```
+
+- 주의사항
+    - errno는 스레드 안전하지만, 다중 스레드 환경에서는 주의가 필요합니다.
+    - 일부 함수는 errno를 설정하지 않을 수 있으므로, 함수의 문서를 항상 확인해야 합니다.
+    - 오류 처리 코드를 일관성 있게 작성하고, 가능한 모든 오류 상황을 고려해야 합니다.
+    - 중요한 리소스(파일, 메모리 등)를 해제하는 것을 잊지 말아야 합니다.
+
+
+### 멀티스레딩 ###
+
+- 멀티스레딩은 프로그램이 여러 실행 스레드를 동시에 실행할 수 있게 해주는 기술입니다. C 언어에서 멀티 스레딩은
+주로 POSIX 스레드(pthread)라이브러리를 통해 구현됩니다.
+
+1. 기본 개념
+    - 스레드: 프로세스 내에서 실행되는 독립적인 실행 단위
+    - 동시성: 여러 작업이 동시에 실행되는 것처럼 보이는 것
+    - 병렬성: 여러 작업이 실제로 동시에 실행되는 것
+
+2. POSIX 스레드 (pthread)라이브러리
+    - POSIX 스레드는 유닉스 계열 운영체제에서 표준으로 사용되는 스레드 라이브러리입니다.
+
+    - 주요 함수:
+
+        - `pthread_create()`: 새 스레드 생성
+        - `pthread_join()`: 스레드 종료 대기
+        - `pthread_exit()`: 현재 스레드 종료
+        - `pthread_self()`: 현재 스레드의 ID 반환
+        - `pthread_cancle()`: 스레드 강제 종료
+
+    - 기본 사용 예제:
+
+        ```c
+        #include <stdio.h>
+        #include <pthread.h>
+
+        void *print_message(void *ptr) {
+            char *message;
+            message = (char *) ptr;
+            printf("%s\n", message);
+            return NULL;
+        }
+
+        int main() {
+            pthread_t thread1, thread2;
+            char *message1 = "Thread 1";
+            char *message2 = "Thread 2";
+
+            pthread_create(&thread1, NULL, print_message, (void*) message1);
+            pthread_create(&thread2, NULL, print_message, (void*) message2);
+
+            pthread_join(thread1, NULL);
+            pthread_join(thread2, NULL);
+
+            printf("Threads finished.\n");
+            return 0;
+        }
+        ```
+
+3. 동기화 기법
+    - 여러 스레드가 공유 자원에 접근할 때 발생할 수 있는 경쟁 조건(race condition)을 방지하기 위해 동기화가 필요합니다.
+
+    - 주요 동기화 기법:
+        1. 뮤텍스 (Mutex)
+            - 상호 배제를 위한 잠금 메커니즘
+            - `pthread_mutex_init()`, `pthread_mutex_lock()`, `pthread_mutex_unlock()`
+
+        2. 세마포어 (Semaphore)
+            - 여러 스레드의 접근을 제어하는 카운팅 메커니즘
+            - `sem_init()`, `sem_wait()`, `sem_post()`
+
+        3. 조건 변수 (Condition Variable)
+            - 스레드 간 신호를 주고받는 메커니즘
+            - `pthread_cond_init()`, `pthread_cond_wait()`, `pthread_cond_signal()`
+
+    - 뮤텍스 사용 예제:
+
+        ```c
+        #include <stdio.h>
+        #include <pthread.h>
+
+        #define NUM_THREADS 5
+
+        pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+        int shared_variable = 0;
+
+        void *increment(void *arg) {
+            for (int i = 0; i < 10000; i++) {
+                pthread_mutex_lock(&mutex);
+                shared_variable++;
+                pthread_mutex_unlock(&mutex);
+            }
+            return NULL;
+        }
+
+        int main() {
+            pthread_t threads[NUM_THREADS];
+
+            for (int i = 0; i < NUM_THREADS; i++) {
+                pthread_create(&threads[i], NULL, increment, NULL);
+            }
+
+            for (int i = 0; i < NUM_THREADS; i++) {
+                pthread_join(threads[i], NULL);
+            }
+
+            printf("Final value: %d\n", shared_variable);
+            return 0;
+        }
+        ```
+
+4. 스레드 안정성 (Thread Safety)
+    - 스레드 안전한 함수는 여러 스레드에서 동시에 호출되어도 정확하게 동작합니다.
+
+    - 스레드 안정성을 위한 기법:
+
+        1. 지역 변수 사용: 스택에 저장되어 각 스레드마다 독립적
+        2. 재진입 가능한 (reentrant)함수 작성
+        3. 전역 변수 대신 스레드 로컬 저장소 (Thread Local Storage) 사용
+        4. 적절한 동기화 메커니즘 사용
+
+5. 데드락 (DeadLock)방지
+    - 데드락은 두 개 이상의 스레드가 서로의 자원을 기다리며 무한히 블록된 상태를 말합니다.
+
+    - 데드락 방지 기법:
+        1. 자원에 대한 순서화된 접근
+        2. 타임아웃 사용
+        3. 데드락 검출 및 복구 알고리즘 사용
+
+6. 성능 고려사항
+    1. 스레드 생성 오버헤드: 스레드 풀 사용 고려
+    2. 컨텍스트 스위칭 비용: 너무 많은 스레드 생성 자제
+    3. 캐시 일관성: false sharing 방지를 위한 데이터 구조 설계
+
+7. 주의 사항
+    1. 공유 자원에 대한 적절한 동기화 필수
+    2. 데드락과 경쟁 조건에 주의
+    3. 스레드 안정성을 항상 고려
+    4. 디버깅이 어려울 수 있으므로 철저한 테스트 필요
+
+
+### 네트워크 프로그래밍 ###
+
+- C 언어에서의 네트워크 프로그래밍은 주로 소켓 API를 사용하여 이루어집니다. 이는 TCP/IP 프로토콜을 기반으로 한 네트워크 통신을 가능하게 합니다.
+
+1. 소켓 프로그래밍 기초
+    - 소켓은 네트워크 통신의 끝점(endpoint)으로, 데이터를 주고받는 통로 역할을 합니다.
+
+    - 주요 함수:
+        1. `socket()`: 새로운 소켓 생성
+        2. `bind()`: 소켓에 주소 할당
+        3. `listen()`: 연결 요청 대기
+        4. `accept()`: 클라이언트 연결 수락
+        5. `connect()`: 서버에 연결 요청
+        6. `send()`, `recv()`: 데이터 송수신
+        7. `close()`: 소켓 닫기
+
+2. TCP/IP 통신
+    - TCP/IP는 인터넷 프로토콜 스위트의 핵심 프로토콜로, 신뢰성 있는 데이터 전송을 제공합니다.
+
+    - 클라이언트-서버 모델:
+        1. 서버: 특정 포트에서 클라이언트의 연결을 기다림
+        2. 클라이언트: 서버의 IP 주소와 포트 번호를 사용하여 연결 요청
+
+3. 서버 프로그램 예제:
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <unistd.h>
+    #include <arpa/inet.h>
+    #include <sys/socket.h>
+
+    #define PORT 8080
+
+    int main() {
+        int server_fd, new_socket;
+        struct sockaddr_in address;
+        int opt = 1;
+        int addrlen = sizeof(address);
+        char buffer[1024] = {0};
+        char *hello = "Hello from server";
+
+        // 소켓 생성
+        if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+            perror("socket failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // 소켓 옵션 설정
+        if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+            perror("setsockopt");
+            exit(EXIT_FAILURE);
+        }
+
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(PORT);
+
+        // 소켓에 주소 바인딩
+        if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+            perror("bind failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // 연결 대기
+        if (listen(server_fd, 3) < 0) {
+            perror("listen");
+            exit(EXIT_FAILURE);
+        }
+
+        // 클라이언트 연결 수락
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+            perror("accept");
+            exit(EXIT_FAILURE);
+        }
+
+        // 데이터 수신
+        read(new_socket, buffer, 1024);
+        printf("Message from client: %s\n", buffer);
+
+        // 데이터 송신
+        send(new_socket, hello, strlen(hello), 0);
+        printf("Hello message sent\n");
+
+        close(new_socket);
+        close(server_fd);
+        return 0;
+    }
+    ```
+
+4. 클라이언트 프로그램 예제
+
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <unistd.h>
+    #include <arpa/inet.h>
+    #include <sys/socket.h>
+
+    #define PORT 8080
+
+    int main() {
+        int sock = 0;
+        struct sockaddr_in serv_addr;
+        char *hello = "Hello from client";
+        char buffer[1024] = {0};
+
+        // 소켓 생성
+        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+            printf("\n Socket creation error \n");
+            return -1;
+        }
+
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(PORT);
+
+        // 서버 IP 주소 설정
+        if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+            printf("\nInvalid address/ Address not supported \n");
+            return -1;
+        }
+
+        // 서버에 연결
+        if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+            printf("\nConnection Failed \n");
+            return -1;
+        }
+
+        // 데이터 송신
+        send(sock, hello, strlen(hello), 0);
+        printf("Hello message sent\n");
+
+        // 데이터 수신
+        read(sock, buffer, 1024);
+        printf("Message from server: %s\n", buffer);
+
+        close(sock);
+        return 0;
+    }
+    ```
+
+5. 주요 고려사항
+    1. 에러 처리: 모든 네트워크 함수 호출 후 반환값 확인
+    2. 버퍼 오버플로우: 수신 버퍼 크기 주의
+    3. 바이트 오더: 네트워크 바이트 오더(빅 엔디안)사용
+    4. 비동기 I/O: `select()`, `poll()`, `epoll()`등을 이용한 효율적인 I/O처리
+    5. 보안: SSL/TLS 사용 고려
+
+6. 고급 주제
+    1. UDP 통신: 비연결형, 신뢰성 없는 통신
+    2. 멀티태스크: 그룹 통신
+    3. 비동기 I/O: 이벤트 기반 프로그래밍
+    4. 프로토콜 설계: 애플리케이션 레벨 프로토콜 정의
+
+7. 주의사항
+    1. 네트워크 상태 변화에 대한 처리 (연결 끊김, 타임아웃 등)
+    2. 리소스 관리(소켓, 메모리 등의 적절한 해제)
+    3. 크로스 플랫폼 호환성 고려
+    4. 네트워크 보안 (데이터 암호화, 인증 등)
