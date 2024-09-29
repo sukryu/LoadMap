@@ -1746,3 +1746,501 @@
         return 0;
     }
     ```
+
+### 최신 표준 (C++17, C++20) ###
+
+C++는 계속해서 발전하고 있으며, 최신 표준들은 언어를 더욱 강력하고 사용하기 쉽게 만들어졌습니다.
+
+1. C++17의 주요 기능
+    1. 구조화된 바인딩 (Structured Bindings)
+        ```cpp
+        #include <map>
+        #include <string>
+
+        int main() {
+            std::map<std::string, int> myMap = {{"apple", 1}, {"banana", 2}};
+            for (const auto& [key, value] : myMap) {
+                // key와 value를 직접 사용
+            }
+            return 0;
+        }
+        ```
+
+    2. if문과 switch 문에서의 초기화 구문
+        ```cpp
+        if (auto it = myMap.find("apple"); it != myMap.end()) {
+            // it를 사용
+        }
+        ```
+
+    3. 내장 std::variant, std::optional, std::any
+        ```cpp
+        #include <optional>
+        #include <variant>
+        #include <any>
+
+        std::optional<int> divide(int a, int b) {
+            if (b == 0) return std::nullopt;
+            return a / b;
+        }
+
+        std::variant<int, std::string> v = 10;
+        std::any a = 1;
+        a = 3.14;
+        a = std::string("hello");
+        ```
+
+    4. 접힘 표현식 (Fold Expression)
+        ```cpp
+        template<typename... Args>
+        auto sum(Args... args) {
+            return (args + ...);
+        }
+        ```
+
+2. C++20의 주요 기능
+    1. 개념 (Concepts)
+        ```cpp
+        #include <concepts>
+
+        template<typename T>
+        concept Numeric = std::is_arithmetic_v<T>;
+
+        template<Numeric T>
+        T add(T a, T b) {
+            return a + b;
+        }
+        ```
+
+    2. 범위 (Ranges)
+        ```cpp
+        #include <ranges>
+        #include <vector>
+
+        int main() {
+            std::vector<int> v = {1, 2, 3, 4, 5};
+            auto even = v | std::views::filter([](int n) { return n % 2 == 0; });
+            for (int n : even) {
+                // 짝수만 출력
+            }
+            return 0;
+        }
+        ```
+
+    3. 코루틴 (Coroutines)
+        ```cpp
+        #include <coroutine>
+        #include <iostream>
+
+        generator<int> range(int start, int end) {
+            for (int i = start; i < end; ++i) {
+                co_yield i;
+            }
+        }
+
+        int main() {
+            for (int i : range(0, 5)) {
+                std::cout << i << ' ';
+            }
+            return 0;
+        }
+        ```
+
+    4. 3방향 비교 연산자 (Spaceship Operator)
+        ```cpp
+        class Point {
+            int x, y;
+        public:
+            auto operator<=>(const Point&) const = default;
+        };
+        ```
+
+    5. 모듈 (Modules)
+        ```cpp
+        // math.cpp
+        export module math;
+
+        export int add(int a, int b) {
+            return a + b;
+        }
+
+        // main.cpp
+        import math;
+
+        int main() {
+            int result = add(5, 3);
+            return 0;
+        }
+        ```
+
+    6. constexpr 가상 함수와 union
+        ```cpp
+        struct Base {
+            constexpr virtual int f() const { return 0; }
+        };
+
+        struct Derived : Base {
+            constexpr int f() const override { return 1; }
+        };
+
+        constexpr int g() {
+            Derived d;
+            Base& b = d;
+            return b.f();  // 컴파일 시간에 1을 반환
+        }
+        ```
+
+    7. 문자열 리터럴에 대한 constexpr
+        ```cpp
+        constexpr auto str = "Hello, World!";
+        constexpr char c = str[0];  // 컴파일 시간에 'H'
+        ```
+
+### 디자인 패턴과 최적화 ###
+
+1. 디자인 패턴
+    - 디자인 패턴은 소프트웨어 설계에서 자주 발생하는 문제들에 대한 일반적인 해결책입니다. C++에서 자주 사용되는 몇 가지 패턴을 살펴보겠습니다.
+
+    1. 싱글톤 패턴 (Singletone Pattern)
+        ```cpp
+        class Singleton {
+        private:
+            static Singleton* instance;
+            Singleton() {}
+        public:
+            static Singleton* getInstance() {
+                if (instance == nullptr) {
+                    instance = new Singleton();
+                }
+                return instance;
+            }
+        };
+
+        Singleton* Singleton::instance = nullptr;
+        ```
+
+    2. 팩토리 패턴 (Factory Pattern)
+        ```cpp
+        class Animal {
+        public:
+            virtual void makeSound() = 0;
+        };
+
+        class Dog : public Animal {
+        public:
+            void makeSound() override { std::cout << "Woof!" << std::endl; }
+        };
+
+        class Cat : public Animal {
+        public:
+            void makeSound() override { std::cout << "Meow!" << std::endl; }
+        };
+
+        class AnimalFactory {
+        public:
+            static Animal* createAnimal(std::string type) {
+                if (type == "Dog") return new Dog();
+                if (type == "Cat") return new Cat();
+                return nullptr;
+            }
+        };
+        ```
+
+    3. 옵저버 패턴 (Observer Pattern)
+        ```cpp
+        #include <vector>
+        #include <algorithm>
+
+        class Observer {
+        public:
+            virtual void update(int value) = 0;
+        };
+
+        class Subject {
+        private:
+            std::vector<Observer*> observers;
+            int value;
+        public:
+            void attach(Observer* obs) { observers.push_back(obs); }
+            void detach(Observer* obs) {
+                observers.erase(std::remove(observers.begin(), observers.end(), obs), observers.end());
+            }
+            void notify() {
+                for (auto obs : observers) {
+                    obs->update(value);
+                }
+            }
+            void setValue(int v) {
+                value = v;
+                notify();
+            }
+        };
+        ```
+
+2. 성능 최적화 기법
+    1. 인라인 함수 사용
+        ```cpp
+        inline int max(int a, int b) {
+            return a > b ? a : b;
+        }
+        ```
+
+    2. 불필요한 복사 피하기
+        ```cpp
+        void processVector(const std::vector<int>& vec) {
+            // vec를 참조로 받아 불필요한 복사를 피함
+        }
+        ```
+
+    3. 이동 의미론 활용
+        ```cpp
+        std::vector<int> createVector() {
+            std::vector<int> result(1000000);
+            // ... 벡터 초기화
+            return result;  // 이동 의미론 활용
+        }
+        ```
+    
+    4. 캐시 친화적인 데이터 구조 사용
+        ```cpp
+        struct SoA {  // Structure of Arrays
+            std::vector<int> x, y, z;
+        };
+
+        struct AoS {  // Array of Structures
+            struct Point { int x, y, z; };
+            std::vector<Point> points;
+        };
+        ```
+
+    5. 컴파일 시간 계산 활용
+        ```cpp
+        template<int N>
+        struct Factorial {
+            static constexpr int value = N * Factorial<N-1>::value;
+        };
+
+        template<>
+        struct Factorial<0> {
+            static constexpr int value = 1;
+        };
+
+        constexpr int fact5 = Factorial<5>::value;
+        ```
+
+    6. 메모리 풀 사용
+        ```cpp
+        class MemoryPool {
+            // ... 메모리 풀 구현
+        public:
+            void* allocate(size_t size);
+            void deallocate(void* p);
+        };
+
+        MemoryPool pool;
+        ```
+
+    7. 병렬 알고리즘 활용 (C++17 이상)
+        ```cpp
+        #include <algorithm>
+        #include <execution>
+
+        std::vector<int> vec(1000000);
+        std::sort(std::execution::par, vec.begin(), vec.end());
+        ```
+
+    8. 프로파일링 도구 사용
+        - gprof, Valgrind, Visual Studio Profiler 등을 사용하여 병목 지점 식별
+
+    9. 컴파일러 최적화 옵션 활용
+        ```bash
+        g++ -O3 -march=native program.cpp -o program
+        ```
+
+### 프로젝트 구조와 빌드 시스템 ###
+
+- CMake는 크로스 플랫폼 빌드 시스템 생성기입니다. 다양한 운영 체제와 컴파일러에서 동작하는 빌드 파일을 생성할 수 있어 널리 사용됩니다.
+
+1. CMake의 기본 개념
+    1. CMakeLists.txt:
+        - CMake 프로젝트의 핵심 파일로, 프로젝트 구조와 빌드 방법을 정의합니다.
+        
+    2. 빌드 디렉토리:
+        - 소스 디렉토리와 별도로 빌드 파일을 생성하는 디렉토리입니다.
+
+    3. 생성기(Generator):
+        - CMake는 다양한 빌드 시스템 (예: Make, Ninja, Visual Studio)을 위한 파일을 생성할 수 있습니다.
+
+2. 기본 CMakeLists.txt 구조
+    ```cmake
+    cmake_minimum_required(VERSION 3.10)
+    project(MyProject)
+
+    add_executable(MyExecutable main.cpp)
+    ```
+
+3. CMake 주요 명령어
+    1. 프로젝트 정의:
+        ```cmake
+        project(MyProject VERSION 1.0 LANGUAGES CXX)
+        ```
+
+    2. 실행 파일 추가:
+        ```cmake
+        add_executable(MyExecutable main.cpp file1.cpp file2.cpp)
+        ```
+
+    3. 라이브러리 추가:
+        ```cmake
+        add_library(MyLibrary STATIC lib1.cpp lib2.cpp)
+        ```
+
+    4. 포함 디렉토리 추가:
+        ```cmake
+        target_include_directories(MyExecutable PRIVATE include)
+        ```
+
+    5. 링크 라이브러리:
+        ```cmake
+        target_link_libraries(MyExecutable PRIVATE MyLibrary)
+        ```
+
+    6. 컴파일 옵션 설정
+        ```cmake
+        target_compile_options(MyExecutable PRIVATE -Wall -Wextra)
+        ```
+
+    7. C++ 표준 설정
+        ```cmake
+        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+        ```
+
+4. 변수 사용
+    - CMake에서 변수를 사용하여 코드를 더 유연하게 만들 수 있습니다.
+    ```cmake
+    set(SOURCES main.cpp file1.cpp file2.cpp)
+    add_executable(MyExecutable ${SOURCES})
+    ```
+
+5. 조건문
+    ```cmake
+    if(UNIX)
+        target_compile_definitions(MyExecutable PRIVATE PLATFORM_UNIX)
+    elseif(WIN32)
+        target_compile_definitions(MyExecutable PRIVATE PLATFORM_WINDOWS)
+    endif()
+    ```
+
+6. 함수와 매크로
+    ```cmake
+    function(my_function arg1 arg2)
+        message("arg1: ${arg1}, arg2: ${arg2}")
+    endfunction()
+
+    my_function("Hello" "World")
+    ```
+
+7. 서브 디렉토리 추가
+    ```cmake
+    add_subdirectory(src)
+    add_subdirectory(libs/mylib)
+    ```
+
+8. 외부 라이브러리 찾기
+    ```cmake
+    find_package(Boost REQUIRED COMPONENTS system filesystem)
+    target_link_libraries(MyExecutable PRIVATE Boost::system Boost::filesystem)
+    ```
+
+9. 설치 규칙
+    ```cmake
+    install(TARGETS MyExecutable DESTINATION bin)
+    install(FILES myheader.h DESTINATION include)
+    ```
+
+10. 테스트 추가
+    ```cmake
+    enable_testing()
+    add_test(NAME MyTest COMMAND MyTestExecutable)
+    ```
+
+11. CMake 사용 예제:
+    - 프로젝트 구조:
+    ```
+    MyProject/
+    ├── CMakeLists.txt
+    ├── include/
+    │   └── mylib.h
+    ├── src/
+    │   ├── CMakeLists.txt
+    │   ├── main.cpp
+    │   └── mylib.cpp
+    └── tests/
+        ├── CMakeLists.txt
+        └── test_mylib.cpp
+    ```
+
+    - 루트 CMakeLists.txt
+
+        ```cmake
+        cmake_minimum_required(VERSION 3.10)
+        project(MyProject VERSION 1.0 LANGUAGES CXX)
+
+        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+        add_subdirectory(src)
+        add_subdirectory(tests)
+
+        enable_testing()
+        ```
+
+    - src/CMakeLists.txt
+        
+        ```cmake
+        add_library(mylib STATIC mylib.cpp)
+        target_include_directories(mylib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+        add_executable(MyExecutable main.cpp)
+        target_link_libraries(MyExecutable PRIVATE mylib)
+        ```
+
+    - tests/CMakeLists.txt
+
+        ```cmake
+        add_executable(test_mylib test_mylib.cpp)
+        target_link_libraries(test_mylib PRIVATE mylib)
+        add_test(NAME MyLibTest COMMAND test_mylib)
+        ```
+
+12. CMake 사용 방법
+    1. CMakeLists.txt 파일 작성
+    2. 빌드 디렉토리 생성. `mkdir build && cd build`
+    3. CMake 실행: `cmake ..`
+    4. 빌드 실행: `cmake --build .`
+
+13. CMake 고급 기능
+    1. 사용자 정의 명령어:
+        ```cmake
+        add_custom_command(OUTPUT generated_file.cpp
+                   COMMAND python ${CMAKE_SOURCE_DIR}/scripts/generate.py
+                   DEPENDS ${CMAKE_SOURCE_DIR}/scripts/generate.py)
+        add_custom_target(generate_sources DEPENDS generated_file.cpp)
+        ```
+
+    2. 프로퍼티 설정:
+        ```cmake
+        set_target_properties(MyExecutable PROPERTIES
+            OUTPUT_NAME "my_program"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+        )
+        ```
+
+    3. 제너레이터 표현식:
+        ```cmake
+        target_compile_options(MyExecutable PRIVATE
+            $<$<CONFIG:Debug>:-g -O0>
+            $<$<CONFIG:Release>:-O3>
+        )
+        ```
