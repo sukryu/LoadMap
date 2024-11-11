@@ -203,7 +203,6 @@ SQL(Structured Query Language)은 데이터베이스를 관리하고 조작하�
   1. NULL과 NOT NULL
     - NULL: 값이 없음을 허용
     - NOT NULL: 반드시 값이 있어야 함
-
     ```sql
     CREATE TABLE 회원 (
       회원번호 INT,
