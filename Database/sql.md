@@ -209,7 +209,7 @@ SQL(Structured Query Language)은 데이터베이스를 관리하고 조작하�
       회원번호 INT,
       이름 VARCHAR(50) NOT NULL, -- 이름은 필수
       별명 VARCHAR(50) NULL -- 별명은 선택
-    )
+    );
     ```
 
   2. 자동 증가(AUTO_INCREMENT)
@@ -218,7 +218,7 @@ SQL(Structured Query Language)은 데이터베이스를 관리하고 조작하�
     CREATE TABLE 게시물 (
       글번호 INT AUTO_INCREMENT PRIMARY KEY,
       제목 VARCHAR(200)
-    )
+    );
     ```
 
   3. 기본 키 (PRIMARY KEY)
