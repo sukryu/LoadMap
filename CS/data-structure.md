@@ -36,11 +36,13 @@
     <img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbehhFB%2FbtsJD0aMDDV%2FPspBPc8uDuARgvPspNtwO1%2Fimg.png" width="846" height="303">
 
 2. 배열의 시작 복잡도 요약표
-    |연산 | 시간 복잡도|
-    |접근 | O(1)|
-    |수정 | O(1)|
-    |삽입 | O(n)|
-    |삭제 | O(n)|
+
+    | |연산|평균||
+    |----|----|
+    |접근|O(1)|
+    |수정|O(1)|
+    |삽입|O(n)|
+    |삭제|O(n)|
 
 3. 배열의 종류
     1. 정적 배열 (Static Array)
