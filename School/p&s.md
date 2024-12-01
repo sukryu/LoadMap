@@ -321,3 +321,5 @@
             cat("귀무가설 채택: 평균이 75점과 다르지 않다.\n")
             }
             ```
+
+    <img src="images/example9.png">
