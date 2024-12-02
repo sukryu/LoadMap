@@ -84,39 +84,28 @@
         slice := make([]int, 5)     // 슬라이스(동적 배열)
         ```
 
+        - Python
+        ```python
+        array = [1, 2, 3, 4, 5]
+
+        print(array[2])
+
+        array[2] = 10
+        print(array)
+
+        array.insert(2, 99)
+        print(array)
+
+        array.pop(2)
+        print(array)
+        ```
+
     3. 메모리 관리
         * 스택 메모리 vs 힙 메모리
         * 메모리 누수 방지
         * 가비지 컬렉션
 
-    4. 오픈소스 예시
-        ```java
-        // ArrayList 구현 예시
-        public class ArrayList<E> {
-            private Object[] elementData;
-            private int size;
-            
-            public ArrayList() {
-                elementData = new Object[10];
-                size = 0;
-            }
-            
-            public boolean add(E e) {
-                ensureCapacity(size + 1);
-                elementData[size++] = e;
-                return true;
-            }
-            
-            private void ensureCapacity(int minCapacity) {
-                if (minCapacity > elementData.length) {
-                    int newCapacity = Math.max(minCapacity, elementData.length * 2);
-                    elementData = Arrays.copyOf(elementData, newCapacity);
-                }
-            }
-        }
-        ```
-
-    5. 배열의 장단점 예시
+    4. 배열의 장단점 예시
         * 장점
             * 빠른 접근 시간 O(1)
             * 간단한 구현
@@ -129,7 +118,7 @@
             * 메모리 낭비 가능성
             * 연속된 메모리 공간 필요
 
-    6. 실전 활용 팁
+    5. 실전 활용 팁
         1. 데이터 크기가 고정적일 때 정적 배열 사용
         2. 빈번한 접근이 필요할 경우 배열 선호
         3. 삽입/삭제가 빈번한 경우 다른 자료구조 고려
@@ -316,105 +305,59 @@
         ```
 
 7. 언어별 기본적인 연결 리스트 구현
-    1. Java
-        ```java
-        public class LinkedList<T> {
-            private class Node {
-                T data;
-                Node next;
-                
-                Node(T data) {
-                    this.data = data;
-                    this.next = null;
-                }
-            }
-            
-            private Node head;
-            private int size;
-            
-            public LinkedList() {
-                head = null;
-                size = 0;
-            }
-            
-            // 노드 추가
-            public void add(T data) {
-                Node newNode = new Node(data);
-                if (head == null) {
-                    head = newNode;
-                } else {
-                    Node current = head;
-                    while (current.next != null) {
-                        current = current.next;
-                    }
-                    current.next = newNode;
-                }
-                size++;
-            }
-            
-            // 특정 위치에 노드 삽입
-            public void insert(int position, T data) {
-                if (position < 0 || position > size) {
-                    throw new IndexOutOfBoundsException();
-                }
-                
-                Node newNode = new Node(data);
-                if (position == 0) {
-                    newNode.next = head;
-                    head = newNode;
-                } else {
-                    Node current = head;
-                    for (int i = 0; i < position - 1; i++) {
-                        current = current.next;
-                    }
-                    newNode.next = current.next;
-                    current.next = newNode;
-                }
-                size++;
-            }
-            
-            // 노드 삭제
-            public boolean remove(T data) {
-                if (head == null) return false;
-                
-                if (head.data.equals(data)) {
-                    head = head.next;
-                    size--;
-                    return true;
-                }
-                
-                Node current = head;
-                while (current.next != null) {
-                    if (current.next.data.equals(data)) {
-                        current.next = current.next.next;
-                        size--;
-                        return true;
-                    }
-                    current = current.next;
-                }
-                return false;
-            }
-            
-            // 노드 검색
-            public boolean contains(T data) {
-                Node current = head;
-                while (current != null) {
-                    if (current.data.equals(data)) {
-                        return true;
-                    }
-                    current = current.next;
-                }
-                return false;
-            }
-            
-            // 리스트 크기 반환
-            public int size() {
-                return size;
-            }
-        }
+    1. Python
+        ```python
+        class Node:
+             def __init__(self, data):
+                 self.data = data
+                 self.next = None
+         
+         class LinkedList:
+             def __init__(self):
+                 self.head = None
+         
+             def add(self, data):
+                 new_node = Node(data)
+                 if not self.head:
+                     self.head = new_node
+                 else:
+                     current = self.head
+                     while current.next:
+                         current = current.next
+                     current.next = new_node
+         
+             def remove(self, data):
+                 if not self.head:
+                     return False
+                 if self.head.data == data:
+                     self.head = self.head.next
+                     return True
+                 current = self.head
+                 while current.next:
+                     if current.next.data == data:
+                         current.next = current.next.next
+                         return True
+                     current = current.next
+                 return False
+         
+             def display(self):
+                 current = self.head
+                 while current:
+                     print(current.data, end=" -> ")
+                     current = current.next
+                 print("None")
+         
+         # 사용 예제
+         ll = LinkedList()
+         ll.add(1)
+         ll.add(2)
+         ll.add(3)
+         ll.display()  # 출력: 1 -> 2 -> 3 -> None
+         ll.remove(2)
+         ll.display()  # 출력: 1 -> 3 -> None
         ```
 
-    2. TypeScript
+    3. TypeScript
         ```typescript
         class LinkedListNode<T> {
             data: T;
@@ -507,7 +450,7 @@
         }
         ```
 
-    3. Golang
+    4. Golang
         ```go
         package main
 
@@ -743,48 +686,38 @@
 
 3. 스택의 구현
     * 배열 기반의 스택 구현
-        1. Java
-            ```java
-            public class ArrayStack<T> {
-                private T[] array;
-                private int top;
-                private static final int DEFAULT_SIZE = 10;
-                
-                @SuppressWarnings("unchecked")
-                public ArrayStack() {
-                    array = (T[]) new Object[DEFAULT_SIZE];
-                    top = -1;
-                }
-                
-                public void push(T item) {
-                    if (top == array.length - 1) {
-                        resize();
-                    }
-                    array[++top] = item;
-                }
-                
-                public T pop() {
-                    if (isEmpty()) {
-                        throw new IllegalStateException("Stack is empty");
-                    }
-                    T item = array[top];
-                    array[top--] = null;
-                    return item;
-                }
-                
-                private void resize() {
-                    T[] newArray = (T[]) new Object[array.length * 2];
-                    System.arraycopy(array, 0, newArray, 0, array.length);
-                    array = newArray;
-                }
-                
-                public boolean isEmpty() {
-                    return top == -1;
-                }
-            }
-            ```
+        1. Python
+           ```python
+           class Stack:
+                def __init__(self):
+                    self.stack = []
+            
+                def push(self, item):
+                    self.stack.append(item)
+            
+                def pop(self):
+                    if not self.is_empty():
+                        return self.stack.pop()
+                    return None
+            
+                def peek(self):
+                    if not self.is_empty():
+                        return self.stack[-1]
+                    return None
+            
+                def is_empty(self):
+                    return len(self.stack) == 0
+            
+            # 사용 예제
+            stack = Stack()
+            stack.push(1)
+            stack.push(2)
+            stack.push(3)
+            print(stack.pop())  # 출력: 3
+            print(stack.peek())  # 출력: 2
+           ```
 
-        2. TypeScript
+        3. TypeScript
             ```typescript
             class ArrayStack<T> {
                 private items: T[];
@@ -826,7 +759,7 @@
             }
             ```
 
-        3. Golang
+        4. Golang
             ```go
             package stack
 
