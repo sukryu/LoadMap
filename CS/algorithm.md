@@ -584,3 +584,515 @@
 | 삽입 정렬 | 거의 정렬된 데이터, 실시간 데이터 처리         |
 | 버블 정렬 | 교육용 목적, 작은 데이터셋 정렬               |
 | 셸 정렬   | 중간 크기의 데이터셋, 제한된 메모리 환경       |
+
+# 탐색 알고리즘
+
+## 선형 탐색 (Linear Search)
+
+* 선형 탐색의 개념:
+    * 선형 탐색은 배열이나 리스트에서 원하는 값을 찾기 위해서 처음부터 끝까지 순차적으로 확인하는 가장 기본적인 탐색 알고리즘입니다.
+    * 정렬되지 않은 데이터에서도 사용할 수 있는 가장 단순한 탐색 방법입니다.
+    * 순차 탐색(Sequential Search)이라고도 합니다.
+
+* 동작 과정:
+    1. 배열의 첫 번째 요소부터 시작합니다.
+    2. 현재 요소가 찾고자 하는 값인지 확인합니다.
+    3. 찾고자 하는 값이 아니라면 다음 요소로 이동합니다.
+    4. 찾고자 하는 값을 발견하거나 배열의 끝에 도달할 때까지 2~3 과정을 반복합니다.
+
+* 구현:
+    ```python
+    def linear_search(arr, target):
+        for i in range(len(arr)):
+            if arr[i] == target:
+                return i  # 찾은 요소의 인덱스 반환
+        return -1  # 요소를 찾지 못한 경우
+
+    # 여러 개의 결과를 찾는 버전
+    def linear_search_multiple(arr, target):
+        indices = []
+        for i in range(len(arr)):
+            if arr[i] == target:
+                indices.append(i)
+        return indices if indices else [-1]
+    ```
+
+* 최적화된 구현:
+    ```python
+    def optimized_linear_search(arr, target):
+        n = len(arr)
+        # 보초값(sentinel) 추가
+        arr.append(target)
+        
+        i = 0
+        while arr[i] != target:
+            i += 1
+        
+        # 보초값 제거
+        arr.pop()
+        
+        # target을 찾았는지 확인
+        if i < n:
+            return i
+        return -1
+    ```
+
+* 시간 복잡도
+    * 최선의 경우: O(1)
+        - 찾고자 하는 요소가 배열의 첫 번째에 있는 경우
+    
+    * 평균의 경우: O(n/2)
+        - 요소가 배열의 중간쯤에 있는 경우
+
+    * 최악의 경우: O(n)
+        - 요소가 배열의 마지막에 있거나 배열에 없는 경우
+
+* 공간 복잡도
+    - O(1): 추가적인 메모리 공간을 거의 필요로 하지 않습니다.
+
+* 장단점
+    * 장점
+        - 구현이 매우 간단합니다.
+        - 정렬되지 않은 데이터셋에서도 사용 가능합니다.
+        - 작은 데이터셋에서 효율적입니다.
+        - 다른 탐색 알고리즘에 비해 추가 메모리가 필요하지 않습니다.
+
+    * 단점
+        - 배열의 크기가 커질수록 비효율적입니다.
+        - 정렬된 데이터에서도 이진 탐색보다 느립니다.
+        - 모든 요소를 확인해야 할 수 있습니다.
+
+* 사용 사례:
+    - 작은 데이터셋에서의 검색
+    - 정렬되지 않은 데이터에서의 검색
+    - 한 번만 검색하는 경우
+    - 데이터가 자주 변경되는 경우
+
+* 예제 및 활용
+    ```python
+    def linear_search_with_steps(arr, target):
+        print(f"탐색 배열: {arr}")
+        print(f"찾는 값: {target}")
+        print("\n단계별 탐색 과정:")
+        
+        for i in range(len(arr)):
+            print(f"Step {i + 1}: 인덱스 {i}의 값 {arr[i]} 확인")
+            if arr[i] == target:
+                print(f"\n값 {target}을(를) 인덱스 {i}에서 찾았습니다!")
+                return i
+        
+        print(f"\n값 {target}을(를) 찾지 못했습니다.")
+        return -1
+
+    # 실행 예제
+    numbers = [64, 34, 25, 12, 22, 11, 90]
+    target = 22
+    result = linear_search_with_steps(numbers, target)
+    ```
+
+* 변형 및 응용
+    1. 범위 지정 선형 탐색
+        ```python
+        def range_linear_search(arr, target, start, end):
+            for i in range(start, end + 1):
+                if arr[i] == target:
+                    return i
+            return -1
+        ```
+
+    2. 조건부 선형 탐색
+        ```python
+        def conditional_linear_search(arr, condition):
+            """조건을 만족하는 첫 번째 요소 찾기"""
+            for i in range(len(arr)):
+                if condition(arr[i]):
+                    return i
+            return -1
+
+        # 사용 예시
+        numbers = [1, 3, 5, 7, 9, 11]
+        # 5보다 큰 첫 번째 숫자 찾기
+        index = conditional_linear_search(numbers, lambda x: x > 5)
+        ```
+
+- 선형 탐색은 가장 기본적인 탐색 알고리즘으로, 작은 데이터셋이나 정렬되지 않은 데이터에서 유용합니다.
+하지만 대규모 데이터셋에서는 이진 탐색과 같은 더 효율적인 알고리즘을 사용하는 것이 좋습니다. 특히 데이터가 정렬되어 있는 경우에는
+이진 탐색이 훨씬 더 효율적입니다.
+
+- 실제 프로그래밍에서는 선형 탐색보다 내장된 검색 함수나 더 효율적인 자료구조(해시 테이블 등)를 사용하는 것이 일반적이지만, 알고리즘의
+기본 개념을 이해하는 데 있어 선형 탐색은 매우 중요한 시작점이 됩니다.
+
+## 이진 탐색 (Binary Search)
+
+* 이진 탐색의 개념
+    * 이진 탐색은 정렬된 배열에서 특정 값을 찾는 효율적인 알고리즘입니다.
+    * 배열의 중간 값을 확인하고, 찾고자 하는 값이 중간 값보다 작으면 왼쪽 부분을, 크면 오른쪽 부분을 탐색하는 방식입니다.
+    * 매 단계마다 탐색 범위가 절반으로 줄어들어 매우 효율적입니다.
+    * **중요**: 반드시 정렬된 배열에서만 사용할 수 있습니다.
+
+* 동작 과정
+    1. 배열의 중간 요소를 선택합니다.
+    2. 중간 요소와 찾고자 하는 값을 비교합니다.
+    3. 찾고자 하는 값이 중간 요소보다 작으면 왼쪽 부분을, 크면 오른쪽 부분을 선택합니다.
+    4. 선택된 부분에서 1~3과정을 반복합니다.
+    5. 값을 찾거나 더 이상 탐색할 수 없을 때까지 반복합니다.
+
+* 구현
+    ```python
+    def binary_search(arr, target):
+        left = 0
+        right = len(arr) - 1
+        
+        while left <= right:
+            mid = (left + right) // 2
+            
+            if arr[mid] == target:
+                return mid  # 찾은 요소의 인덱스 반환
+            elif arr[mid] < target:
+                left = mid + 1  # 오른쪽 부분 탐색
+            else:
+                right = mid - 1  # 왼쪽 부분 탐색
+        
+        return -1  # 요소를 찾지 못한 경우
+    ```
+
+* 재귀적 구현
+    ```python
+    def recursive_binary_search(arr, target, left, right):
+        if left > right:
+            return -1
+            
+        mid = (left + right) // 2
+        
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            return recursive_binary_search(arr, target, mid + 1, right)
+        else:
+            return recursive_binary_search(arr, target, left, mid - 1)
+    ```
+
+* 시간 복잡도
+    * 최선의 경우: O(1)
+        - 찾고자 하는 요소가 중간 값인 경우
+
+    * 평균의 경우: O(log n)
+    * 최악의 경우: O(log n)
+        - 찾고자 하는 요소가 없거나 맨 끝에 있는 경우
+
+* 공간 복잡도
+    * 반복적 구현: O(1)
+    * 재귀적 구현: O(log n) - 재귀 호출 스택 때문
+
+* 장단점
+    * 장점
+        - 매우 효율적인 탐색 속도 (O(log n))
+        - 구현이 비교적 간단합니다.
+        - 큰 데이터셋에서도 빠른 성능을 보장합니다.
+        - 메모리 사용이 적습니다. (반복 구현의 경우)
+
+    * 단점
+        - 정렬된 배열에서만 사용 가능합니다.
+        - 데이터가 자주 변경되는 경우 정렬 상태를 유지해야 합니다.
+        - 연결 리스트와 같은 순차적 접근 자료구조에는 적합하지 않습니다.
+
+* 사용 사례
+    - 대규모 정렬된 데이터에서의 검색
+    - 데이터베이스 인덱싱
+    - 사전이나 전화번호부 검색
+    - 시스템의 루트 찾기
+    - 최적화 문제 해결
+
+* 예제 및 활용
+    ```python
+    def binary_search_with_steps(arr, target):
+        left = 0
+        right = len(arr) - 1
+        step = 1
+        
+        print(f"탐색 배열: {arr}")
+        print(f"찾는 값: {target}")
+        print("\n단계별 탐색 과정:")
+        
+        while left <= right:
+            mid = (left + right) // 2
+            print(f"\nStep {step}:")
+            print(f"왼쪽 범위: {left}, 오른쪽 범위: {right}")
+            print(f"중간 인덱스: {mid}, 중간 값: {arr[mid]}")
+            
+            if arr[mid] == target:
+                print(f"\n값 {target}을(를) 인덱스 {mid}에서 찾았습니다!")
+                return mid
+            elif arr[mid] < target:
+                print(f"중간 값이 작습니다. 오른쪽 부분 탐색")
+                left = mid + 1
+            else:
+                print(f"중간 값이 큽니다. 왼쪽 부분 탐색")
+                right = mid - 1
+                
+            step += 1
+        
+        print(f"\n값 {target}을(를) 찾지 못했습니다.")
+        return -1
+
+    # 실행 예제
+    numbers = sorted([64, 34, 25, 12, 22, 11, 90])  # 정렬된 배열
+    target = 22
+    result = binary_search_with_steps(numbers, target)
+    ```
+
+* 응용 및 변형
+    ```python
+    def binary_search_first_occurrence(arr, target):
+        """중복된 값이 있을 때 첫 번째 발생 위치 찾기"""
+        left = 0
+        right = len(arr) - 1
+        result = -1
+        
+        while left <= right:
+            mid = (left + right) // 2
+            
+            if arr[mid] == target:
+                result = mid
+                right = mid - 1  # 왼쪽도 계속 탐색
+            elif arr[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+                
+        return result
+
+    def binary_search_range(arr, target):
+        """특정 값의 시작과 끝 인덱스 찾기"""
+        first = binary_search_first_occurrence(arr, target)
+        if first == -1:
+            return [-1, -1]
+            
+        # 마지막 발생 위치 찾기
+        left = first
+        right = len(arr) - 1
+        last = first
+        
+        while left <= right:
+            mid = (left + right) // 2
+            
+            if arr[mid] == target:
+                last = mid
+                left = mid + 1
+            elif arr[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+                
+        return [first, last]
+    ```
+
+- 이진 탐색은 대규모 정렬 데이터에서 매우 효율적인 탐색 알고리즘입니다. 특히 데이터베이스 인덱싱이나 시스템 최적화와 같은 실제
+응용 분야에서 널리 사용됩니다. 데이터가 정렬되어 있어야 한다는 제약이 있지만, 그 제약을 만족하는 경우에는 가장 효율적인 탐색방법 중 하나입니다.
+
+## 해시 탐색 (Hash Search)
+
+* 해시 탐색의 개념:
+    * 해시 탐색은 해시 테이블을 사용하여 데이터를 저장하고 검색하는 방법입니다.
+    * 해시 함수를 사용하여 검색 키를 해시 테이블의 인덱스로 변환합니다.
+    * 이상적인 경우 O(1)의 시간 복잡도로 검색이 가능합니다.
+    * 키-값 쌍의 데이터를 다루는데 매우 효율적입니다.
+
+* 동작 과정
+    1. 키를 해시 함수에 입력하여 해시 값(인덱스)를 생성합니다.
+    2. 해시 값을 테이블 크기로 모듈로 연산하여 실제 인덱스를 계산합니다.
+    3. 해당 인덱스에서 데이터를 검색합니다.
+    4. 충돌이 발생한 경우 충돌 해결 방법을 사용합니다.
+
+* 기본 구현
+    ```python
+    class HashTable:
+        def __init__(self, size=10):
+            self.size = size
+            self.table = [[] for _ in range(self.size)]
+        
+        def _hash(self, key):
+            if isinstance(key, str):
+                # 문자열 키의 경우
+                return sum(ord(c) for c in key) % self.size
+            # 숫자 키의 경우
+            return key % self.size
+        
+        def insert(self, key, value):
+            hash_key = self._hash(key)
+            # 체이닝 방식으로 충돌 해결
+            for item in self.table[hash_key]:
+                if item[0] == key:
+                    item[1] = value  # 키가 이미 존재하면 값 업데이트
+                    return
+            self.table[hash_key].append([key, value])
+        
+        def search(self, key):
+            hash_key = self._hash(key)
+            # 체인에서 키 검색
+            for item in self.table[hash_key]:
+                if item[0] == key:
+                    return item[1]
+            return None
+    ```
+
+* 충돌 해결 방법
+    1. 체이닝 (Chaining)
+        ```python
+        class ChainHashTable:
+            def __init__(self, size):
+                self.size = size
+                self.table = [[] for _ in range(size)]
+            
+            def insert(self, key, value):
+                hash_key = self._hash(key)
+                self.table[hash_key].append([key, value])
+            
+            def search(self, key):
+                hash_key = self._hash(key)
+                for k, v in self.table[hash_key]:
+                    if k == key:
+                        return v
+                return None
+        ```
+
+    2. 개방 주소법(Open Addressing)
+        ```python
+        class OpenAddressHashTable:
+            def __init__(self, size):
+                self.size = size
+                self.table = [None] * size
+            
+            def _probe(self, key, i):
+                # 선형 조사
+                return (self._hash(key) + i) % self.size
+            
+            def insert(self, key, value):
+                i = 0
+                while i < self.size:
+                    hash_key = self._probe(key, i)
+                    if self.table[hash_key] is None:
+                        self.table[hash_key] = [key, value]
+                        return True
+                    i += 1
+                return False  # 테이블이 가득 참
+            
+            def search(self, key):
+                i = 0
+                while i < self.size:
+                    hash_key = self._probe(key, i)
+                    if self.table[hash_key] is None:
+                        return None
+                    if self.table[hash_key][0] == key:
+                        return self.table[hash_key][1]
+                    i += 1
+                return None
+        ```
+
+* 시간 복잡도
+    * 최선의 경우: O(1)
+        - 충돌이 없는 경우
+    
+    * 평균의 경우: O(1)
+        - 좋은 해시 함수와 적절한 테이블 크기 사용 시
+
+    * 최악의 경우: O(n)
+        - 모든 키가 같은 값을 가지는 경우
+
+* 공간 복잡도
+    - O(n): n개의 키-값 쌍을 저장하기 위한 공간 필요
+
+* 장단점
+    * 장점
+        - 평균적으로 매우 빠른 검색 속도 (O(1))
+        - 삽입과 삭제도 빠름
+        - 키-값 쌍의 데이터를 다루기에 적합
+        - 정렬되지 않은 데이터에서도 효율적
+
+    * 단점
+        - 추가 메모리 공간 필요
+        - 해시 충돌 가능성
+        - 데이터의 순서가 유지되지 않음
+        - 적절한 해시 함수 선택이 중요
+
+* 해시 함수 예제
+    ```python
+    def string_hash(key, table_size):
+        """문자열 키에 대한 해시 함수"""
+        hash_value = 0
+        for char in key:
+            hash_value = (hash_value * 31 + ord(char)) % table_size
+        return hash_value
+
+    def integer_hash(key, table_size):
+        """정수 키에 대한 해시 함수"""
+        return key % table_size
+
+    def djb2_hash(key, table_size):
+        """DJB2 해시 함수"""
+        hash_value = 5381
+        for char in str(key):
+            hash_value = ((hash_value << 5) + hash_value) + ord(char)
+        return hash_value % table_size
+    ```
+
+* 실제 응용 사례
+    - 데이터베이스 인덱싱
+    - 캐시 구현
+    - 중복 검사
+    - 사용자 인증 시스템
+    - 블룸 필터
+
+* 고급 기능 구현
+    ```python
+    class AdvancedHashTable:
+        def __init__(self, size=10):
+            self.size = size
+            self.table = [[] for _ in range(self.size)]
+            self.item_count = 0
+            self.load_factor_threshold = 0.7
+        
+        def _resize(self):
+            """테이블 크기를 두 배로 증가"""
+            old_table = self.table
+            self.size *= 2
+            self.table = [[] for _ in range(self.size)]
+            self.item_count = 0
+            
+            # 기존 항목들을 새 테이블에 재삽입
+            for bucket in old_table:
+                for key, value in bucket:
+                    self.insert(key, value)
+        
+        def insert(self, key, value):
+            if self.item_count / self.size >= self.load_factor_threshold:
+                self._resize()
+            
+            hash_key = self._hash(key)
+            for item in self.table[hash_key]:
+                if item[0] == key:
+                    item[1] = value
+                    return
+            
+            self.table[hash_key].append([key, value])
+            self.item_count += 1
+    ```
+
+- 해시 탐색은 현대 컴퓨터 시스템에서 가장 널리 사용되는 탐색방법 중 하나입니다. 특히 데이터베이스, 캐시 시스템,
+컴파일러 등에서 핵심적인 역할을 합니다. 적절한 해시 함수와 충돌 해결 방법을 선택하면 매우 효율적인 검색 성능을 얻을 수 있습니다.
+
+* 각 기초 탐색들의 장단점 비교표
+
+| 알고리즘  | 시간 복잡도 (최선/평균/최악) | 공간 복잡도 | 장점 | 단점             |
+|-----------|------------------------------|-------------|---------|-----------------------|
+| 선형 탐색 | O(1) / O(n/2) / O(n)  | O(1) | 구현이 간단, 정렬 불필요  | 비효율적         |
+| 이진 탐색 | O(1) / O(log n) / O(log n)     | O(1) | 효율적, 정렬된 데이터에서 강력    | 정렬 필요|
+| 해시 탐색 | O(1) / O(1) / O(n)      | O(n)  |  매우 빠른 검색 속도   | 데이터 순서 유지 X |
+
+* 기초 탐색 알고리즘의 사용 사례
+
+| 알고리즘  | 사용 사례                                      |
+|-----------|-----------------------------------------------|
+| 선형 탐색 | 작은 데이터셋에서는 선형 탐색도 충분히 효율적. & 정렬되지 않은 작은 데이터나 드문 검색에는 선형 탐색이 적합. |
+| 이진 탐색 | 정렬된 큰 데이터셋에서는 이진 탐색이 최적. & 데이터 정렬 후 이진 탐색을 사용하는 것이 효율적일 수 있음. |
+| 해시 탐색 | 키-값 쌍의 데이터는 해시 탐색이 가장 효율적. |
