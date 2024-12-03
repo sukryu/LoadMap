@@ -5,7 +5,26 @@
 - **자료구조**:
   - 배열, 연결 리스트, 스택, 큐, 트리, 그래프, 해시 테이블, 힙, 색인 순차 파일 등.
 - **알고리즘**:
-  - 정렬, 탐색, 재귀, 동적 프로그래밍, 그리디 알고리즘, 분할 정복, 백트래킹, 브루트 포스, 시뮬레이션 등.
+  1. 정렬 알고리즘
+     1. 기초:
+        - 선택 정렬 (Selection Sort)
+        - 삽입 정렬 (Insertion Sort)
+        - 버블 정렬 (Bubble Sort)
+        - 셸 정렬 (Shell Sort)
+       
+     2. 고급 정렬
+        - 병합 정렬 (Merge Sort)
+        - 퀵 정렬 (Quick Sort)
+        - 힙 정렬 (Heap Sort)
+        - 기수 정렬 (Radix Sort)
+       
+     3. 추가적인 알고리즘
+        - 외부 정렬 (External Sorting, K-way Merge Sort)
+        - 버킷 정렬 (Bucket Sort)
+        - 카운팅 정렬 (Counting Sort)
+        - 분포 정렬 (Distribution Sort, American Flag Sort)
+       
+      
 
 ### 1.2 운영체제와 컴퓨터 네트워크
 - **운영체제**:
