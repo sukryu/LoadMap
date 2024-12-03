@@ -5,12 +5,78 @@
 - **자료구조**:
   - 배열, 연결 리스트, 스택, 큐, 트리, 그래프, 해시 테이블, 힙, 색인 순차 파일 등.
 - **알고리즘**:
+    1. 기초 알고리즘
+        1. 정렬 알고리즘
+            - 선택 정렬, 삽입 정렬, 버블 정렬, 셸 정렬
+        
+        2. 탐색 알고리즘
+            - 선형 탐색, 이진 탐색, 해시 탐색
+
+        3. 재귀 알고리즘
+            - 일반 재귀, 꼬리 재귀, 직접 재귀, 간접 재귀, 순수 재귀
+
+    2. 완전 탐색 (Exhaustive Search)
+        1. 브루트 포스 (Brute Force)
+            - 순열 탐색, 조합 탐색
+
+        2. 백트래킹 (Backtracking)
+            - N-Queens 문제, 그래프 색칠 문제
+
+        3. 비트마스크 탐색 (Bitmasking Search)
+        
+    3. 비선형 구조 탐색
+        - 트리 및 그래프 탐색
+            - DFS (깊이 우선 탐색)
+            - BFS (넓이 우선 탐색)
+
+    4. 고급 탐색 및 최적화
+        1. 효율적인 탐색
+            - 점프 탐색, 피보나치 탐색, 지수 탐색
+
+        2. 문자열 탐색
+            - KMP, 라빈-카프, 보이어-무어
+        
+        3. 트라이 및 고급 문자열 검색
+            - 아코-코라식, Z 알고리즘
+
+    5. 다이나믹 프로그래밍 (Dynamic Programming)
+        1. 기본 기법
+            - 탑다운 방식, 바텀업 방식
+
+        2. 문제 유형
+            - 배낭 문제, LCS, LIS, 행렬 체인 곱셈, 에디트 거리
+
+    6. 그리디 알고리즘
+        1. 기초 그리디
+            - 순수 그리디, 직교 그리디, 완화된 그리디
+
+        2. 문제 유형
+            - 허프만 코딩, 다익스트라 알고리즘, 크루스칼 알고리즘, 프림 알고리즘
+
+    7. 그래프 알고리즘
+        1. 최단 경로
+            - 다 익스트라, 벨만-포드, 플로이드-워셜
+
+        2. 최소 스패닝 트리
+            - 크루스칼, 프림
+
+        3. 네트워크 및 순서
+            - 포드-풀커슨, 타잔 알고리즘, 토포로지 정렬
+
+    8. 기타 알고리즘
+        1. 트리 및 데이터 구조
+            - 세그먼트 트리, 펜윅 트리, 유니언-파인드
+
+        2. 기하 알고리즘
+            - 컨벡스 헐, 최근접 쌍 문제, 보로노이 다이어그램
+
+        3. 확률 기반
+            - 몬테카를로, 라스베가스 알고리즘
+
+        4. 분할 기법
+            - 수평/수직 분할, 시뮬레이션
+
   1. 정렬 알고리즘
-    1. 기초:
-      - 선택 정렬 (Selection Sort)
-      - 삽입 정렬 (Insertion Sort)
-      - 버블 정렬 (Bubble Sort)
-      - 셸 정렬 (Shell Sort)
        
      2. 고급 정렬
       - 병합 정렬 (Merge Sort)
@@ -25,11 +91,6 @@
       - 분포 정렬 (Distribution Sort, American Flag Sort)
 
   2. 탐색 알고리즘
-    1. 기초 탐색
-      - 선형 탐색 (Linear Search)
-      - 이진 탐색 (Binary Search)
-      - 해시 탐색 (Hash Search)
-
     2. 트리 탐색
       - 이진 트리 탐색 (Binary Tree Search)
       - 깊이 우선 탐색 (DFS, Depth First Search)
@@ -42,78 +103,28 @@
       - Z 탐색 (Z - Algorithm, 문자열 검색)
 
   3. 재귀 알고리즘
-    1. 재귀의 종류
-      - 일반 재귀 (General Recursion)
-      - 꼬리 재귀 (Tail Recursion)
-      - 직접 재귀 (Direct Recursion)
-      - 간접 재귀 (Indirect Recursion)
-      - 순수 재귀 (Pure Recursion)
-
     2. 재귀 활용
       - 분할 정복 (Divide and Conquer)
         - 스트라센 알고리즘 (Strassen Algorithm, 행렬 곱셈 최적화)
         - 카라츠바 알고리즘 (Karatsuba Algorithm, 큰 정수 곱셈 최적화)
 
   4. 다이나믹 프로그래밍 (Dynamic Programming)
-    1. 기본 패러다임
-      - 탑다운 방식 (Top-Down Approach, 메모이제이션)
-      - 바텀업 방식 (Bottom-Up Approach)
 
     2. 문제 유형
       1. 배낭 문제 (Knapsack Problem)
         - 0/1 배낭 문제, 부분 배낭 문제, 다차원 배낭 문제
-      2. 최장 공통 부분 수열(LCS, Longest Common Subsequence)
-      3. 최장 증가 부분 수열(LIS, Longest Increasing Subsequence)
-      4. 행렬 체인 곱셈 (Matrix Chain Multiplication)
-      5. 에디트 거리 (Edit Distance)
       6. 최적 이진 검색 트리 (Optimal Binary Search Tree)
 
   5. 그리디 알고리즘
-    1. 기초 그리디
-      - 순수 그리디 (Pure Greedy)
-      - 직교 그리디 (Orthogonal Greedy)
-      - 완화된 그리디 (Relaxed Greedy)
-
     2. 문제 유형
       1. 매칭 추구 (Matching Pursuit)
-      2. 허프만 코딩 (Huffman Coding)
-      3. 다익스트라 알고리즘 (Dijkstra`s Algorithm)
-      4. 크루스칼 알고리즘 (Kruskal`s Algorithm)
-      5. 프림 알고리즘 (Prim`s Algorithm)
       6. 활동 선택 문제 (Activity Selection Problem)
       7. 인터벌 스케쥴링 (Interval Scheduling)
 
   6. 그래프 알고리즘
-    1. 최단 경로
-      - 다익스트라 알고리즘 (Dijkstra`s Algorithm)
-      - 벨만-포드 알고리즘 (Bellman-Ford Algorithm)
-      - 플로이드-워셜 알고리즘 (Floyd-Warshall Algorithm)
-
-    2. 최소 스패닝 트리
-      - 크루스칼 알고리즘 (Kruskal`s Algorithm)
-      - 프림 알고리즘 (Prim`s Algorithm)
-
-    3. 고급 그래프 알고리즘
-      - 타잔 알고리즘 (Tarjan`s Algorithm, 강한 연결 요소 탐색)
-      - 토포로지 정렬 (Topological Sort, 유향 비순환 그래프 정렬)
-      - 포드-풀커슨 알고리즘 (Ford-Fulkerson, 최대 유량 문제)
       - 에드몬드-카프 알고리즘 (Edmonds-Karp, BFS 기반 최대 유량)
 
-  7. 문자열 알고리즘
-    1. 문자열 검색
-      - 카프-라빈 알고리즘 (Rabbin-Karp)
-      - KMP 알고리즘 (Knuth-Morris-Pratt)
-      - 보이어-무어 알고리즘 (Boyer Moore)
-
-    2. 트라이(Trie) 및 고급 알고리즘
-      - 트라이 자료 구조
-      - 아호-코라식 알고리즘 (Aho-Corasick, 다중 문자열 검색)
-
   8. 기타 알고리즘
-    1. 트리 및 세그먼트
-      - 세그먼트 트리 (Segment Tree)
-      - 펜윅 트리 (Fenwick Tree)
-      - 유니언-파인드 알고리즘 (Union-Find, 그래프 연결 요소 탐지)
 
     2. 최적화 기법
       - 비트마스크 (Bitmasking)
@@ -123,13 +134,6 @@
       - 컨벡스 헐 (Convex Hull)
         - 그레이엄 스캔 (Graham Scan)
         - 자비스 행진 (Jarvis March)
-
-      - 보로노이 다이어그램 (Voronoi Diagram)
-      - 최근접 점 쌍 문제 (Closset Pair of Points)
-
-    4. 확률 기반 알고리즘
-      - 몬테카를로 알고리즘 (Monte Carlo Algorithm)
-      - 라스베가스 알고리즘 (Las Vegas Algorithm)
 
     5. 분할 기법
       - 수평 분할 (Horizontal Partition)
