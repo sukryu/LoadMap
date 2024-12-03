@@ -13,6 +13,8 @@
     3. 맨 앞 자리를 제외한 나머지 리스트에서 같은 과정을 반복합니다.
     4. 하나의 원소만 남을 때까지 위 과정을 반복합니다.
 
+    <img src="https://chamdom.blog/435c4529666d4f2c42f744be55e03222/selection-sort.gif">
+
 * 구현:
     ```python
     def selection_sort(arr):
@@ -93,6 +95,8 @@
     3. 적절한 위치를 찾을 때까지 요소들을 뒤로 이동시킵니다.
     4. 찾은 위치에 현재 요소를 삽입합니다.
     5. 배열의 마지막 요소까지 위 과정을 반복합니다.
+
+    <img src="https://velog.velcdn.com/images/wisdom-one/post/af7786a7-9dad-4a25-aff8-214f3c911a0f/image.gif">
 
 * 구현:
     ```python
@@ -258,6 +262,8 @@
     3. 이런 식으로 끝까지 진행하면 가장 큰 요소가 마지막 위치로 이동합니다.
     4. 위 과정을 배열이 정렬될 때까지 반복합니다.
 
+    <img src="https://blog.kakaocdn.net/dn/PyBkA/btq4yhkVqzx/Fu355VVVDyq5PJ4zVqUnBK/img.gif">
+
 * 구현
     ```python
     def bubble_sort(arr):
@@ -404,6 +410,8 @@
     2. 나눠진 각 부분 집합별로 삽입 정렬을 수행합니다.
     3. 간격을 줄여가며 위 과정을 반복합니다.
     4. 간격이 1이 되면 마지막으로 전체 삽입 정렬을 수행합니다.
+
+    <img src="https://blog.kakaocdn.net/dn/cilqCs/btsGCWBThd2/Ps9wJGLbEDorcqWYHpCqFk/img.png">
 
 * 구현
     ```python
