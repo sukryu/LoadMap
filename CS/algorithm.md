@@ -1255,3 +1255,690 @@
 
 - 실제 사용할 때는 문제의 특성과 제약 조건을 고려하여 재귀와 반복문 중 적절한 방식을 선택해야 합니다. 특히 트리나 그래프와 같은 계층적
 구조를 다룰 때는 재귀가 매우 유용할 수 있습니다.
+
+## 꼬리 재귀 (Tail Recursion)
+
+* 꼬리 재귀의 개념:
+    * 꼬리 재귀는 재귀 호출이 함수의 마지막 연산으로 수행되는 형태의 재귀입니다.
+    * 재귀 호출 이후에 추가적인 계산이 필요 없는 재귀 방식입니다.
+    * 컴파일러가 최적화를 통해 반복문처럼 처리할 수 있어 일반 재귀보다 효율적입니다.
+    * 스택 오버플로우의 위험이 적습니다.
+
+* 일반 재귀와 꼬리 재귀의 차이
+    ```python
+    # 일반 재귀 (팩토리얼)
+    def factorial(n):
+        if n <= 1:
+            return 1
+        return n * factorial(n - 1)  # 재귀 호출 후 곱셈 연산 필요
+
+    # 꼬리 재귀 (팩토리얼)
+    def tail_factorial(n, accumulator=1):
+        if n <= 1:
+            return accumulator
+        return tail_factorial(n - 1, n * accumulator)  # 재귀 호출이 마지막 연산
+    ```
+
+* 주요 특징
+    1. 메모리 사용
+        - 일반 재귀: 각 호출마다 스택 프레임 유지 필요
+        - 꼬리 재귀: 컴파일러 최적화로 단일 스택 프레임만 사용 가능
+
+    2. 성능
+        - 일반 재귀보다 효율적
+        - 반복문과 비슷한 성능 가능
+        - 컴파일러의 최적화 지원 필요
+
+* 구현 예제
+    1. 피보나치 수열
+        ```python
+        # 꼬리 재귀로 구현한 피보나치
+        def tail_fibonacci(n, curr=0, next=1):
+            if n == 0:
+                return curr
+            return tail_fibonacci(n - 1, next, curr + next)
+        ```
+
+    2. 리스트 합계 계산
+        ```python
+        # 일반 재귀
+        def sum_list(arr):
+            if not arr:
+                return 0
+            return arr[0] + sum_list(arr[1:])
+
+        # 꼬리 재귀
+        def tail_sum_list(arr, acc=0):
+            if not arr:
+                return acc
+            return tail_sum_list(arr[1:], acc + arr[0])
+        ```
+
+    3. 리스트 뒤집기
+        ```python
+        def tail_reverse_list(lst, acc=None):
+            if acc is None:
+                acc = []
+            if not lst:
+                return acc
+            return tail_reverse_list(lst[1:], [lst[0]] + acc)
+        ```
+
+* 장단점
+    * 장점
+        - 메모리 효율성 향상
+        - 스택 오버플로우 위험 감소
+        - 컴파일러 최적화 가능
+        - 실행 속도 향상 가능
+
+    * 단점
+        - 코드가 덜 직관적일 수 있음.
+        - 누적 값(accumulator)관리 필요.
+        - 모든 언어/컴파일러가 최적화를 지원하지 않음.
+        - 일부 문제는 꼬리 재귀로 변환이 어려움.
+
+* 실제 활용 예제
+    1. 트리 순회
+        ```python
+        class TreeNode:
+            def __init__(self, value):
+                self.value = value
+                self.left = None
+                self.right = None
+
+        def tail_inorder_traversal(node, acc=None):
+            if acc is None:
+                acc = []
+                
+            if not node:
+                return acc
+                
+            # 왼쪽 서브트리 순회
+            acc = tail_inorder_traversal(node.left, acc)
+            # 현재 노드 처리
+            acc.append(node.value)
+            # 오른쪽 서브트리 순회
+            return tail_inorder_traversal(node.right, acc)
+        ```
+
+    2. GCD(최대공약수) 계산
+        ```python
+        def tail_gcd(a, b):
+            if b == 0:
+                return a
+            return tail_gcd(b, a % b)
+        ```
+
+* 꼬리 재귀로의 변환 가이드
+    ```python
+    # 일반적인 변환 패턴
+
+    # 1. 누적 인자 추가
+    def regular_sum(n):
+        if n <= 1:
+            return n
+        return n + regular_sum(n - 1)
+
+    def tail_sum(n, acc=0):
+        if n <= 1:
+            return n + acc
+        return tail_sum(n - 1, acc + n)
+
+    # 2. 보조 함수 사용
+    def quick_sort(arr):
+        def quick_sort_tail(arr, start, end):
+            if start >= end:
+                return
+                
+            pivot = partition(arr, start, end)
+            quick_sort_tail(arr, start, pivot - 1)
+            return quick_sort_tail(arr, pivot + 1, end)
+            
+        return quick_sort_tail(arr, 0, len(arr) - 1)
+    ```
+
+* 최적화 예제
+    ```python
+    class TailRecursionOptimizer:
+        """꼬리 재귀 최적화를 시뮬레이션하는 클래스"""
+        
+        def __init__(self, func):
+            self.func = func
+            
+        def __call__(self, *args, **kwargs):
+            result = self.func(*args, **kwargs)
+            while callable(result):
+                result = result()
+            return result
+
+    @TailRecursionOptimizer
+    def optimized_factorial(n, acc=1):
+        if n <= 1:
+            return acc
+        return lambda: optimized_factorial(n - 1, n * acc)
+    ```
+
+- 꼬리 재귀는 일반 재귀의 단점을 보완하는 중요한 최적화 기법입니다. 특히 함수형 프로그래밍에서 자주 사용되며,
+적절한 컴파일러 지원이 있을 경우 반복문 수준의 효율성을 얻을 수 있습니다. 하지만 Python과 같은 일부 언어들은 꼬리 재귀 최적화를
+기본적으로 지원하지 않으므로, 이러한 제약사항을 고려하여 사용해야 합니다.
+
+## 직접 재귀 (Direct Recursion)
+
+* 직접 재귀의 개념
+    * 함수가 자기 자신을 직접적으로 호출하는 재귀 방식입니다.
+    * 가장 기본적이고 단순한 형태의 재귀입니다.
+    * 중간 매개 함수 없이 바로 자신을 호출합니다.
+
+* 구조와 특징
+    * 함수 내부에서 동일한 함수를 직접 호출
+    * 종료 조건과 재귀 호출로 구성
+    * 스택 프레임이 직접적으로 쌓임
+
+* 기본 구현 예제
+    ```python
+    def factorial(n):
+        # 종료 조건
+        if n <= 1:
+            return 1
+        # 직접 재귀 호출
+        return n * factorial(n - 1)
+
+    def countdown(n):
+        # 종료 조건
+        if n <= 0:
+            print("발사!")
+            return
+        print(n)
+        # 직접 재귀 호출
+        countdown(n - 1)
+    ```
+
+* 활용 예제
+    1. 배열의 합 계산
+        ```python
+        def array_sum(arr):
+            if not arr:  # 빈 배열 체크
+                return 0
+            return arr[0] + array_sum(arr[1:])
+        ```
+
+    2. 문자열 뒤집기
+        ```python
+        def reverse_string(s):
+            if len(s) <= 1:
+                return s
+            return reverse_string(s[1:]) + s[0]
+        ```
+
+    3. 거듭제곱 계산
+        ```python
+        def power(base, exponent):
+            if exponent == 0:
+                return 1
+            return base * power(base, exponent - 1)
+        ```
+
+* 시간 복잡도와 공간 복잡도
+    * 시간 복잡도: 문제에 따라 다름
+        - 팩토리얼: O(n)
+        - 피보나치: O(2^n)
+
+    * 공간 복잡도: 재귀 깊이에 비례
+        - 대부분 O(n)이상의 스택 공간 필요
+
+* 최적화 기법
+    ```python
+    # 메모이제이션을 활용한 최적화
+    def fibonacci_memo(n, memo=None):
+        if memo is None:
+            memo = {}
+        if n in memo:
+            return memo[n]
+        if n <= 1:
+            return n
+        
+        memo[n] = fibonacci_memo(n-1, memo) + fibonacci_memo(n-2, memo)
+        return memo[n]
+
+    # 파라미터 최적화
+    def optimized_array_sum(arr, start=0):
+        if start >= len(arr):
+            return 0
+        return arr[start] + optimized_array_sum(arr, start + 1)
+    ```
+
+* 장단점
+    * 장점
+        - 구현이 간단하고 직관적
+        - 코드 가독성이 좋음
+        - 문제를 자연스럽게 분할 가능
+
+    * 단점
+        - 메모리 사용량이 많음
+        - 스택 오버플로우 위험
+        - 깊은 재귀에서 성능 저하
+
+* 실제 사용 예시
+    ```python
+    # 디렉토리 탐색
+    def list_files(path):
+        if os.path.isfile(path):
+            return [path]
+        
+        files = []
+        for item in os.listdir(path):
+            full_path = os.path.join(path, item)
+            files.extend(list_files(full_path))
+        return files
+
+    # 트리 순회
+    class TreeNode:
+        def __init__(self, value):
+            self.value = value
+            self.left = None
+            self.right = None
+
+    def preorder(self):
+        print(self.value, end=' ')
+        if self.left:
+            self.left.preorder()
+        if self.right:
+            self.right.preorder()
+    ```
+
+- 직접 재귀는 가장 기본적인 재귀 형태로, 적절한 종료 조건과 함계 사용하면 많은 문제를 효율적으로 해결할 수 있습니다.
+하지만 깊은 재귀나 큰 입력값에 대해서는 스택 오버플로우와 성능 저하에 주의해야 합니다.
+
+## 간접 재귀 (Indirect Recursion)
+
+* 간접 재귀의 개념
+    * 두 개 이상의 함수가 서로를 호출하며 재귀를 형성하는 방식입니다.
+    * 순환적 의존 관계를 가진 함수들의 호출입니다.
+    * A -> B -> C -> A 형태로 호출이 순환됩니다.
+
+* 기본 구현 예제
+    ```python
+    def is_even(n):
+        if n == 0:
+            return True
+        return is_odd(n - 1)
+
+    def is_odd(n):
+        if n == 0:
+            return False
+        return is_even(n - 1)
+    ```
+
+* 실용적인 예제
+    ```python
+    class TreeNode:
+        def __init__(self, value):
+            self.value = value
+            self.children = []
+
+    def process_tree(node):
+        print(f"처리: {node.value}")
+        process_children(node.children)
+
+    def process_children(children):
+        if not children:
+            return
+        process_tree(children[0])
+        process_children(children[1:])
+    ```
+
+* 파일 탐색 시스템 예제
+    ```python
+    def explore_directory(path):
+        if os.path.isfile(path):
+            process_file(path)
+        else:
+            process_directory(path)
+
+    def process_directory(path):
+        for item in os.listdir(path):
+            full_path = os.path.join(path, item)
+            explore_directory(full_path)
+
+    def process_file(path):
+        print(f"파일 발견: {path}")
+    ```
+
+* 성능 최적화
+    ```python
+    # 메모이제이션을 활용한 최적화
+    def evaluate_expression(expr, memo=None):
+        if memo is None:
+            memo = {}
+        if expr in memo:
+            return memo[expr]
+            
+        result = parse_and_evaluate(expr, memo)
+        memo[expr] = result
+        return result
+
+    def parse_and_evaluate(expr, memo):
+        # 수식 파싱 및 평가
+        if is_simple_expression(expr):
+            return calculate(expr)
+        return evaluate_expression(simplify(expr), memo)
+    ```
+
+* 시간 및 공간 복잡도
+    * 시간 복잡도: 서로 호출하는 함수들의 복잡도 합
+    * 공간 복잡도: 재귀 깊이에 비례(보통 O(n))
+
+* 장단점
+    * 장점
+        - 복잡한 문제를 논리적으로 분할 가능
+        - 코드의 모듈성 향상
+        - 자연스러운 문제 해결 방식
+
+    * 단점
+        - 디버깅이 어려움
+        - 함수 간 의존성 관리 필요
+        - 메모리 사용량이 많음
+
+* 데이터 구조 처리 예제
+    ```python
+    class LinkedList:
+        def __init__(self):
+            self.head = None
+
+        def process_odd_nodes(self, node):
+            if not node:
+                return
+            print(f"홀수 노드: {node.value}")
+            if node.next:
+                self.process_even_nodes(node.next)
+
+        def process_even_nodes(self, node):
+            if not node:
+                return
+            print(f"짝수 노드: {node.value}")
+            if node.next:
+                self.process_odd_nodes(node.next)
+    ```
+
+* 게임 로직 예제
+    ```python
+    def player1_turn(score1, score2):
+        if score1 >= 100:
+            return "Player 1 wins!"
+        if score2 >= 100:
+            return "Player 2 wins!"
+        
+        move = get_player1_move()
+        return player2_turn(score1 + move, score2)
+
+    def player2_turn(score1, score2):
+        if score1 >= 100:
+            return "Player 1 wins!"
+        if score2 >= 100:
+            return "Player 2 wins!"
+            
+        move = get_player2_move()
+        return player1_turn(score1, score2 + move)
+    ```
+
+- 간접 재귀는 복잡한 문제를 여러 단계로 나누어 해결할 때 유용합니다. 특히 상태 기계나 게임 로직 구현에
+자주 사용됩니다. 하지만 직접 재귀보다 디버깅이 어렵고 함수 간 의존성을 잘 관리해야 하므로 신중하게 사용해야 합니다.
+
+## 순수 재귀 (Pure Recursion)
+
+* 순수 재귀의 개념
+    * 의부 변수나 상태를 사용하지 않고 오직 매개변수와 반환값만으로 재귀를 구현하는 방식
+    * 함수형 프로그래밍의 원칙을 따르는 재귀 방식
+    * 부수 효과(side effect)가 없는 재귀 구현
+
+* 기본 구현
+    ```python
+    # 순수 재귀 팩토리얼
+    def pure_factorial(n):
+        if n <= 1:
+            return 1
+        return n * pure_factorial(n - 1)
+
+    # 순수 재귀 피보나치
+    def pure_fibonacci(n):
+        if n <= 1:
+            return n
+        return pure_fibonacci(n - 1) + pure_fibonacci(n - 2)
+    ```
+
+* 리스트 처리 예제
+    ```python
+    def pure_sum(arr):
+        if not arr:
+            return 0
+        return arr[0] + pure_sum(arr[1:])
+
+    def pure_reverse(lst):
+        if not lst:
+            return []
+        return [lst[-1]] + pure_reverse(lst[:-1])
+
+    def pure_map(func, lst):
+        if not lst:
+            return []
+        return [func(lst[0])] + pure_map(func, lst[1:])
+    ```
+
+* 트리 구조 처리
+    ```python
+    class TreeNode:
+        def __init__(self, value):
+            self.value = value
+            self.left = None
+            self.right = None
+
+    def pure_tree_sum(node):
+        if not node:
+            return 0
+        return node.value + pure_tree_sum(node.left) + pure_tree_sum(node.right)
+    ```
+
+* 장단점
+    * 장점
+        - 코드가 명확하고 예측 가능
+        - 디버깅이 용이
+        - 병렬 처리에 적합
+        - 테스트가 쉬움
+
+    * 단점
+        - 성능이 상대적으로 낮을 수 있음.
+        - 메모리 사용량이 많을 수 있음
+        - 일부 문제는 구현이 복잡할 수 있음.
+
+* 실제 응용
+    ```python
+    # 깊은 복사
+    def pure_deep_copy(obj):
+        if isinstance(obj, (int, float, str, bool)):
+            return obj
+        if isinstance(obj, list):
+            return [pure_deep_copy(item) for item in obj]
+        if isinstance(obj, dict):
+            return {k: pure_deep_copy(v) for k, v in obj.items()}
+        return obj
+
+    # 경로 탐색
+    def pure_find_path(maze, start, end, path=()):
+        if start == end:
+            return path + (end,)
+        if start not in maze:
+            return None
+        
+        for next_pos in maze[start]:
+            if next_pos not in path:
+                new_path = pure_find_path(maze, next_pos, end, path + (start,))
+                if new_path:
+                    return new_path
+        return None
+    ```
+
+* 최적화 기법
+    ```python
+    def pure_fibonacci_optimized(n, a=0, b=1):
+        if n == 0:
+            return a
+        if n == 1:
+            return b
+        return pure_fibonacci_optimized(n - 1, b, a + b)
+    ```
+
+- 순수 재귀는 함수형 프로그래밍의 원칙을 따르며, 코드의 예측 가능성과 테스트 용이성을 높입니다. 하지만 성능과 메모리 사용에
+주의해야 하며, 적절한 사용 사례를 선택하는 것이 중요합니다.
+
+
+# 분할 정복
+
+## 병합 정렬 (Merge Sort)
+
+* 병합 정렬의 개념
+    * 분할 정복 방식을 사용하는 정렬 알고리즘입니다.
+    * 리스트를 절반으로 나누고, 각각을 재귀적으로 정렬한 후 병합합니다.
+    * 안정 정렬(Stable Sort)이며, 데이터의 분포에 관계없이 일정한 성능을 보장합니다.
+
+* 동작 과정
+    1. 리스트를 절반으로 분할합니다.
+    2. 각 부분을 재귀적으로 정렬합니다.
+    3. 정렬된 두 부분을 하나로 병합합니다.
+
+* 기본 구현
+    ```python
+    def merge_sort(arr):
+        if len(arr) <= 1:
+            return arr
+        
+        # 분할
+        mid = len(arr) // 2
+        left = merge_sort(arr[:mid])
+        right = merge_sort(arr[mid:])
+        
+        # 병합
+        return merge(left, right)
+
+    def merge(left, right):
+        result = []
+        i = j = 0
+        
+        while i < len(left) and j < len(right):
+            if left[i] <= right[j]:
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+        
+        result.extend(left[i:])
+        result.extend(right[j:])
+        return result
+    ```
+
+* 최적화된 구현
+    ```python
+    def optimized_merge_sort(arr):
+    # 보조 배열을 미리 생성하여 메모리 할당 최소화
+    temp = [0] * len(arr)
+    
+    def sort(start, end):
+        if start >= end:
+            return
+            
+        mid = (start + end) // 2
+        sort(start, mid)
+        sort(mid + 1, end)
+        merge(start, mid, end)
+    
+    def merge(start, mid, end):
+        # 임시 배열에 복사
+        for i in range(start, end + 1):
+            temp[i] = arr[i]
+        
+        part1 = start
+        part2 = mid + 1
+        index = start
+        
+        while part1 <= mid and part2 <= end:
+            if temp[part1] <= temp[part2]:
+                arr[index] = temp[part1]
+                part1 += 1
+            else:
+                arr[index] = temp[part2]
+                part2 += 1
+            index += 1
+        
+        # 남은 요소 처리
+        while part1 <= mid:
+            arr[index] = temp[part1]
+            part1 += 1
+            index += 1
+    
+    sort(0, len(arr) - 1)
+    return arr
+    ```
+
+* 시간 복잡도
+    - 최선: O(n log n)
+    - 평균: O(n log n)
+    - 최악: O(n log n)
+
+* 공간 복잡도
+    - O(n): 병합 과정에서 임시 배열 필요
+
+* 장단점
+    * 장점
+        - 안정 정렬
+        - 일관된 성능 (O(n log n))
+        - 연결 리스트 정렬에 적합
+        - 대용량 데이터 처리에 효과적
+
+    * 단점
+        - 추가적인 메모리 공간 필요
+        - 작은 데이터셋에서는 퀵 정렬보다 느림
+        - 재귀 호출로 인한 오버헤드
+
+* 응용 예제
+    ```python
+    def merge_sort_linked_list(head):
+        if not head or not head.next:
+            return head
+        
+        # 중간 지점 찾기
+        slow = fast = head
+        prev = None
+        while fast and fast.next:
+            fast = fast.next.next
+            prev = slow
+            slow = slow.next
+        
+        prev.next = None
+        
+        # 재귀적으로 정렬
+        left = merge_sort_linked_list(head)
+        right = merge_sort_linked_list(slow)
+        
+        # 병합
+        return merge_lists(left, right)
+
+    def merge_lists(l1, l2):
+        dummy = ListNode(0)
+        current = dummy
+        
+        while l1 and l2:
+            if l1.val <= l2.val:
+                current.next = l1
+                l1 = l1.next
+            else:
+                current.next = l2
+                l2 = l2.next
+            current = current.next
+        
+        current.next = l1 or l2
+        return dummy.next
+    ```
+
+- 병합 정렬은 안정적이고 예측 가능한 성능을 제공하는 중요한 정렬 알고리즘입니다. 특히 연결 리스트나 대용량 데이터 처리에 적합하며,
+병렬 처리가 가능한 장점이 있습니다. 실제로 Java의 Arrays.sort()는 기본 타입(primitive type)의 경우 QuickSort를, 객체의 경우 안정성을 위해
+MergeSort를 사용합니다.
