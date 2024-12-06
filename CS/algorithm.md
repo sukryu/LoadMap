@@ -585,6 +585,299 @@
 | 버블 정렬 | 교육용 목적, 작은 데이터셋 정렬               |
 | 셸 정렬   | 중간 크기의 데이터셋, 제한된 메모리 환경       |
 
+## 병합 정렬 (Merge Sort)
+
+* 병합 정렬의 개념
+    * 분할 정복 방식을 사용하는 정렬 알고리즘입니다.
+    * 리스트를 절반으로 나누고, 각각을 재귀적으로 정렬한 후 병합합니다.
+    * 안정 정렬(Stable Sort)이며, 데이터의 분포에 관계없이 일정한 성능을 보장합니다.
+
+* 동작 과정
+    1. 리스트를 절반으로 분할합니다.
+    2. 각 부분을 재귀적으로 정렬합니다.
+    3. 정렬된 두 부분을 하나로 병합합니다.
+
+* 기본 구현
+    ```python
+    def merge_sort(arr):
+        if len(arr) <= 1:
+            return arr
+        
+        # 분할
+        mid = len(arr) // 2
+        left = merge_sort(arr[:mid])
+        right = merge_sort(arr[mid:])
+        
+        # 병합
+        return merge(left, right)
+
+    def merge(left, right):
+        result = []
+        i = j = 0
+        
+        while i < len(left) and j < len(right):
+            if left[i] <= right[j]:
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+        
+        result.extend(left[i:])
+        result.extend(right[j:])
+        return result
+    ```
+
+* 최적화된 구현
+    ```python
+    def optimized_merge_sort(arr):
+    # 보조 배열을 미리 생성하여 메모리 할당 최소화
+    temp = [0] * len(arr)
+    
+    def sort(start, end):
+        if start >= end:
+            return
+            
+        mid = (start + end) // 2
+        sort(start, mid)
+        sort(mid + 1, end)
+        merge(start, mid, end)
+    
+    def merge(start, mid, end):
+        # 임시 배열에 복사
+        for i in range(start, end + 1):
+            temp[i] = arr[i]
+        
+        part1 = start
+        part2 = mid + 1
+        index = start
+        
+        while part1 <= mid and part2 <= end:
+            if temp[part1] <= temp[part2]:
+                arr[index] = temp[part1]
+                part1 += 1
+            else:
+                arr[index] = temp[part2]
+                part2 += 1
+            index += 1
+        
+        # 남은 요소 처리
+        while part1 <= mid:
+            arr[index] = temp[part1]
+            part1 += 1
+            index += 1
+    
+    sort(0, len(arr) - 1)
+    return arr
+    ```
+
+* 시간 복잡도
+    - 최선: O(n log n)
+    - 평균: O(n log n)
+    - 최악: O(n log n)
+
+* 공간 복잡도
+    - O(n): 병합 과정에서 임시 배열 필요
+
+* 장단점
+    * 장점
+        - 안정 정렬
+        - 일관된 성능 (O(n log n))
+        - 연결 리스트 정렬에 적합
+        - 대용량 데이터 처리에 효과적
+
+    * 단점
+        - 추가적인 메모리 공간 필요
+        - 작은 데이터셋에서는 퀵 정렬보다 느림
+        - 재귀 호출로 인한 오버헤드
+
+* 응용 예제
+    ```python
+    def merge_sort_linked_list(head):
+        if not head or not head.next:
+            return head
+        
+        # 중간 지점 찾기
+        slow = fast = head
+        prev = None
+        while fast and fast.next:
+            fast = fast.next.next
+            prev = slow
+            slow = slow.next
+        
+        prev.next = None
+        
+        # 재귀적으로 정렬
+        left = merge_sort_linked_list(head)
+        right = merge_sort_linked_list(slow)
+        
+        # 병합
+        return merge_lists(left, right)
+
+    def merge_lists(l1, l2):
+        dummy = ListNode(0)
+        current = dummy
+        
+        while l1 and l2:
+            if l1.val <= l2.val:
+                current.next = l1
+                l1 = l1.next
+            else:
+                current.next = l2
+                l2 = l2.next
+            current = current.next
+        
+        current.next = l1 or l2
+        return dummy.next
+    ```
+
+- 병합 정렬은 안정적이고 예측 가능한 성능을 제공하는 중요한 정렬 알고리즘입니다. 특히 연결 리스트나 대용량 데이터 처리에 적합하며,
+병렬 처리가 가능한 장점이 있습니다. 실제로 Java의 Arrays.sort()는 기본 타입(primitive type)의 경우 QuickSort를, 객체의 경우 안정성을 위해
+MergeSort를 사용합니다.
+
+## 퀵 정렬 (Quick Sort)
+
+* 퀵 정렬의 개념
+    * 분할 정복 방식을 사용하는 정렬 알고리즘입니다.
+    * 피벗(pivot)을 선택하여 피벗보다 작은 값과 큰 값으로 분할하고 재귀적으로 정렬합니다.
+    * 평균적으로 매우 빠른 성능을 보이는 알고리즘입니다.
+
+* 동작 과정
+    1. 피벗을 선택합니다.
+    2. 피벗보다 작은 요소는 왼쪽으로, 큰 요소는 오른쪽으로 분할합니다.
+    3. 분할된 두 부분에 대해 재귀적으로 정렬을 수행합니다.
+
+* 기본 구현
+    ```python
+    def quick_sort(arr):
+        if len(arr) <= 1:
+            return arr
+        
+        pivot = arr[len(arr) // 2]
+        left = [x for x in arr if x < pivot]
+        middle = [x for x in arr if x == pivot]
+        right = [x for x in arr if x > pivot]
+        
+        return quick_sort(left) + middle + quick_sort(right)
+    ```
+
+* 최적화된 구현 (In-place 퀵 정렬)
+    ```python
+    def optimized_quick_sort(arr, low, high):
+        def partition(low, high):
+            pivot = arr[high]
+            i = low - 1
+            
+            for j in range(low, high):
+                if arr[j] <= pivot:
+                    i += 1
+                    arr[i], arr[j] = arr[j], arr[i]
+                    
+            arr[i + 1], arr[high] = arr[high], arr[i + 1]
+            return i + 1
+
+        if low < high:
+            pivot_index = partition(low, high)
+            optimized_quick_sort(arr, low, pivot_index - 1)
+            optimized_quick_sort(arr, pivot_index + 1, high)
+
+        return arr
+
+    # 호출
+    def quick_sort_wrapper(arr):
+        return optimized_quick_sort(arr, 0, len(arr) - 1)
+    ```
+
+* 향상된 피벗 선택
+    ```python
+    def median_of_three(arr, low, high):
+        mid = (low + high) // 2
+        
+        # 세 값을 정렬하여 중간값을 피벗으로 선택
+        if arr[low] > arr[mid]:
+            arr[low], arr[mid] = arr[mid], arr[low]
+        if arr[low] > arr[high]:
+            arr[low], arr[high] = arr[high], arr[low]
+        if arr[mid] > arr[high]:
+            arr[mid], arr[high] = arr[high], arr[mid]
+            
+        return mid
+    ```
+
+* 시간 복잡도
+    * 최선: O(n log n)
+    * 평균: O(n log n)
+    * 최악: O(n^2) - 이미 정렬된 배열, 피벗이 최소/최대값일 때
+
+* 공간 복잡도
+    * 기본 구현: O(n)
+    * In-place 구현: O(log n) - 재귀 호출 스택
+
+* 장단점
+    * 장점
+        - 평균적으로 매우 빠른 성능
+        - 추가 메모리 사용이 적음 (In-place 구현)
+        - 캐시 효율성이 좋음
+
+    * 단점
+        - 불안한 정렬
+        - 최악의 경우 O(n^2)
+        - 이미 정렬된 데이터에 취약
+
+* 실제 구현 예제 (다양한 최적화 포함)
+    ```python
+    def enhanced_quick_sort(arr):
+        def insertion_sort(arr, low, high):
+            for i in range(low + 1, high + 1):
+                key = arr[i]
+                j = i - 1
+                while j >= low and arr[j] > key:
+                    arr[j + 1] = arr[j]
+                    j -= 1
+                arr[j + 1] = key
+
+        def partition(low, high):
+            # 3-중간값 피벗 선택
+            mid = (low + high) // 2
+            pivot_index = median_of_three(arr, low, mid, high)
+            arr[pivot_index], arr[high] = arr[high], arr[pivot_index]
+            
+            pivot = arr[high]
+            i = low - 1
+            
+            for j in range(low, high):
+                if arr[j] <= pivot:
+                    i += 1
+                    arr[i], arr[j] = arr[j], arr[i]
+            
+            arr[i + 1], arr[high] = arr[high], arr[i + 1]
+            return i + 1
+
+        def quick_sort_internal(low, high):
+            while low < high:
+                # 작은 부분 배열은 삽입 정렬 사용
+                if high - low + 1 < 10:
+                    insertion_sort(arr, low, high)
+                    break
+                
+                pivot_index = partition(low, high)
+                
+                # 작은 부분을 먼저 정렬 (tail recursion 최적화)
+                if pivot_index - low < high - pivot_index:
+                    quick_sort_internal(low, pivot_index - 1)
+                    low = pivot_index + 1
+                else:
+                    quick_sort_internal(pivot_index + 1, high)
+                    high = pivot_index - 1
+
+        quick_sort_internal(0, len(arr) - 1)
+        return arr
+    ```
+
+- 퀵 정렬은 평균적으로 가장 빠른 정렬 알고리즘 중 하나이며, 실제로 많은 프로그래밍 언어의 표준 라이브러리에서 사용됩니다.
+하지만 최악의 경우 성능이 크게 저하될 수 있으며, 실제 구현에서는 다양한 최적화 기법을 함께 사용하는 것이 좋습니다.
+
+
 # 탐색 알고리즘
 
 ## 선형 탐색 (Linear Search)
@@ -891,6 +1184,226 @@
 
 - 이진 탐색은 대규모 정렬 데이터에서 매우 효율적인 탐색 알고리즘입니다. 특히 데이터베이스 인덱싱이나 시스템 최적화와 같은 실제
 응용 분야에서 널리 사용됩니다. 데이터가 정렬되어 있어야 한다는 제약이 있지만, 그 제약을 만족하는 경우에는 가장 효율적인 탐색방법 중 하나입니다.
+
+## 이진 검색 (Binary Search)의 심화
+
+* 이진 검색의 변형
+    1. 하한 검색 (Lower Bound)
+        ```python
+        def lower_bound(arr, target):
+            """target 값이 처음 나타나는 위치를 찾음"""
+            left, right = 0, len(arr)
+            
+            while left < right:
+                mid = (left + right) // 2
+                if arr[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid
+                    
+            return left
+        ```
+
+    2. 상한 검색 (Upper Bound)
+        ```python
+        def upper_bound(arr, target):
+            """target 값보다 큰 첫 번째 위치를 찾음"""
+            left, right = 0, len(arr)
+            
+            while left < right:
+                mid = (left + right) // 2
+                if arr[mid] <= target:
+                    left = mid + 1
+                else:
+                    right = mid
+                    
+            return left
+        ```
+
+* 고급 응용
+    1. 범위 검색
+        ```python
+        def find_range(arr, target):
+            """target의 시작과 끝 인덱스를 찾음"""
+            first = lower_bound(arr, target)
+            last = upper_bound(arr, target) - 1
+            
+            if first <= last:
+                return [first, last]
+            return [-1, -1]
+        ```
+
+    2. 순환 배열에서의 검색
+        ```python
+        def search_rotated(arr, target):
+            """회전된 정렬 배열에서 검색"""
+            left, right = 0, len(arr) - 1
+            
+            while left <= right:
+                mid = (left + right) // 2
+                
+                if arr[mid] == target:
+                    return mid
+                    
+                # 왼쪽 부분이 정렬되어 있는 경우
+                if arr[left] <= arr[mid]:
+                    if arr[left] <= target < arr[mid]:
+                        right = mid - 1
+                    else:
+                        left = mid + 1
+                # 오른쪽 부분이 정렬되어 있는 경우
+                else:
+                    if arr[mid] < target <= arr[right]:
+                        left = mid + 1
+                    else:
+                        right = mid - 1
+                        
+            return -1
+        ```
+
+* 실수 값에서의 이진 검색
+    ```python
+    def binary_search_real(func, target, epsilon=1e-9):
+        """실수 범위에서 특정 값을 찾는 이진 검색"""
+        left, right = 0.0, 1e9
+            
+        while right - left > epsilon:
+            mid = (left + right) / 2
+            result = func(mid)
+                
+            if abs(result - target) < epsilon:
+                return mid
+            elif result < target:
+                left = mid
+            else:
+                right = mid
+                    
+        return left
+        ```
+
+* 최적화 문제 해결
+    ```python
+    def find_peak_element(arr):
+        """배열에서 peak 요소 찾기"""
+        left, right = 0, len(arr) - 1
+        
+        while left < right:
+            mid = (left + right) // 2
+            if arr[mid] > arr[mid + 1]:
+                right = mid
+            else:
+                left = mid + 1
+                
+        return left
+
+    def minimize_maximum(arr, k):
+        """최대값을 최소화하는 문제"""
+        def can_divide(max_sum):
+            count = 1
+            current_sum = 0
+            for num in arr:
+                if current_sum + num > max_sum:
+                    count += 1
+                    current_sum = num
+                else:
+                    current_sum += num
+            return count <= k
+
+        left = max(arr)
+        right = sum(arr)
+        result = right
+        
+        while left <= right:
+            mid = (left + right) // 2
+            if can_divide(mid):
+                result = mid
+                right = mid - 1
+            else:
+                left = mid + 1
+                
+        return result
+    ```
+
+* 병렬 처리를 위한 이진 검색
+    ```python
+    from concurrent.futures import ThreadPoolExecutor
+    import threading
+
+    class ParallelBinarySearch:
+        def __init__(self, arr):
+            self.arr = arr
+            self.lock = threading.Lock()
+            
+        def search_range(self, start, end, target):
+            """주어진 범위에서 target 검색"""
+            while start <= end:
+                mid = (start + end) // 2
+                if self.arr[mid] == target:
+                    return mid
+                elif self.arr[mid] < target:
+                    start = mid + 1
+                else:
+                    end = mid - 1
+            return -1
+            
+        def parallel_search(self, target, num_threads=4):
+            n = len(self.arr)
+            chunk_size = n // num_threads
+            futures = []
+            
+            with ThreadPoolExecutor(max_workers=num_threads) as executor:
+                for i in range(num_threads):
+                    start = i * chunk_size
+                    end = start + chunk_size - 1 if i < num_threads - 1 else n - 1
+                    futures.append(
+                        executor.submit(self.search_range, start, end, target)
+                    )
+                    
+            for future in futures:
+                result = future.result()
+                if result != -1:
+                    return result
+                    
+            return -1
+    ```
+
+* 이진 검색 트리와의 연계
+    ```python
+    class BSTNode:
+        def __init__(self, value):
+            self.value = value
+            self.left = None
+            self.right = None
+            self.count = 1  # 중복 값 처리
+            
+        def insert(self, value):
+            if value == self.value:
+                self.count += 1
+            elif value < self.value:
+                if self.left:
+                    self.left.insert(value)
+                else:
+                    self.left = BSTNode(value)
+            else:
+                if self.right:
+                    self.right.insert(value)
+                else:
+                    self.right = BSTNode(value)
+                    
+        def find_kth_element(self, k):
+            """k번째 작은 원소 찾기"""
+            left_count = 0 if not self.left else self.left.count
+            
+            if k <= left_count:
+                return self.left.find_kth_element(k)
+            elif k <= left_count + self.count:
+                return self.value
+            else:
+                return self.right.find_kth_element(k - left_count - self.count)
+    ```
+
+- 이진 검색의 심화 내용은 실제 문제 해결에서 매우 유용하게 활용됩니다. 특히 최적화 문제나 실수 값을 다루는
+문제에서 자주 사용되며, 병렬 처리를 통해 성능을 더욱 향상시킬 수 있습니다.
 
 ## 해시 탐색 (Hash Search)
 
@@ -1790,155 +2303,446 @@
 - 순수 재귀는 함수형 프로그래밍의 원칙을 따르며, 코드의 예측 가능성과 테스트 용이성을 높입니다. 하지만 성능과 메모리 사용에
 주의해야 하며, 적절한 사용 사례를 선택하는 것이 중요합니다.
 
+# 분할 정복 (Divide and Conquer)
 
-# 분할 정복
+* 병합, 퀵, 이진 검색의 심화 부분도 분할 정복에 속함.
 
-## 병합 정렬 (Merge Sort)
+## 최대/최소 문제 해결(Max/Min Divide and Conquer)
 
-* 병합 정렬의 개념
-    * 분할 정복 방식을 사용하는 정렬 알고리즘입니다.
-    * 리스트를 절반으로 나누고, 각각을 재귀적으로 정렬한 후 병합합니다.
-    * 안정 정렬(Stable Sort)이며, 데이터의 분포에 관계없이 일정한 성능을 보장합니다.
-
-* 동작 과정
-    1. 리스트를 절반으로 분할합니다.
-    2. 각 부분을 재귀적으로 정렬합니다.
-    3. 정렬된 두 부분을 하나로 병합합니다.
+* 개념
+    * 분할 정복을 사용하여 배열이나 리스트에서 최대값/최소값을 찾는 알고리즘입니다.
+    * 전체 배열을 작은 부분으로 나누어 각 부분의 최대/최소를 찾고 이를 결합합니다.
+    * 단순 순회보다 효율적인 방법을 제공할 수 있습니다.
 
 * 기본 구현
     ```python
-    def merge_sort(arr):
-        if len(arr) <= 1:
-            return arr
-        
+    def find_max_min(arr, left, right):
+        # 기저 사례: 요소가 하나인 경우
+        if left == right:
+            return arr[left], arr[left]
+            
+        # 기저 사례: 요소가 두 개인 경우
+        if right - left == 1:
+            return max(arr[left], arr[right]), min(arr[left], arr[right])
+            
         # 분할
-        mid = len(arr) // 2
-        left = merge_sort(arr[:mid])
-        right = merge_sort(arr[mid:])
+        mid = (left + right) // 2
+        left_max, left_min = find_max_min(arr, left, mid)
+        right_max, right_min = find_max_min(arr, mid + 1, right)
         
-        # 병합
-        return merge(left, right)
-
-    def merge(left, right):
-        result = []
-        i = j = 0
-        
-        while i < len(left) and j < len(right):
-            if left[i] <= right[j]:
-                result.append(left[i])
-                i += 1
-            else:
-                result.append(right[j])
-                j += 1
-        
-        result.extend(left[i:])
-        result.extend(right[j:])
-        return result
+        # 결합
+        return max(left_max, right_max), min(left_min, right_min)
     ```
 
 * 최적화된 구현
     ```python
-    def optimized_merge_sort(arr):
-    # 보조 배열을 미리 생성하여 메모리 할당 최소화
-    temp = [0] * len(arr)
-    
-    def sort(start, end):
-        if start >= end:
-            return
+    def optimized_max_min(arr):
+        n = len(arr)
+        
+        # 초기화
+        if n % 2 == 0:
+            max_val = max(arr[0], arr[1])
+            min_val = min(arr[0], arr[1])
+            start = 2
+        else:
+            max_val = min_val = arr[0]
+            start = 1
             
-        mid = (start + end) // 2
-        sort(start, mid)
-        sort(mid + 1, end)
-        merge(start, mid, end)
-    
-    def merge(start, mid, end):
-        # 임시 배열에 복사
-        for i in range(start, end + 1):
-            temp[i] = arr[i]
-        
-        part1 = start
-        part2 = mid + 1
-        index = start
-        
-        while part1 <= mid and part2 <= end:
-            if temp[part1] <= temp[part2]:
-                arr[index] = temp[part1]
-                part1 += 1
-            else:
-                arr[index] = temp[part2]
-                part2 += 1
-            index += 1
-        
-        # 남은 요소 처리
-        while part1 <= mid:
-            arr[index] = temp[part1]
-            part1 += 1
-            index += 1
-    
-    sort(0, len(arr) - 1)
-    return arr
+        # 쌍으로 비교
+        for i in range(start, n-1, 2):
+            curr_max = max(arr[i], arr[i+1])
+            curr_min = min(arr[i], arr[i+1])
+            max_val = max(max_val, curr_max)
+            min_val = min(min_val, curr_min)
+            
+        return max_val, min_val
     ```
 
-* 시간 복잡도
-    - 최선: O(n log n)
-    - 평균: O(n log n)
-    - 최악: O(n log n)
-
-* 공간 복잡도
-    - O(n): 병합 과정에서 임시 배열 필요
-
-* 장단점
-    * 장점
-        - 안정 정렬
-        - 일관된 성능 (O(n log n))
-        - 연결 리스트 정렬에 적합
-        - 대용량 데이터 처리에 효과적
-
-    * 단점
-        - 추가적인 메모리 공간 필요
-        - 작은 데이터셋에서는 퀵 정렬보다 느림
-        - 재귀 호출로 인한 오버헤드
-
-* 응용 예제
+* 응용: k번째 최대/최소값 찾기
     ```python
-    def merge_sort_linked_list(head):
-        if not head or not head.next:
-            return head
+    def find_kth_element(arr, k, find_max=True):
+        if len(arr) == 1:
+            return arr[0]
+            
+        # 배열을 두 부분으로 분할
+        mid = len(arr) // 2
+        left = arr[:mid]
+        right = arr[mid:]
         
-        # 중간 지점 찾기
-        slow = fast = head
-        prev = None
-        while fast and fast.next:
-            fast = fast.next.next
-            prev = slow
-            slow = slow.next
-        
-        prev.next = None
-        
-        # 재귀적으로 정렬
-        left = merge_sort_linked_list(head)
-        right = merge_sort_linked_list(slow)
-        
-        # 병합
-        return merge_lists(left, right)
-
-    def merge_lists(l1, l2):
-        dummy = ListNode(0)
-        current = dummy
-        
-        while l1 and l2:
-            if l1.val <= l2.val:
-                current.next = l1
-                l1 = l1.next
-            else:
-                current.next = l2
-                l2 = l2.next
-            current = current.next
-        
-        current.next = l1 or l2
-        return dummy.next
+        # 각 부분에서 재귀적으로 k번째 값 찾기
+        if find_max:
+            left_max = find_kth_element(left, k, True)
+            right_max = find_kth_element(right, k, True)
+            return max(left_max, right_max)
+        else:
+            left_min = find_kth_element(left, k, False)
+            right_min = find_kth_element(right, k, False)
+            return min(left_min, right_min)
     ```
 
-- 병합 정렬은 안정적이고 예측 가능한 성능을 제공하는 중요한 정렬 알고리즘입니다. 특히 연결 리스트나 대용량 데이터 처리에 적합하며,
-병렬 처리가 가능한 장점이 있습니다. 실제로 Java의 Arrays.sort()는 기본 타입(primitive type)의 경우 QuickSort를, 객체의 경우 안정성을 위해
-MergeSort를 사용합니다.
+* 구간 최대/최소값 찾기
+    ```python
+    class RangeMaxMin:
+        def __init__(self, arr):
+            self.arr = arr
+            self.n = len(arr)
+            self.tree = [{'max': 0, 'min': float('inf')} for _ in range(4 * self.n)]
+            self.build_tree(0, 0, self.n - 1)
+        
+        def build_tree(self, node, start, end):
+            if start == end:
+                self.tree[node] = {'max': self.arr[start], 'min': self.arr[start]}
+                return
+                
+            mid = (start + end) // 2
+            self.build_tree(2*node + 1, start, mid)
+            self.build_tree(2*node + 2, mid + 1, end)
+            
+            self.tree[node] = {
+                'max': max(self.tree[2*node + 1]['max'], self.tree[2*node + 2]['max']),
+                'min': min(self.tree[2*node + 1]['min'], self.tree[2*node + 2]['min'])
+            }
+            
+        def query(self, left, right):
+            def query_range(node, start, end, l, r):
+                if l > end or r < start:
+                    return float('-inf'), float('inf')
+                    
+                if l <= start and end <= r:
+                    return self.tree[node]['max'], self.tree[node]['min']
+                    
+                mid = (start + end) // 2
+                left_max, left_min = query_range(2*node + 1, start, mid, l, r)
+                right_max, right_min = query_range(2*node + 2, mid + 1, end, l, r)
+                
+                return max(left_max, right_max), min(left_min, right_min)
+                
+            return query_range(0, 0, self.n - 1, left, right)
+    ```
+
+* 병렬 처리를 이용한 최적화
+    ```python
+    from concurrent.futures import ThreadPoolExecutor
+
+    def parallel_max_min(arr, num_threads=4):
+        n = len(arr)
+        chunk_size = n // num_threads
+        results = []
+        
+        def process_chunk(start, end):
+            return max(arr[start:end]), min(arr[start:end])
+            
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+            futures = []
+            for i in range(num_threads):
+                start = i * chunk_size
+                end = start + chunk_size if i < num_threads - 1 else n
+                futures.append(executor.submit(process_chunk, start, end))
+                
+            for future in futures:
+                results.append(future.result())
+                
+        final_max = max(result[0] for result in results)
+        final_min = min(result[1] for result in results)
+        return final_max, final_min
+    ```
+
+- 최대/최소 값을 찾는 분할 정복 알고리즘은 단순한 순회보다 더 효율적일 수 있으며, 특히 구간 쿼리나 병렬 처리가 필요한 경우에 유용합니다.
+실제로는 문제의 특성과 데이터의 크기에 따라 적절한 방법을 선택해야 합니다.
+
+
+## 카라츠바 알고리즘 (Karatsuba Algorithm, 큰 정수 곱셈)
+
+* 카라츠바 알고리즘의 개념
+    * 큰 수의 곱셈을 효율적으로 수행하기 위한 분할 정복 알고리즘입니다.
+    * 일반적인 곱셈의 O(n^2)의 복잡도를 O(n^1.585)로 개선합니다.
+    * 두 큰 수를 더 작은 부분으로 분할하여 곱셈을 수행합니다.
+
+* 알고리즘 원리
+    * x와 y를 각각 두 부분으로 분할:
+        - `x = x1 x 10^(n/2) + x0`
+        - `y = y1 x 10^(n/2) + y0`
+
+    * 다음 세 값을 계산:
+        - `z2 = x1 x y1`
+        - `zo = x0 x y0`
+        - `z1 = (x1 + x0)(y1 + y0) - z2 - z0`
+
+    * 최종 결과:
+        - `X x Y = z2 x 10^n + z1 x 10^(n/2) + z0`
+
+* 기본 구현
+    ```python
+    def karatsuba(x, y):
+        # 기저 사례
+        if x < 10 or y < 10:
+            return x * y
+        
+        # 자릿수 계산
+        n = max(len(str(x)), len(str(y)))
+        m = n // 2
+        
+        # 숫자 분할
+        power = 10**m
+        x1, x0 = divmod(x, power)
+        y1, y0 = divmod(y, power)
+        
+        # 세 번의 재귀 호출
+        z2 = karatsuba(x1, y1)
+        z0 = karatsuba(x0, y0)
+        z1 = karatsuba(x1 + x0, y1 + y0) - z2 - z0
+        
+        return (z2 * 10**(2*m)) + (z1 * 10**m) + z0
+    ```
+
+* 최적화된 구현
+    ```python
+    class KaratsubaMultiplier:
+        def __init__(self):
+            self.threshold = 64  # 임계값 설정
+            
+        def multiply(self, x, y):
+            if x < self.threshold or y < self.threshold:
+                return x * y
+                
+            n = max(self._bit_length(x), self._bit_length(y))
+            m = (n + 32) // 64 * 32
+            
+            x1, x0 = x >> m, x & ((1 << m) - 1)
+            y1, y0 = y >> m, y & ((1 << m) - 1)
+            
+            z2 = self.multiply(x1, y1)
+            z0 = self.multiply(x0, y0)
+            z1 = self.multiply(x1 + x0, y1 + y0) - z2 - z0
+            
+            return (z2 << (2*m)) + (z1 << m) + z0
+            
+        def _bit_length(self, n):
+            return len(bin(n)) - 2
+    ```
+
+* 문자열 기반 구현 (매우 큰 수 처리)
+    ```python
+    def string_karatsuba(x_str, y_str):
+        # 문자열 길이를 동일하게 맞춤
+        n = max(len(x_str), len(y_str))
+        if n == 1:
+            return str(int(x_str) * int(y_str))
+            
+        x_str = x_str.zfill(n)
+        y_str = y_str.zfill(n)
+        
+        m = n // 2
+        x1, x0 = x_str[:-m], x_str[-m:]
+        y1, y0 = y_str[:-m], y_str[-m:]
+        
+        # 재귀 호출
+        z2 = int(string_karatsuba(x1, y1))
+        z0 = int(string_karatsuba(x0, y0))
+        z1 = int(string_karatsuba(str(int(x1) + int(x0)), 
+                                str(int(y1) + int(y0)))) - z2 - z0
+        
+        # 결과 조합
+        return str(z2 * 10**(2*m) + z1 * 10**m + z0)
+    ```
+
+* 병렬 처리 버전
+    ```python
+    from concurrent.futures import ProcessPoolExecutor
+
+    def parallel_karatsuba(x, y, num_processes=4):
+        if x < 1000 or y < 1000:
+            return x * y
+            
+        n = max(len(str(x)), len(str(y)))
+        m = n // 2
+        power = 10**m
+        
+        x1, x0 = divmod(x, power)
+        y1, y0 = divmod(y, power)
+        
+        with ProcessPoolExecutor(max_workers=num_processes) as executor:
+            # 병렬로 세 부분 계산
+            futures = [
+                executor.submit(karatsuba, x1, y1),
+                executor.submit(karatsuba, x0, y0),
+                executor.submit(karatsuba, x1 + x0, y1 + y0)
+            ]
+            
+            z2 = futures[0].result()
+            z0 = futures[1].result()
+            z1 = futures[2].result() - z2 - z0
+            
+        return (z2 * 10**(2*m)) + (z1 * 10**m) + z0
+    ```
+
+- 카라츠바 알고리즘은 매우 큰 수의 곱셈을 효율적으로 처리할 수 있는 중요한 알고리즘입니다.
+특히 암호화나 큰 수의 정밀 계산이 필요한 분야에서 유용하게 사용됩니다. 하지만 작은 수의 경우 일반적인 곱셈이 더 효율적일 수 있으므로,
+입력 크기에 따라 적절한 알고리즘을 선택하는 것이 중요합니다.
+
+## 스트라센 알고리즘 (Strassen Algorithm, 행렬 곱셈)
+
+* 스트라센 알고리즘의 개념
+    * 행렬 곱셈을 효율적으로 수행하기 위한 분할 정복 알고리즘입니다.
+    * 일반적인 행렬 곱셈의 O(n^3) 복잡도를 O(n^2.807)로 개선합니다.
+    * 7번의 곱셈과 18번의 덧셈/뺄셈으로 행렬 곱셈을 수행합니다.
+
+* 기본 구현
+    ```python
+    import numpy as np
+
+    def strassen(A, B):
+        n = len(A)
+        
+        # 기저 사례: 1x1 행렬
+        if n == 1:
+            return np.array([[A[0][0] * B[0][0]]])
+        
+        # 행렬을 4등분
+        mid = n // 2
+        A11 = A[:mid, :mid]
+        A12 = A[:mid, mid:]
+        A21 = A[mid:, :mid]
+        A22 = A[mid:, mid:]
+        
+        B11 = B[:mid, :mid]
+        B12 = B[:mid, mid:]
+        B21 = B[mid:, :mid]
+        B22 = B[mid:, mid:]
+        
+        # 7개의 곱셈
+        M1 = strassen(A11 + A22, B11 + B22)
+        M2 = strassen(A21 + A22, B11)
+        M3 = strassen(A11, B12 - B22)
+        M4 = strassen(A22, B21 - B11)
+        M5 = strassen(A11 + A12, B22)
+        M6 = strassen(A21 - A11, B11 + B12)
+        M7 = strassen(A12 - A22, B21 + B22)
+        
+        # 결과 행렬 계산
+        C11 = M1 + M4 - M5 + M7
+        C12 = M3 + M5
+        C21 = M2 + M4
+        C22 = M1 - M2 + M3 + M6
+        
+        # 결과 합치기
+        C = np.vstack([np.hstack([C11, C12]),
+                    np.hstack([C21, C22])])
+        
+        return C
+    ```
+
+* 최적화된 구현
+    ```python
+    class StrassenMultiplier:
+        def __init__(self, threshold=64):
+            self.threshold = threshold
+            
+        def multiply(self, A, B):
+            n = len(A)
+            # 임계값보다 작은 경우 일반 행렬 곱셈 사용
+            if n <= self.threshold:
+                return np.dot(A, B)
+                
+            # 2의 제곱수로 패딩
+            next_power = 1 << (n-1).bit_length()
+            if n != next_power:
+                A_padded = np.pad(A, ((0, next_power - n), (0, next_power - n)))
+                B_padded = np.pad(B, ((0, next_power - n), (0, next_power - n)))
+                result = self._strassen(A_padded, B_padded)
+                return result[:n, :n]
+                
+            return self._strassen(A, B)
+            
+        def _strassen(self, A, B):
+            n = len(A)
+            if n <= self.threshold:
+                return np.dot(A, B)
+                
+            mid = n // 2
+            A11, A12, A21, A22 = self._split_matrix(A)
+            B11, B12, B21, B22 = self._split_matrix(B)
+            
+            # 7개의 곱셈 수행
+            M1 = self._strassen(A11 + A22, B11 + B22)
+            M2 = self._strassen(A21 + A22, B11)
+            M3 = self._strassen(A11, B12 - B22)
+            M4 = self._strassen(A22, B21 - B11)
+            M5 = self._strassen(A11 + A12, B22)
+            M6 = self._strassen(A21 - A11, B11 + B12)
+            M7 = self._strassen(A12 - A22, B21 + B22)
+            
+            C11 = M1 + M4 - M5 + M7
+            C12 = M3 + M5
+            C21 = M2 + M4
+            C22 = M1 - M2 + M3 + M6
+            
+            return self._combine_matrix(C11, C12, C21, C22)
+            
+        def _split_matrix(self, M):
+            n = len(M)
+            mid = n // 2
+            return (M[:mid, :mid], M[:mid, mid:],
+                M[mid:, :mid], M[mid:, mid:])
+                
+        def _combine_matrix(self, C11, C12, C21, C22):
+            return np.vstack([np.hstack([C11, C12]),
+                            np.hstack([C21, C22])])
+    ```
+
+* 병렬 처리 버전
+    ```python
+    from concurrent.futures import ProcessPoolExecutor
+
+    class ParallelStrassen:
+        def __init__(self, threshold=64, num_processes=4):
+            self.threshold = threshold
+            self.num_processes = num_processes
+            
+        def multiply(self, A, B):
+            with ProcessPoolExecutor(max_workers=self.num_processes) as executor:
+                return self._parallel_strassen(A, B, executor)
+                
+        def _parallel_strassen(self, A, B, executor):
+            n = len(A)
+            if n <= self.threshold:
+                return np.dot(A, B)
+                
+            mid = n // 2
+            A11, A12, A21, A22 = self._split_matrix(A)
+            B11, B12, B21, B22 = self._split_matrix(B)
+            
+            # 병렬로 7개의 곱셈 수행
+            futures = [
+                executor.submit(self._parallel_strassen,
+                            A11 + A22, B11 + B22, executor),
+                executor.submit(self._parallel_strassen,
+                            A21 + A22, B11, executor),
+                executor.submit(self._parallel_strassen,
+                            A11, B12 - B22, executor),
+                executor.submit(self._parallel_strassen,
+                            A22, B21 - B11, executor),
+                executor.submit(self._parallel_strassen,
+                            A11 + A12, B22, executor),
+                executor.submit(self._parallel_strassen,
+                            A21 - A11, B11 + B12, executor),
+                executor.submit(self._parallel_strassen,
+                            A12 - A22, B21 + B22, executor)
+            ]
+            
+            M1, M2, M3, M4, M5, M6, M7 = [f.result() for f in futures]
+            
+            C11 = M1 + M4 - M5 + M7
+            C12 = M3 + M5
+            C21 = M2 + M4
+            C22 = M1 - M2 + M3 + M6
+            
+            return self._combine_matrix(C11, C12, C21, C22)
+    ```
+
+- 스트라센 알고리즘은 이론적으로는 더 빠르지만, 실제로는 작은 크기의 행렬에서 일반적인 행렬 곱셈보다는 느릴 수 있습니다.
+따라서 적절한 임계값을 설정하여 하이브리드 방식으로 구현하는 것이 좋습니다. 또한, 수치 안정성 문제가 있을 수 있으므로 과학 계산에서는 주의가
+필요합니다.
+
+- 실제 응용에서는 BLAS나 LAPACK과 같은 최적화된 라이브러리를 사용하는 것이 더 효율적일 수 있습니다. 스트라센 알고리즘은 주로 이론적인 중요성과
+대규모 행렬 연산의 가능성을 보여주는 데 의의가 있습니다.
