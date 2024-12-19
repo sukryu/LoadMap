@@ -2244,3 +2244,733 @@ C++는 계속해서 발전하고 있으며, 최신 표준들은 언어를 더욱
             $<$<CONFIG:Release>:-O3>
         )
         ```
+
+## C++ STL 코딩 테스트 필수 정리
+
+1. 입출력 최적화
+
+    1. 기본 입출력 최적화화
+        ```cpp
+        // 표준 입출력 동기화를 해제하여 입출력 속도 향상
+        ios::sync_with_stdio(false);
+        cin.tie(nullptr);
+        cout.tie(nullptr);
+        ```
+
+    2. Fast I/O 구현
+        ```cpp
+        // 빠른 정수 입력 구현
+        inline int read() {
+            int x = 0;
+            bool neg = false;
+            char c;
+            c = getchar();
+            if (c == '-') {
+                neg = true;
+                c = getchar();
+            }
+            for (; '0' <= c && c <= '9'; c = getchar())
+                x = x * 10 + (c - '0');
+            if (neg) x = -x;
+            return x;
+        }
+
+        // 빠른 문자열 입력
+        inline void readString(char* str) {
+            int idx = 0;
+            char c;
+            while ((c = getchar()) != '\n' && c != ' ' && c != EOF)
+                str[idx++] = c;
+            str[idx] = '\0';
+        }
+        ```
+
+2. 주요 컨테이너
+    1. `vector<T>`
+        - 동적 배열로, 연속된 메모리 공간에 원소를 저장합니다.
+        - 주요 연산자와와 복잡도
+            - 삽입/삭제
+                - `push_back()`: O(1) 평균
+                - `pop_back()`: O(1)
+                - `insert()`, `erase()`: O(n)
+
+            - 접근
+                - `operator[]`, `at()`: O(1)
+            
+            - 크기/용량
+                - `size()`, `empty()`: O(1)
+                - `resize()`: O(n)
+                - `reverse()`: O(n)
+        
+        ```cpp
+        vector<int> v;
+        v.push_back(1); // 뒤에 원소 추가
+        v.pop_back(); // 마지막 원소 제거
+        v.insert(v.begin() + 1, 2); // 특정 위치에 삽입
+        v.erase(v.begin()); // 특정 위치의 원소 삭제
+        v.clear(); // 모든 원소 제거
+
+        // 초기화
+        vector<int> v1(5, 0) // 크기 5, 모든 원소 0으로 초기화
+        vector<int> v2 = {1, 2, 3}; // 초기화 리스트 사용
+
+        // 주의사항과 최적화
+        // Common Pitfalls 방지
+        v.reserve(n);  // push_back 전에 미리 공간 할당
+        v.shrink_to_fit();  // 여분 메모리 해제
+
+        // 2차원 벡터 초기화 최적화
+        vector<vector<int>> graph(n, vector<int>(m, 0));  // 올바른 방법
+        // vector<vector<int>> graph[n][m];  // 잘못된 방법
+
+        // 벡터 내 원소 제거 시 주의사항
+        v.erase(remove(v.begin(), v.end(), value), v.end());  // remove-erase 이디엄
+        v.erase(unique(v.begin(), v.end()), v.end());  // 중복 제거
+
+        // 벡터 재할당 없이 앞쪽 원소 제거
+        v.erase(v.begin());  // O(n) 소요
+        // 대안: deque 사용 고려
+        ```
+
+    2. `deque<T>`
+        - 양쪽 끝에서 삽입/삭제가 효율적인 double-ended queue입니다.
+        - 주요 연산자와 복잡도
+            - 삽입/삭제
+                - `push_back()`, `push_front()`: O(1) 평균
+                - `pop_back()`, `pop_front()`: O(1)
+                - `insert()`, `erase()`: O(n)
+
+            - 접근
+                - `operator[]`, `at()`: O(1)
+
+        ```cpp
+        deque<int> dq;
+        dq.push_front(1); // 앞에 원소 추가
+        dq.push_back(2); // 뒤에 원소 추가
+        dq.pop_front(); // 앞 원소 제거
+        dq.pop_back(); // 뒤 원소 제거
+        ```
+
+    3. `set<T>`, `multiset<T>`
+        - 정렬된 상태를 유지하는 균형 이진 트리입니다.
+            - set: 중복을 허용하지 않음.
+            - multiset: 중복을 허용.
+
+        - 주요 연산자와 복잡도
+            - 삽입/삭제/검색: O(log n)
+                - `insert()`, `erase()`, `find()`
+            
+            - 정렬 상태 유지: 자동
+            - 특수 연산
+                - `lower_bound()`, `upper_bound()`: O(log n)
+
+        ```cpp
+        set<int> s;
+        s.insert(1);                // 원소 삽입
+        s.erase(1);                 // 원소 제거
+        auto it = s.find(1);        // 원소 검색
+        auto lb = s.lower_bound(1); // 이상인 첫 원소
+        auto ub = s.upper_bound(1); // 초과인 첫 원소
+
+        // multiset 특수 사용
+        multiset<int> ms;
+        ms.insert(1);
+        ms.insert(1);      // 중복 허용
+        ms.erase(ms.find(1)); // 특정 위치의 원소만 제거
+        ms.erase(1);          // 값이 1인 모든 원소 제거
+
+        // 주의사항과 최적화
+        // erase 사용 시 주의사항
+        s.erase(s.find(value));  // 특정 위치의 원소만 제거
+        s.erase(value);          // 해당 값을 가진 모든 원소 제거
+
+        // 커스텀 비교자 사용
+        struct Compare {
+            bool operator()(const pair<int,int>& a, const pair<int,int>& b) const {
+                if (a.first == b.first) return a.second < b.second;
+                return a.first < b.first;
+            }
+        };
+        set<pair<int,int>, Compare> custom_set;
+
+        // lower_bound와 upper_bound 활용
+        auto it = s.lower_bound(value);
+        if (it != s.begin()) {
+            --it;  // value보다 작은 최대값
+        }
+        ```
+
+    4. `map<k, v>`, `multimap<K, V>`
+        - 키-값 쌍을 저장하는 균형 이진 트리입니다.
+            - map: 키 중복 불가
+            - multimap: 키 중복 허용
+
+        - 주요 연산자와 복잡도
+            - 삽입/삭제/검색: O(log n)
+            - 키를 통한 접근: O(log n)
+
+        ```cpp
+        map<string, int> m;
+        m["key"] = 1;             // 삽입 또는 수정
+        m.insert({"key2", 2});    // 삽입
+        m.erase("key");           // 삭제
+        auto it = m.find("key2"); // 검색
+
+        // 없는 키 접근 시 기본값 처리
+        if(m.count("key3") > 0) {
+            cout << m["key3"];
+        }
+        ```
+
+    5. `unordered_set<T>`, `unordered_map<K, V>`
+        - 해시 테이블을 사용하는 컨테이너입니다.
+        - 주요 연산자와 복잡도
+            - 삽입/삭제/검색: O(1) 평균, O(n) 최악
+            - 정렬되지 않음.
+
+        ```cpp
+        unordered_set<int> us;
+        us.insert(1);       // O(1) 평균
+        us.erase(1);        // O(1) 평균
+        auto it = us.find(1); // O(1) 평균
+
+        unordered_map<string, int> um;
+        um["key"] = 1;      // O(1) 평균
+        um.erase("key");    // O(1) 평균
+
+        // 최적화
+        // 해시 충돌 최소화를 위한 커스텀 해시 함수
+        struct pair_hash {
+            template <class T1, class T2>
+            size_t operator()(const pair<T1, T2>& p) const {
+                auto h1 = hash<T1>{}(p.first);
+                auto h2 = hash<T2>{}(p.second);
+                return h1 ^ (h2 << 1);
+            }
+        };
+        unordered_map<pair<int,int>, int, pair_hash> map;
+
+        // 버킷 크기 최적화
+        unordered_map<int,int> um;
+        um.reserve(expected_size);  // 해시 테이블 재해시 횟수 감소
+        um.max_load_factor(0.25);   // 로드 팩터 조정으로 성능 최적화
+        ```
+
+    6. `priority_queue<T>`
+        - 최대 힙 또는 최소 힙을 구현한 우선순위 큐입니다.
+        - 주요 연산자와 복잡도
+            - 삽입/삭제: O(log n)
+            - 최댓값/최솟값 접근: O(1)
+
+        ```cpp
+        // 최대 힙 (기본)
+        priority_queue<int> pq;
+
+        // 최소 힙
+        priority_queue<int, vector<int>, greater<int>> min_pq;
+
+        pq.push(1);    // 원소 삽입
+        pq.pop();      // 최댓값 제거
+        int top = pq.top(); // 최댓값 확인
+
+        // 구조체/클래스 사용 시 비교 연산자 정의
+        struct Point {
+            int x, y;
+            bool operator<(const Point& p) const {
+                return x < p.x;
+            }
+        };
+        priority_queue<Point> pq_point;
+
+        // 최소값을 위한 여러 방법
+        priority_queue<int, vector<int>, greater<int>> min_pq;  // 방법 1
+        priority_queue<int> max_pq;  // 방법 2: 부호를 반대로 저장
+
+        // 구조체에 대한 우선순위 큐
+        struct Item {
+            int val, idx;
+            bool operator<(const Item& other) const {
+                return val > other.val;  // 최소 힙을 위해 부등호 방향 주의
+            }
+        };
+        priority_queue<Item> pq;
+
+        // 다익스트라에서의 활용
+        using pii = pair<int,int>;
+        priority_queue<pii, vector<pii>, greater<pii>> pq;  // {거리, 정점}
+        ```
+
+3. 주요 알고리즘
+    1. 정렬 관련
+        ```cpp
+        vector<int> v = {3,1,4,1,5};
+
+        // 기본 정렬 (오름차순)
+        sort(v.begin(), v.end());
+
+        // 내림차순 정렬
+        sort(v.begin(), v.end(), greater<int>());
+
+        // 사용자 정의 비교 함수
+        sort(v.begin(), v.end(), [](int a, int b) {
+            return a > b;
+        });
+
+        // 부분 정렬
+        partial_sort(v.begin(), v.begin() + 3, v.end());
+
+        // stable 정렬
+        stable_sort(v.begin(), v.end());
+
+        // nth_element: n번째 원소를 찾고 해당 위치에 배치
+        nth_element(v.begin(), v.begin() + n, v.end());
+
+        // partial_sort 활용 (Top-K 문제)
+        partial_sort(v.begin(), v.begin() + k, v.end());  // k번째까지만 정렬
+
+        // stable_partition으로 조건에 따른 안정적 분할
+        stable_partition(v.begin(), v.end(), [](int x) {
+            return x % 2 == 0;  // 짝수를 앞으로
+        });
+
+        // inplace_merge를 이용한 구간 병합
+        inplace_merge(v.begin(), v.begin() + mid, v.end());
+
+        // nth_element 활용 (중앙값, k번째 원소)
+        nth_element(v.begin(), v.begin() + v.size()/2, v.end());  // 중앙값
+        ```
+
+    2. 이진 탐색
+        ```cpp
+        vector<int> v = {1,2,3,4,5};
+
+        // 원소 존재 여부 확인
+        bool exists = binary_search(v.begin(), v.end(), 3);
+
+        // lower_bound: 이상인 첫 원소의 위치
+        auto lb = lower_bound(v.begin(), v.end(), 3);
+
+        // upper_bound: 초과인 첫 원소의 위치
+        auto ub = upper_bound(v.begin(), v.end(), 3);
+
+        // equal_range: lower_bound와 upper_bound 쌍 반환
+        auto range = equal_range(v.begin(), v.end(), 3);
+
+        // lower_bound 직접 구현 (이해와 커스터마이징용)
+        template<typename It, typename T>
+        It my_lower_bound(It begin, It end, const T& value) {
+            It it;
+            typename iterator_traits<It>::difference_type count, step;
+            count = distance(begin, end);
+            
+            while (count > 0) {
+                it = begin; 
+                step = count / 2;
+                advance(it, step);
+                
+                if (*it < value) {
+                    begin = ++it;
+                    count -= step + 1;
+                } else {
+                    count = step;
+                }
+            }
+            return begin;
+        }
+
+        // 실수 값에 대한 이진 탐색
+        double binary_search_real(double left, double right, function<bool(double)> check) {
+            const double EPS = 1e-9;
+            while (right - left > EPS) {
+                double mid = (left + right) / 2;
+                if (check(mid)) right = mid;
+                else left = mid;
+            }
+            return left;
+        }
+        ```
+
+    3. 순열 관련
+        ```cpp
+        vector<int> v = {1,2,3};
+
+        // 다음 순열
+        do {
+            // v의 현재 순열 처리
+        } while(next_permutation(v.begin(), v.end()));
+
+        // 이전 순열
+        while(prev_permutation(v.begin(), v.end()));
+
+        // 조합 생성 최적화 (비트마스크 활용)
+        void combinations(int n, int r) {
+            for (int mask = 0; mask < (1 << n); mask++) {
+                if (__builtin_popcount(mask) == r) {
+                    // mask의 1인 비트가 선택된 원소
+                }
+            }
+        }
+
+        // 다음 순열 직접 구현 (이해용)
+        bool my_next_permutation(vector<int>& v) {
+            int i = v.size() - 2;
+            while (i >= 0 && v[i] >= v[i + 1]) i--;
+            if (i < 0) return false;
+            
+            int j = v.size() - 1;
+            while (v[j] <= v[i]) j--;
+            swap(v[i], v[j]);
+            
+            reverse(v.begin() + i + 1, v.end());
+            return true;
+        }
+        ```
+
+    4. 기타 유용한 알고리즘
+        ```cpp
+        vector<int> v = {1,2,3,4,5};
+
+        // 최대/최소 원소
+        auto max_it = max_element(v.begin(), v.end());
+        auto min_it = min_element(v.begin(), v.end());
+
+        // 원소 개수 세기
+        int count_2 = count(v.begin(), v.end(), 2);
+
+        // 조건을 만족하는 원소 개수
+        int count_even = count_if(v.begin(), v.end(), 
+            [](int x) { return x % 2 == 0; });
+
+        // 범위 내 합계
+        int sum = accumulate(v.begin(), v.end(), 0);
+
+        // 원소 채우기
+        fill(v.begin(), v.end(), 0);
+
+        // 중복 원소 제거 (정렬 후)
+        sort(v.begin(), v.end());
+        v.erase(unique(v.begin(), v.end()), v.end());
+
+        // 원소 회전
+        rotate(v.begin(), v.begin() + 1, v.end());
+        ```
+
+4. 유용한 유틸리티
+    1. `pair<T1, T2>`
+        - 두 값을 묶어서 저장합니다.
+        ```cpp
+        pair<int, string> p = {1, "one"};
+        p = make_pair(2, "two");
+        auto [num, str] = p;  // C++17 구조적 바인딩
+        ```
+
+    2. `tuple<Types...>`
+        - 여러 값을 묶어서 저장합니다.
+        ```cpp
+        tuple<int, string, double> t = {1, "one", 1.0};
+        t = make_tuple(2, "two", 2.0);
+        auto [num, str, dbl] = t;  // C++17 구조적 바인딩
+        ```
+
+    3. `string`
+        - 문자열 처리를 위한 클래스입니다.
+        ```cpp
+        string s = "hello";
+        s += " world";           // 문자열 연결
+        s.substr(0, 5);         // 부분 문자열
+        s.find("world");        // 문자열 검색
+        s.replace(0, 5, "hi");  // 부분 문자열 교체
+        ```
+
+5. 자주 사용되는 문제 유형별 STL 활용
+    1. 그래프 문제
+        ```cpp
+        // 인접 리스트
+        vector<vector<int>> adj;
+        // 또는
+        vector<vector<pair<int,int>>> adj;  // 가중치 그래프
+
+        // BFS
+        queue<int> q;
+        vector<bool> visited;
+
+        // DFS
+        stack<int> s;
+        // 또는 재귀 사용
+
+        // 다익스트라
+        priority_queue<pair<int,int>> pq;
+        ```
+
+    2. 문자열 처리
+        ```cpp
+        // 문자열 파싱
+        stringstream ss(input_string);
+        string token;
+        while(getline(ss, token, ' ')) {
+            // 토큰 처리
+        }
+
+        // 문자열 변환
+        string num_str = to_string(42);
+        int num = stoi("42");
+        ```
+
+    3. 구간 처리
+        ```cpp
+        // 누적 합
+        vector<int> psum(n + 1);
+        partial_sum(arr.begin(), arr.end(), psum.begin() + 1);
+
+        // 슬라이딩 윈도우
+        deque<int> window;
+        ```
+
+    4. 집합 연산
+        ```cpp
+        vector<int> v1 = {1,2,3}, v2 = {2,3,4};
+        vector<int> result;
+
+        // 교집합
+        set_intersection(v1.begin(), v1.end(),
+                        v2.begin(), v2.end(),
+                        back_inserter(result));
+
+        // 합집합
+        set_union(v1.begin(), v1.end(),
+                v2.begin(), v2.end(),
+                back_inserter(result));
+
+        // 차집합
+        set_difference(v1.begin(), v1.end(),
+                    v2.begin(), v2.end(),
+                    back_inserter(result));
+        ```
+
+6. 성능 최적화 팁
+    1. 벡터 크기 미리 할당
+        ```cpp
+        vector<int> v;
+        v.reserve(1000000);  // 메모리 재할당 횟수 감소
+        ```
+
+    2. 참조로 전달하여 복사 비용 감소
+        ```cpp
+        void process(const vector<int>& v) {
+            // 벡터를 복사하지 않고 참조로 사용
+        }
+        ```
+
+    3. emplace 계열 함수 사용
+        ```cpp
+        vector<pair<int,int>> v;
+        v.emplace_back(1, 2);  // 임시 객체 생성 없이 직접 생성
+        ```
+
+    4. 적절한 컨테이너 선택
+        - 랜덤 접근 많음: vector
+        - 양끝 삽입/삭제 많음: deque
+        - 정렬된 상태 유지 필요: set/map
+        - 해시 기반 빠른 검색 필요: unordered_set/map
+
+7. 실전 최적화 테크닉
+    1. 메모리 최적화
+        ```cpp
+        // 메모리 제한이 빡빡할 때
+        #pragma GCC optimize("O3")
+        #pragma GCC target("avx2")
+
+        // 불필요한 메모리 해제
+        vector<int>().swap(v);  // 벡터 메모리 완전 해제
+
+        // 작은 정수형 활용
+        using i8 = int8_t;
+        using u8 = uint8_t;
+        vector<u8> graph;  // 메모리 절약
+        ```
+
+    2. 실행 시간 최적화
+        ```cpp
+        // 입력이 많은 경우
+        char buf[1 << 20];
+        int idx = 0;
+
+        inline char read_char() {
+            if (idx == sizeof(buf)) {
+                fread(buf, 1, sizeof(buf), stdin);
+                idx = 0;
+            }
+            return buf[idx++];
+        }
+
+        // 상수 시간 최적화
+        const int dx[] = {-1, 0, 1, 0};
+        const int dy[] = {0, 1, 0, -1};
+        ```
+
+    3. 유용한 디버깅 테크닉
+        ```cpp
+        // 벡터 출력 함수
+        template<typename T>
+        void print_vector(const vector<T>& v) {
+            cout << "size: " << v.size() << ", [";
+            for (const auto& x : v) cout << x << " ";
+            cout << "]\n";
+        }
+
+        // 디버그 매크로
+        #define DEBUG
+        #ifdef DEBUG
+            #define debug(x) cerr << #x << ": " << x << endl
+        #else
+            #define debug(x)
+        #endif
+        ```
+
+8. 자주 발생하는 실수와 해결책
+    1. 정수 오버플로우
+        ```cpp
+        // 덧셈에서의 오버플로우
+        long long sum = 0LL;
+        for (int x : v) {
+            sum += x;  // int 대신 long long 사용
+        }
+
+        // 곱셈에서의 오버플로우
+        long long mul = (long long)a * b;  // 명시적 형변환 필요
+        ```
+
+    2. STL 컨테이너의 잘못된 사용
+        ```cpp
+        // 반복자 무효화
+        vector<int> v = {1, 2, 3, 4, 5};
+        for (auto it = v.begin(); it != v.end(); ) {
+            if (*it % 2 == 0) {
+                it = v.erase(it);  // 올바른 방법
+            } else {
+                ++it;
+            }
+        }
+
+        // map에서 키 존재 여부 체크
+        if (m.find(key) != m.end()) {  // 올바른 방법
+            // 키가 존재할 때의 처리
+        }
+        // m[key]  // 잘못된 방법: 키가 없으면 기본값이 삽입됨
+        ```
+
+    3. 메모리 누수 방지
+        ```cpp
+        // RAII 활용
+        class ArrayWrapper {
+            int* arr;
+        public:
+            ArrayWrapper(int n) : arr(new int[n]) {}
+            ~ArrayWrapper() { delete[] arr; }
+            // 복사 생성자와 대입 연산자 구현 필요
+        };
+        ```
+
+9. 문제 유형별 접근 전략 및 권장 자료구조/알고리즘
+    1. 그래프 이론 문제
+        - 유형 예시: 최단 거리 문제, 사이클 탐지, 최소 스패닝 트리, 위상 정렬, 강연결 요소, 이분 매칭 등
+        - 대표적인 알고리즘 및 자료구조:
+            - 최단 거리(단일 시작점, 가중치 양수): 다익스트라(우선순위 큐), 벨만-포드(음수 가중치), SPFA
+            - 최소 스패닝 트리: 크루스칼(유니온 파인드), 프림(우선순위 큐)
+            - 위상 정렬: 진입 차수 배열 + 큐
+            - 강연결 요소(SCC): Tarjan 또는 Kosaraju 알고리즘 (인접 리스트 + 스택)
+            - 이분 매칭/네트워크 플로우: 에드몬드-카프, Dinic 알고리즘 (큐, 인접 리스트)
+        - 해결 흐름:
+            - 문제에서 "최단 거리"가 언급 -> 다익스트라(양수 가중치), BFS(가중치가 동일할 때), 벨만-포드(음수 가중치)
+            - MST 요구 -> 그래프 간선 정렬 후 크루스칼 or 인접 리스트로 프림
+            - 위상 정렬 요구 (방향 그래프에서 선행 관계) -> 진입 차수 계산 -> 큐를 이용한 위상 정렬
+
+    2. 트리 문제
+        - 유형 예시: 트리의 지름, LCA(최소 공통 조상), 서브트리 합, 경로 관련 쿼리
+        - 대표 자료구조 및 알고리즘
+            - LCA: 희소 테이블 (Sparse Table), 세그먼트 트리나 RMQ를 이용한 LCA
+            - 트리의 지름: 두 번의 BFS/DFS
+            - 경로 쿼리: Heavy-Light Decomposition, Centroid Decomposition
+        - 해결 흐름:
+            - LCA 문제가 나옴 -> 전처리: Sparse Table 구성 (O(NlogN)), 쿼리 O(1) 처리
+            - 트리 경로 최대/최소 합 요구 -> Heavy-Light Decomposition으로 경로를 O(log N)에 분해하고 세그먼트 트리로 쿼리 처리
+
+    3. 문자열 처리 문제
+        - 유형 예시: 접두사/접미사 일치, 부분 문자열 검색, 문자열 정렬 후 사전순 최소,회문 검사, 접미사 배열, KMP
+        - 대표 알고리즘
+            - 부분 문자열 검색: KMP(접두사-접미사 테이블), Rabin-Karp(해싱)
+            - 가장 긴 접두사/접미사: KMP의 pi배열 활용
+            - 접미사 배열/접미사 매열 + LCP: O(N log N)문자열 정렬, LCP 계산 -> 사전순 k번째 부분 문자열 문제 등 해결
+        - 해결 흐름:
+            - 부분 문자열 존재 여부, 출현 횟수 -> KMP로 O(N) 처리
+            - 사전순 k번째 부분문자열 요구 -> 접미사 배열 + LCP 이용
+            - 문자열 패턴 매칭 대량 -> Rabin-Karp나 KMP로 효율적 처리
+
+    4. 동적 계획법(DP)
+        - 유형 예시: 최대/최소 경로 문제, 배낭 문제, LIS, 분할 정복 DP, DP on Trees
+        - 대표 기법:
+            - 배낭 문제: O(NW) DP (N: 아이템 수, W: 용량), Bitset 최적화
+            - LIS(Longest Increasing Subsequence): O(N log N) 알고리즘 (이진 탐색)
+            - 구간 DP: 펠린드롬 분할, 행렬 체인 곱셈
+            - Tree DP: 서브트리 DP, DFS로 상태 계산
+
+        - 해결 흐름:
+            - 최적 부분 구조 확인 -> DP 정의
+            - 상태 정의 후 점화식 세우기
+            - 1차원/2차원 배열로 DP 테이블 구성
+            - 최적화 필요 시 정렬, 이진 탐색, Sparse Table, 세그먼트 트리, Bitset 등 고려
+
+    5. 정렬/이진 탐색 문제
+        - 유형 예시: 특정 조건을 만족하는 최소/최대 값 찾기, 파라메트릭 서치(Parametric Search)
+        - 대표 기법:
+            - 파라메트릭 서치: 이분 탐색 + 결정 함수(check)
+            - 정렬 후 투 포인터(Two Pointers) 사용
+        
+        - 해결 흐름:
+            - "어떤 값을 구할 수 있나?" -> 파라메트릭 서치 고려 (값을 mid로 두고 check 함수)
+            - "특정 조건 만족하는 최소 인덱스/최소 값 찾기" -> lower_bound / upper_bound 활용
+
+    6. 그리디 알고리즘
+        - 유형 예시: 최소 동전 수, 회의실 배정, 인터벌 스케줄링, 작업 선택 문제
+        - 대표 기법:
+            - 정렬 후, 현재까지 선택한 것에 최선의 선택(예: 회의실 배정: 끝나는 시간 기준 정렬 후 순차 배정)
+        - 해결 흐름:
+            - "정렬 후 한 번 스캔으로 결정 가능?" -> 그리디 의심
+            - "국소 최적 해 선택으로 전체 최적 가능?" -> 그리디 적용
+
+    7. 수학적 문제 (수론, 조합론)
+        - 유형 예시: 최대공약수, 최소공배수, 소인수분해, 페르마 소정리, 모듈러 연산
+        - 대표 기법:
+            - GCD, LCM: 유클리드 알고리즘
+            - 소수 판정: 에라토스테네스의 체
+            - 모듈러 연산: (a + b) % M, (a * b) % M
+            - 페르마 소정리로 모듈러 역원 구하기(LCM 계산, 이항계수 계산)
+        - 해결 흐름:
+            - 큰 수 소인수분해 -> 에라토스테네스 + 투 포인터
+            - nCr % M 구하기 -> 페르마 소정리, 팩토리얼 전처리, 모듈러 역원 계산
+
+    8. 투 포인터 / 슬라이딩 윈도우
+        - 유형 예시: 연속 구간 합, 길이/조건에 맞는 부분 수열/문자열
+        - 대표 기법:
+            - 투 포인터로 O(N)에 부분합/조건 검사
+            - 정렬된 배열에서 두 포인터로 합 특정 값 찾기
+
+        - 해결 흐름:
+            - "연속 구간" + "합 또는 조건" -> 투 포인터
+            - 조건 만족 시 오른쪽 포인터 이동, 불만족 시 왼쪽 포인터 이동
+
+    9. 힙 / 우선순위 큐 활용 문제
+        - 유형 예시: 실시간으로 최대/최소 추출, k번째 최소 원소, 다익스트라, 트림 MST
+        - 해결 흐름:
+            - 최대/최소를 자주 요구 -> priority_queue 사용
+            - k번째 원소 찾기 -> partial_sort 또는 priotiry_queue로 O(n log k)관리
+
+    10. 세그먼트 트리 / 펜윅 트리 (Fenwick Tree)
+        - 유형 예시: 구간 합/최대/최소 쿼리, 업데이트 + 쿼리 빈번
+        - 대표 자료구조:
+            - 세그먼트 트리: O(log n) 업데이트/쿼리
+            - 펜윅 트리(BIT): O(log n) 업데이트/쿼리, 구현 간단
+
+        - 해결 흐름:
+            - 구간 합/최대/최소를 빈번히 요구 -> 세그먼트 트리 / 펜윅 트리
+            - offline으로 정렬 후 이진 탐색과 세그먼트 트리 조합 가능
