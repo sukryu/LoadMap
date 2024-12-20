@@ -30,6 +30,25 @@
 
         return arr
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    void selection_sort(std::vector<int>& arr) {
+        int n = static_cast<int>(arr.size());
+
+        for (int i = 0; i < n; i++) {
+            int min_idx = i;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[j] < arr[min_idx]) {
+                    min_idx = j;
+                }
+            }
+            std::swap(arr[i], arr[min_idx]);
+        }
+    }
+    ```
 
 * 시간 복잡도
     * 최선의 경우: O(n^2)
@@ -119,6 +138,25 @@
         arr[j + 1] = key
     
     return arr
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    void insertion_sort(std::vector<int>& arr) {
+        int n = static_cast<int>(arr.size());
+
+        for (int i = 1; i < n; i++) {
+            int key = arr[i];
+            int j = i - 1;
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j--;
+            }
+            arr[j + 1] = key;
+        }
+    }
     ```
 
 * 시간 복잡도:
@@ -279,6 +317,23 @@
         
         return arr
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    void bubble_sort(std::vector<int>& arr) {
+        int n = static_cast<int>(arr.size());
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    std::swap(arr[j], arr[j + 1]);
+                }
+            }
+        }
+    }
+    ```
 
 * 최적화된 구현
     ```python
@@ -299,6 +354,28 @@
                 break
         
         return arr
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    void optimized_bubble_sort(std::vector<int>& arr) {
+        int n = static_cast<int>(arr.size());
+
+        for (int i = 0; i < n; i++) {
+            bool swapped = false;
+
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    std::swap(arr[j], arr[j + 1]);
+                    swapped = true;
+                }
+            }
+
+            if (!swapped) break;
+        }
+    }
     ```
 
 * 시간 복잡도
@@ -437,6 +514,32 @@
             gap //= 2
         
         return arr
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    void shell_sort(std::vector<int>& arr) {
+        int n = static_cast<int>(arr.size());
+        int gap = n / 2;
+
+        while (gap > 0) {
+            for (int i = gap; i < n; i++) {
+                int temp = arr[i];
+                int j = i;
+
+                while (j >= gap && arr[j - gap] > temp) {
+                    arr[j] = arr[j - gap];
+                    j -= gap;
+                }
+
+                arr[j] = temp;
+            }
+
+            gap /= 2;
+        }
+    }
     ```
 
 * 시간 복잡도
@@ -627,6 +730,53 @@
         result.extend(right[j:])
         return result
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    std::vector<int> merge(
+        std::vector<int>& left,
+        std::vector<int>& right
+    ) {
+        std::vector<int> result;
+        result.reserve(left.size() + right.size());
+
+        int i = 0, j = 0;
+        int n_left = static_cast(left.size());
+        int n_right = static_cast(right.size());
+
+        while (i < n_left && j < n_right) {
+            if (left[i] <= right[j]) {
+                result.push_back(left[i]);
+                i++;
+            } else {
+                result.push_back(right[i]);
+                j++;
+            }
+        }
+
+        result.insert(result.end(), left.begin() + i; left.end());
+        result.insert(result.end(), right.begin() + j; right.end());
+
+        return result;
+    }
+
+    std::vector<int> merge_sort(std::vector<int> arr) {
+        int n = static_cast<int>(arr.size());
+
+        if (n <= 1) return arr;
+
+        int mid = n / 2;
+        std::vector<int> left_part(arr.begin(), arr.begin() + mid);
+        std::vector<int> right_part(arr.begin() + mid, arr.end());
+
+        left_part = merge_sort(left_part);
+        right_part = merge_sort(right_part);
+
+        return merge(left_part, right_part);
+    }
+    ```
 
 * 최적화된 구현
     ```python
@@ -760,6 +910,43 @@ MergeSort를 사용합니다.
         
         return quick_sort(left) + middle + quick_sort(right)
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    std::vector<int> quick_sort(std::vector<int>& arr) {
+        int len = static_cast<int>(arr.size());
+        if (len <= 1) return arr;
+
+        int pivot = arr[len / 2];
+
+        std::vector<int> left_part;
+        std::vector<int> middle_part;
+        std::vector<int> right_part;
+
+        for (int i = 0; i < len; i++) {
+            if (arr[i] < pivot) {
+                left_part.push_back(arr[i]);
+            } else if (arr[i] == pivot) {
+                middle_part.push_back(arr[i]);
+            } else {
+                right_part.push_back(arr[i]);
+            }
+        }
+
+        left_part = quick_sort(left_part);
+        right_part = quick_sort(right_part);
+
+        std::vector<int> result;
+        result.reserve(left_part.size() + middle_part.size() + right_part.size());
+        result.insert(result.end(), left_part.begin(), left_part.end());
+        result.insert(result.end(), middle_part.begin(), middle_part.end());
+        result.insert(result.end(), right_part.begin(), right_part.end());
+
+        return result;
+    }
+    ```
 
 * 최적화된 구현 (In-place 퀵 정렬)
     ```python
@@ -786,6 +973,40 @@ MergeSort를 사용합니다.
     # 호출
     def quick_sort_wrapper(arr):
         return optimized_quick_sort(arr, 0, len(arr) - 1)
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    int partition(std::vector<int>& arr, int low, int high) {
+        int pivot = arr[high];
+        int i = low - 1;
+
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                std::swap(arr[i], arr[j]);
+            }
+        }
+
+        std::swap(arr[i + 1], arr[high]);
+        return i + 1;
+    }
+
+    void quick_sort(std::vector<int>& arr, int low, int high) {
+        if (low < high) {
+            int pivot_index = partition(arr, low, high);
+            quick_sort(arr, low, pivot_index - 1);
+            quick_sort(arr, pivot_index + 1, high);
+        }
+    }
+
+    void quick_sort_wrapper(std::vector<int>& arr) {
+        if (!arr.empty()) {
+            quick_sort(arr, 0, static_cast<int>(arr.size()) - 1);
+        }
+    }
     ```
 
 * 향상된 피벗 선택
@@ -910,6 +1131,39 @@ MergeSort를 사용합니다.
                 indices.append(i)
         return indices if indices else [-1]
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    int linear_search(std::vector<int>& arr, int target) {
+        int len = static_cast<int>(arr.size());
+
+        for (int i = 0; i < len; i++) {
+            if (arr[i] == target) return i;
+        }
+        return -1;
+    }
+
+    std::vector<int> linear_search_multiple(std::vector<int>& arr, int target) {
+        int len = static_cast<int>(arr.size());
+        std::vector<int> indices;
+        indices.reserve(len / 2);  // 단순히 메모리 예약, 꼭 필요한 건 아님
+
+        for (int i = 0; i < len; i++) {
+            if (arr[i] == target) {
+                indices.push_back(i);
+            }
+        }
+
+        if (!indices.empty()) {
+            return indices;
+        } else {
+            return std::vector<int>(); 
+        }
+    }
+
+    ```
 
 * 최적화된 구현:
     ```python
@@ -929,6 +1183,31 @@ MergeSort를 사용합니다.
         if i < n:
             return i
         return -1
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    int optimized_linear_search(std::vector<int>& arr, int target) {
+        int n = static_cast<int>(arr.size());
+
+        // 보초값(sentinel) 추가
+        arr.push_back(target);
+
+        int i = 0;
+        while (arr[i] != target) {
+            i++;
+        }
+
+        // 보초값 제거
+        arr.pop_back();
+
+        // target을 찾았는지 확인
+        if (i < n)
+            return i;
+        return -1;
+    }
     ```
 
 * 시간 복잡도
@@ -1050,6 +1329,26 @@ MergeSort를 사용합니다.
         
         return -1  # 요소를 찾지 못한 경우
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    int binary_search(std::vector<int>& arr, int target) {
+        int len = static_cast<int>(arr.size());
+        int left = 0;
+        int right = len - 1;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+
+            if (arr[mid] == target) return mid;
+            else if (arr[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
+    }
+    ```
 
 * 재귀적 구현
     ```python
@@ -1065,6 +1364,30 @@ MergeSort를 사용합니다.
             return recursive_binary_search(arr, target, mid + 1, right)
         else:
             return recursive_binary_search(arr, target, left, mid - 1)
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+
+    int recursive_binary_search(
+        std::vector<int>& arr,
+        int target,
+        int left,
+        int right
+    ) {
+        if (left > right) return -1;
+
+        int mid = (left + right) / 2;
+
+        if (arr[mid] == target) return mid;
+        else if (arr[mid] < target) {
+            return recursive_binary_search(arr, target, mid + 1, right);
+        }
+        else {
+            return recursive_binary_search(arr, target, left, mid - 1);
+        }
+    }
     ```
 
 * 시간 복잡도
@@ -1203,6 +1526,26 @@ MergeSort를 사용합니다.
                     
             return left
         ```
+        ```cpp
+        #include <iostream>
+        #include <vector>
+        #include <algorithm>
+
+        int lower_bound(const std::vector<int>& arr, int target) {
+            int len = static_cast<int>(arr.size());
+            int left = 0;
+            int right = len;
+
+            while (left < right) {
+                int mid = (left + right) / 2;
+                if (arr[mid] < target)
+                    left = mid + 1;
+                else
+                    right = mid;
+            }
+            return left;
+        }
+        ```
 
     2. 상한 검색 (Upper Bound)
         ```python
@@ -1219,6 +1562,26 @@ MergeSort를 사용합니다.
                     
             return left
         ```
+        ```cpp
+        #include <iostream>
+        #include <vector>
+        #include <algorithm>
+
+        int upper_bound(const std::vector<int>& arr, int target) {
+            int len = static_cast<int>(arr.size());
+            int left = 0;
+            int right = len;
+
+            while (left < right) {
+                int mid = (left + right) / 2;
+                if (arr[mid] <= target)
+                    left = mid + 1;
+                else
+                    right = mid;
+            }
+            return left;
+        }
+        ```
 
 * 고급 응용
     1. 범위 검색
@@ -1231,6 +1594,25 @@ MergeSort를 사용합니다.
             if first <= last:
                 return [first, last]
             return [-1, -1]
+        ```
+        ```cpp
+        #include <iostream>
+        #include <vector>
+        #include <algorithm>
+
+        std::vector<int> find_range(std::vector<int>& arr, int target) {
+            int first = lower_bound(arr, target);
+            int last = upper_bound(arr, target) - 1;
+            std::vector<int> result;
+            if (first <= last) {
+                result.push_back(first);
+                result.push_back(last);
+                return result;
+            }
+            result.push_back(-1);
+            result.push_back(-1);
+            return result;
+        }
         ```
 
     2. 순환 배열에서의 검색
@@ -1259,6 +1641,43 @@ MergeSort를 사용합니다.
                         right = mid - 1
                         
             return -1
+        ```
+        ```cpp
+        #include <iostream>
+        #include <vector>
+        #include <algorithm>
+        using namespace std;
+
+        int search_rotated(vector<int>& arr, int target) {
+            int len = (int)arr.size();
+            int left = 0;
+            int right = len - 1;
+
+            while (left <= right) {
+                int mid = (left + right) / 2;
+
+                if (arr[mid] == target) return mid;
+
+                // 왼쪽 부분이 정렬된 경우
+                if (arr[left] <= arr[mid]) {
+                    if (arr[left] <= target && target < arr[mid]) {
+                        right = mid - 1;
+                    } else {
+                        left = mid + 1;
+                    }
+                } 
+                // 오른쪽 부분이 정렬된 경우
+                else {
+                    if (arr[mid] < target && target <= arr[right]) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+            }
+
+            return -1;
+        }
         ```
 
 * 실수 값에서의 이진 검색
