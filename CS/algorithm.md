@@ -1698,7 +1698,37 @@ MergeSort를 사용합니다.
                 right = mid
                     
         return left
-        ```
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+    #include <functional>
+    #include <cmath>
+
+    double binary_search_real(std::function<double(double)> func,
+                        double target,
+                        double left = 0.0,
+                        double right = 1e9,
+                        double epsilon = 1e-9)
+    {
+        while ((right - left) > epsilon) {
+            double mid = (left + right) / 2.0;
+            double result = func(mid);
+
+            if (std::fabs(result - target) < epsilon) {
+                return mid;
+            }
+            else if (result < target) {
+                left = mid;
+            }
+            else {
+                right = mid;
+            }
+        }
+        return left;
+    }
+    ```
 
 * 최적화 문제 해결
     ```python
@@ -1741,6 +1771,75 @@ MergeSort를 사용합니다.
                 left = mid + 1
                 
         return result
+    ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+    #include <numeric>  // std::accumulate
+
+    // 1. Peak element 찾기 (이진 탐색 기반)
+    int find_peak_element(const std::vector<int>& arr) {
+        int left = 0;
+        int right = static_cast<int>(arr.size()) - 1;
+
+        while (left < right) {
+            int mid = (left + right) / 2;
+            // 만약 arr[mid]가 arr[mid + 1]보다 크다면, peak는 왼쪽 구간에 존재
+            if (arr[mid] > arr[mid + 1]) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        // left == right일 때가 peak의 인덱스
+        return left;
+    }
+
+    // 2. 최대 구간 합을 제한하여 K개의 구간으로 나눌 수 있는지 검사하는 함수
+    bool can_divide(const std::vector<int>& arr, int max_sum, int k) {
+        int current_sum = 0;
+        int count = 1;  // 첫 번째 구간 시작
+        for (int num : arr) {
+            // 현재 구간에 추가할 수 없으면, 새 구간 시작
+            if (current_sum + num > max_sum) {
+                count++;
+                current_sum = num;
+                // k개의 구간을 초과하면 false
+                if (count > k) return false;
+            } else {
+                current_sum += num;
+            }
+        }
+        // k개의 구간으로 나눌 수 있으면 true
+        return true;
+    }
+
+    // 3. 최대 구간 합을 최소화하는 문제 (Binary Search로 해결)
+    int minimize_maximum(std::vector<int>& arr, int k) {
+        // 각 원소 중 최댓값(왼쪽 범위)과 전체 합(오른쪽 범위) 구하기
+        int left = 0;  // max(arr)
+        int right = 0; // sum(arr)
+        for (int num : arr) {
+            left = std::max(left, num);
+            right += num;
+        }
+
+        int result = right; // 초기값: 전체 합
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            // mid(=max_sum)로 K구간 이하로 나눌 수 있다면
+            if (can_divide(arr, mid, k)) {
+                result = mid;      // 가능한 답 갱신
+                right = mid - 1;   // 더 작은 값이 가능한지 탐색
+            } else {
+                left = mid + 1;    // mid보다 크게 잡아야 구간 나누기가 가능
+            }
+        }
+
+        return result;
+    }
     ```
 
 * 병렬 처리를 위한 이진 검색
@@ -1785,6 +1884,79 @@ MergeSort를 사용합니다.
                     
             return -1
     ```
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <thread>
+    #include <mutex>
+    #include <atomic>
+    #include <algorithm>
+
+    // 구간 [start, end]에서 target을 이진 탐색하는 함수
+    // 발견 시 해당 인덱스를 반환, 없으면 -1
+    int search_range(const std::vector<int>& arr, int start, int end, int target) {
+        while (start <= end) {
+            int mid = (start + end) / 2;
+            if (arr[mid] == target) return mid;
+            else if (arr[mid] < target) {
+                start = mid + 1;
+            }
+            else {
+                end = mid - 1;
+            }
+        }
+        return -1;
+    }
+
+    class ParallelBinarySearch {
+    public:
+        // 생성자: 배열을 받아서 내부에 저장
+        ParallelBinarySearch(const std::vector<int>& arr) : arr_(arr) {}
+
+        // num_threads 개의 스레드로 이진 탐색
+        int parallel_search(int target, int num_threads = 4) {
+            int n = static_cast<int>(arr_.size());
+            if (n == 0) return -1;
+
+            // 각 스레드가 찾은 인덱스를 저장할 원자 (초기 -1: 찾지 못함)
+            // 하나라도 찾으면 이 값이 업데이트 됨.
+            std::atomic<int> found_index(-1);
+
+            // 스레드를 저장할 벡터
+            std::vector<std::thread> threads;
+            threads.reserve(num_threads);
+
+            // 구간을 나누어서 할당
+            int chunk_size = n / num_threads;
+
+            // 병렬로 각 구간을 탐색
+            for (int i = 0; i < num_threads; i++) {
+                int start = i * chunk_size;
+                int end = (i == num_threads - 1) ? (n - 1) : (start + chunk_size - 1);
+
+                threads.emplace_back([&, start, end, target]() {
+                    // 이미 스레드가 찾았다면 굳이 수행할 필요 없지만
+                    // (간단하게) 계속 수행해도 되도록 설계.
+                    // 필요 시 found_index.load() != -1 조건으로 조기 종료 가능.
+
+                    int local_result = search_range(arr_, start, end, target);
+                    if (local_result != -1) {
+                        found_index.store(local_result);
+                    }
+                });
+            }
+
+            for (auto &t : threads) {
+                t.join();
+            }
+
+            return found_index.load();
+        }
+
+    private:
+        const std::vector<int>& arr_;
+    };
+    ```
 
 * 이진 검색 트리와의 연계
     ```python
@@ -1819,6 +1991,77 @@ MergeSort를 사용합니다.
                 return self.value
             else:
                 return self.right.find_kth_element(k - left_count - self.count)
+    ```
+    ```cpp
+    #include <bits/stdc++.h>
+    using namespace std;
+
+    struct BSTNode {
+        int value;         // 노드 값
+        int count;         // 중복된 value의 개수
+        int subtree_size;  // (왼쪽서브트리 + 오른쪽서브트리 + this->count)
+        BSTNode* left;
+        BSTNode* right;
+
+        BSTNode(int v)
+            : value(v), count(1), subtree_size(1), left(nullptr), right(nullptr) {}
+
+        void update_subtree_size(BSTNode* node) {
+            if (!node) return;
+            int left_size = (node->left ? node->left->subtree_size : 0);
+            int right_size = (node->right ? node->right->subtree_size : 0);
+            // 현재 노드의 총 개수 = 왼쪽 서브트리 개수 + 오른쪽 서브트리 개수 + 현재 노드 count
+            node->subtree_size = left_size + right_size + node->count;
+        }
+
+        BSTNode* insert_node(BSTNode* node, int value) {
+            if (!node) {
+                // 노드가 없으면 새로 할당
+                return new BSTNode(value);
+            }
+
+            if (value == node->value) {
+                // 동일한 값 -> count 증가
+                node->count++;
+            }
+            else if (value < node->value) {
+                // 왼쪽 서브트리에 삽입
+                node->left = insert_node(node->left, value);
+            }
+            else {
+                // 오른쪽 서브트리에 삽입
+                node->right = insert_node(node->right, value);
+            }
+
+            // 서브트리 크기 갱신
+            update_subtree_size(node);
+            return node;
+        }
+
+        int find_kth_element(BSTNode* node, int k) {
+            if (!node) {
+                // 유효 범위 벗어나면 -1 등으로 에러처리
+                return -1;
+            }
+
+            int left_size = (node->left ? node->left->subtree_size : 0);
+
+            if (k <= left_size) {
+                // 왼쪽 서브트리로
+                return find_kth_element(node->left, k);
+            } 
+            else if (k <= left_size + node->count) {
+                // 현재 노드 값이 k번째
+                return node->value;
+            } 
+            else {
+                // 오른쪽 서브트리에서 (k - (left_size + count)) 번째
+                int new_k = k - (left_size + node->count);
+                return find_kth_element(node->right, new_k);
+            }
+        }
+    };
+
     ```
 
 - 이진 검색의 심화 내용은 실제 문제 해결에서 매우 유용하게 활용됩니다. 특히 최적화 문제나 실수 값을 다루는
@@ -1869,6 +2112,50 @@ MergeSort를 사용합니다.
                 if item[0] == key:
                     return item[1]
             return None
+    ```
+    ```cpp
+    #include <bits/stdc++.h>
+
+    class HashTable {
+    private:
+        int size_;
+        std::vector<std::vector<std::pair<std::string, int>>> table;
+
+    public:
+        HashTable(int size = 10) : size_(size) {
+            table.resize(size_);
+        }
+
+        int _hash(const std::string& key) const {
+            long long sumVal = 0;
+            for (char c : key) {
+                sumVal += static_cast<unsigned char>(c);
+            }
+            return static_cast<int>(sumVal % size_);
+        }
+
+        void insert(const std::string& key, int value) {
+            int hash_key = _hash(key);
+
+            for (auto &item : table[hash_key]) {
+                if (item.first == key) {
+                    item.second = value;
+                    return;
+                }
+            }
+            table[hash_key].push_back({key, value});
+        }
+
+        int search(const std::string& key) const {
+            int hash_key = _hash(key);
+            for (auto &item : table[hash_key]) {
+                if (item.first == key) {
+                    return item.second;
+                }
+            }
+            return -1;
+        }
+    };
     ```
 
 * 충돌 해결 방법
