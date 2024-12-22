@@ -1336,3 +1336,461 @@
     * 주요 사용 사례: 재귀 호출, 실행 취소 기능, 수식 계산, 괄호 검사 등
     * 장점: 간단한 구현, 역순 처리에 용이
     * 단점: 임의 접근 불가, 크기 제한
+
+
+# 큐 (Queue)
+
+* 개념
+    * **큐(Queue)**는 **선입선출(FIFO, First In First Out)**을 특징으로 하는 선형 자료구조입니다.
+        * 먼저 들어간 (Enqueue) 요소가 가장 먼저 나온 (Dequeue)다는 점에서 파이프나 줄 서기 (Line)을 연상할 수 있습니다.
+
+    * 일상 생활에서의 예시:
+        * 매표소 줄 서기: 먼저 줄을 선 사람이 먼저 표를 구입하고 줄을 빠져나옵니다.
+        * 프린터 작업 대기열: 먼저 요청된 인쇄 작업이 먼저 처리된 후, 다음 요청이 처리됩니다.
+
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/52/Data_Queue.svg" width="300"> <br>
+
+* 큐의 주요 연산
+    1. Enqueue(item)
+        - 큐의 뒤(rear)에 새로운 요소를 삽입
+        - 큐가 가득 차 있지 않으면 성공, 삽입 후 rear가 한 칸 이동
+
+    2. Dequeue()
+        - 큐의 앞(front)에서 요소를 제거하고 반환
+        - 큐가 비어 있지 않으면 제거 가능, 제거 후 front가 한 칸 이동
+
+    3. Peek()
+        - 큐의 맨 앞(front) 요소를 반한하되, 제거하지 않음
+
+    4. isEmpty()
+        - 큐가 비어 있는지 확인(보통 front == rear 또는 size == 0으로 판단)
+
+    5. isFull(배열 기반 고정 크기 큐의 경우)
+        - 큐가 가득 찼는지 확인(size == capacity)
+
+<br>
+
+* 큐의 시작 복잡도
+    | |연산|시간 복잡도| |
+    |----|--------|
+    |Enqueue | O(1)|
+    |Dequeue | O(1)|
+    |Peek | O(1)|
+    |isEmpty | O(1)|
+    |isFull | O(1)|
+
+    * 단, 배열로 큐를 구현하되 배열의 맨 앞을 Dequeue 위치로 사용할 경우, 매 연산마다 원소를 한 칸씩 옮겨야 하므로 O(n)이 될 수도 있습니다.
+        * 이를 해결하기 위해 원형 큐(Circular Queue) 또는 링크드 리스트 구현을 사용하면 각 연산을 O(1)에 처리할 수 있습니다.
+
+<br>
+
+* 큐의 구현 방법
+    1. 배열 기반 구현 (고정 크기 큐)
+        - 전제: 배열의 크기가 고정 (capacity)
+        - 인덱스: front와 rear 인덱스를 별도로 관리
+        - 주의사항: 단순히 front를 0부터 증가시키기만 하면, 배열의 앞 부분에 공간이 남아도 rear가 끝까지 가면 큐가 가득 찼다고 인식할 수 있음.
+            - 해결: 원형 큐(Circular Queue) 구조로 인덱스를 `(index + 1) % capacity`로 계산
+
+        - (1) 고정 크기 배열 + 원형 큐 예시
+            ```python
+            class CircularQueue:
+                def __init__(self, capacity):
+                    self.capacity = capacity
+                    self.queue = [None] * capacity
+                    self.front = 0
+                    self.rear = 0
+                    self.size = 0
+
+                def isEmpty(self):
+                    return self.size == 0
+                
+                def isFull(self):
+                    return self.size == self.capacity
+                
+                def enqueue(self, item):
+                    if self.isFull():
+                        raise Exception("Queue is full")
+                    self.queue[self.rear] = item
+                    self.rear = (self.rear + 1) % self.capacity
+                    self.size += 1
+                
+                def dequeue(self):
+                    if self.isEmpty():
+                        raise Exception("Queue is empty")
+                    item = self.queue[self.front]
+                    self.front = (self.front + 1) % self.capacity
+                    self.size -= 1
+                    return item
+                
+                def peek(self):
+                    if self.isEmpty():
+                        return None
+                    return self.queue[self.front]
+            ```
+
+    2. 연결 리스트 기반 구현 (동적 크기 큐)
+        - 크기 제한 없음: 노드를 동적으로 할당하므로, 메모리가 허용하는 한 확장 가능
+        - 노드(Node)에 `data`와 `next`가 있으며, 큐는 보통 front와 rear노드 포인터를 유지
+        - Enqueue시 `rear.next`에 새 노드 연결 후 `rear`를 새 노드로 갱신
+        - Dequeue시 `front` 노드를 제거하고, `front = front.next`로 이동
+
+        - (1) Python 구현
+            ```python
+            class Node:
+                def __init__(self, data):
+                    self.data = data
+                    self.next = None
+
+            class LinkedQueue:
+                def __init__(self):
+                    self.front = None
+                    self.rear = None
+                    self.size = 0
+                
+                def isEmpty(self):
+                    return self.size == 0
+                
+                def enqueue(self, item):
+                    new_node = Node(item)
+                    if self.isEmpty():
+                        self.front = new_node
+                        self.rear = new_node
+                    else:
+                        self.rear.next = new_node
+                        self.rear = new_node
+                    self.size += 1
+                
+                def dequeue(self):
+                    if self.isEmpty():
+                        raise Exception("Queue is empty")
+                    item = self.front.data
+                    self.front = self.front.next
+                    self.size -= 1
+                    if self.isEmpty():
+                        self.rear = None
+                    return item
+                
+                def peek(self):
+                    if self.isEmpty():
+                        return None
+                    return self.front.data
+            ```
+
+* 큐의 변형
+    1. 원형 큐 (Circular Queue)
+        - 인덱스를 원형으로 활용
+            - Enqueue/Dequeue 시 `% capacity` 연산을 활용해 인덱스 재활용
+            - 공간 낭비 없이 배열 앞뒤를 재활용 가능
+
+    2. 덱 (Deque, Double-Ended Queue)
+        - 양쪽(Front/Rear)에서 삽입/삭제가 가능한 자료구조
+        - 스택과 큐의 혼합된 기능 제공
+            - front, rear 어디서든 Enqueue, Dequeue 가능
+        - 실사용 예시:
+            - 슬라이딩 윈도우 문제
+            - 양방향에서 처리가 필요한 버퍼 등
+
+    3. 우선순위 큐(Priority Queue)
+        - 일반 큐는 FIFO로 처리하지만, 우선순위 큐는 우선순위가 높은 요소가 먼저 나오도록 보장
+            - 보통 힙(Heap) 자료구조를 사용
+
+* 큐의 사용 사례
+    1. BFS(너비 우선 탐색)
+        - 그래프에서 인정 정점을 차례대로 큐에 넣어가며 탐색
+
+    2. 프로세스 스케줄링
+        - 운영체제에서 프로세스를 라운드 로빈(Round Robin) 방식으로 CPU에 할당
+
+    3. 프린터 대기열
+        - 먼저 들어온 인쇄 작업이 먼저 처리됨
+
+    4. 캐시/버퍼
+        - 네트워크 스위치나 메시지 큐 시스템에서 데이터를 큐 형태로 저장 후 순차 처리
+
+* 실제 코드 예시
+    1. Golang
+        ```go
+        package main
+
+        import "fmt"
+
+        type Node struct {
+            data interface{}
+            next *Node
+        }
+
+        type LinkedQueue struct {
+            front *Node
+            rear  *Node
+            size  int
+        }
+
+        func NewLinkedQueue() *LinkedQueue {
+            return &LinkedQueue{}
+        }
+
+        func (q *LinkedQueue) IsEmpty() bool {
+            return q.size == 0
+        }
+
+        func (q *LinkedQueue) Enqueue(item interface{}) {
+            newNode := &Node{data: item}
+            if q.IsEmpty() {
+                q.front = newNode
+                q.rear = newNode
+            } else {
+                q.rear.next = newNode
+                q.rear = newNode
+            }
+            q.size++
+        }
+
+        func (q *LinkedQueue) Dequeue() interface{} {
+            if q.IsEmpty() {
+                return nil
+            }
+            item := q.front.data
+            q.front = q.front.next
+            q.size--
+            if q.IsEmpty() {
+                q.rear = nil
+            }
+            return item
+        }
+
+        func (q *LinkedQueue) Peek() interface{} {
+            if q.IsEmpty() {
+                return nil
+            }
+            return q.front.data
+        }
+
+        func main() {
+            queue := NewLinkedQueue()
+            queue.Enqueue(10)
+            queue.Enqueue(20)
+            queue.Enqueue(30)
+            
+            fmt.Println(queue.Dequeue()) // 10
+            fmt.Println(queue.Peek())    // 20
+        }
+        ```
+
+* 큐의 장단점
+    1. 장점
+        - 선입선출(FIFO)로 순서 보장
+        - 동시성 프로그래밍에서 생산자-소비자(Producer-Consumer) 모델에 활용
+        - 삽입/삭제 연산이 O(1)(원형 큐, 링크드 리스트 기준)
+
+    2. 단점
+        - 임의 접근(중간 요소 직접 접근)이 어려움 -> O(n)
+        - 배열 기반 고정 큐는 크기 제한 존재
+        - 자료 구조상 가장 오래된 데이터부터만 제거 가능 -> 특정 요소만 빨리 빼내기가 힘듦
+
+* 실전 팀
+    1. 배열 vs 연결 리스트:
+        - 간단한 구현: 배열 기반 (원형 큐)
+        - 동적 크기 / 노드 삽입 빈번: 연결 리스트 기반
+
+    2. 동시성:
+        - 멀티스레드 환경에서는 스레드 안전한 큐(Locking, Lock-free) 사용
+
+    3. 대규모 이벤트 처리:
+        - 메시지 큐(RabbitMQ, Kafka 등)는 큐 개념과 유사하지만 내부는 Log-structured, 파티션, broker 클러스터링을 다룹니다.
+
+    4. BFS 구현에 필수
+        - 그래프, 트리에서 너비 우선 탐색 시 큐가 핵심적으로 활용됩니다.
+
+* 마무리
+    - 큐는 선입선출(FIFO) 특성을 지닌 대표적 자료구조로, 프로세스 스케줄링, 프린터 스풀러, 네트워크 패킷 처리 등 순차 처리에 매우 유용합니다.
+    - 원형 큐, 연결 리스트 큐 등을 통해 삽입/삭제 시간 복잡도 O(1)을 달성할 수 있으며, 배열로 간단히 구현할 수도 있습니다.(단, 크기 제한 및 인덱스 처리 주의)
+    - 덱(Deque), 우선순위 큐(Priority Queue)등 큐의 변형형도 자주 사용되므로, 다른 알고리즘/문제 해결에 필요한 경우 참고하면 좋습니다.
+
+# 우선순위 큐 (Priority Queue)
+
+* 개념
+    * **우선순위 큐(Priority Queue)**는 각 요소가 **우선순위(priority)**를 가지고 있으며, 우선순위가 높은 요소를 먼저 꺼낼 수 있는 자료구조입니다.
+    * 일반 큐가 FIFO(First In First Out)를 따른다면, 우선순위 큐는 우선순위가 높은 순으로 Dequeue가 이루어짐.
+    * 가장 흔히 사용하는 내부 구현은 힙(Heap) 구조를 사용합니다.
+        - 최소 힙(Min-Heap): 가장 작은 값(우선순위가 가장 높은 값)이 루트
+        - 최대 힙(Max-Heap): 가장 큰 값(우선순위가 가장 높은 값)이 루트.
+
+* 우선순위 큐의 주요 연산
+    1. Insert(Enqueue)
+        - 새로운 요소를 힙에 삽입
+        - 힙 트리에서 재정렬(상향/하향 이동) 과정을 거쳐 우선순위 속성 유지
+
+    2. Pop(Dequeue)
+        - 우선순위가 가장 높은(힙의 루트) 요소를 제거하고 반환
+        - 보통 루트와 마지막 노드를 교환 후, 마지막 노드를 제거 -> 힙을 재정렬(Heapify)
+
+    3. Peek()
+        - 루트 노드를 반환하되 제거하지 않음 (최우선순위 값 확인)
+
+    4. isEmpty()
+        - 힙이 비어 있는지 확인
+
+* 시간 복잡도
+    | |연산|평균|최악| |
+    |----|--------|----|
+    |Insert | O(log n)| O(log n)|
+    |Pop (remove) | O(log n)| O(log n)|
+    |Peek | O(1)| O(1)|
+
+    - n은 힙에 저장된 원소 개수
+    - 내부적으로 완전 이진 트리 구조(힙)을 사용하기 때문에, 트리 높이가 O(log n)
+    - 배열로 구현하더라도, 루트에서 리프까지의 Heapify 과정이 O(log n)
+
+* 힙의 구조
+    - 우선순위 큐를 구현할 때, 힙(Heap) 자료구조를 가장 많이 사용
+    - 완전 이진 트리(Complete Binary Tree) 형태로, 배열 인덱스를 통해 빠르게 부모-자식 관계를 개선할 수 있음.
+
+    1. 최대 힙 (Max-Heap)
+        - 루트가 가장 큰 값(가장 높은 우선순위)을 가진 노드
+        - 예: `[40, 25, 15, 10, 9, 4, 1]`
+            - 루트(40)가 가장 큼
+            - Insert 시: 새 노드는 배열 끝(트리의 마지막 레벨)에 삽입 -> 부모와 비교하며 위로 이동(상향식 재정렬)
+            - Pop 시: 루트 노드 제거 -> 배열 끝 노드를 루트로 이동 -> 자식과 비교하며 아래로 이동 (하향식 재정렬)
+
+    2. 최소 힙 (Min-Heap)
+        - 루트가 가장 작은 값(가장 높은 우선순위)을 가진 노드
+        - 예: Dijkstra 알고리즘에서 거리값이 작은 노드가 먼저 나와야 하므로 최소 힙 활용
+        - Insert/Pop 시 상향식, 하향식 재정렬 과정은 동일하지만, 비교 기준이 반대(더 작은 값이 올라옴)
+
+* 우선순위 큐 구현
+    1. Python
+        ```python
+        import heapq
+
+        # Python의 heapq는 기본적으로 '최소 힙(Min-Heap)' 기능 제공
+        class MinPriorityQueue:
+            def __init__(self):
+                self.heap = []
+
+            def insert(self, item):
+                heapq.heappush(self.heap, item)  # O(log n)
+            
+            def pop(self):
+                if not self.isEmpty():
+                    return heapq.heappop(self.heap)  # O(log n)
+                return None
+            
+            def peek(self):
+                if not self.isEmpty():
+                    return self.heap[0]
+                return None
+
+            def isEmpty(self):
+                return len(self.heap) == 0
+
+        # 사용 예시
+        pq = MinPriorityQueue()
+        pq.insert(10)
+        pq.insert(3)
+        pq.insert(5)
+        print(pq.pop())  # 3 (가장 작은 값)
+        print(pq.pop())  # 5
+        print(pq.pop())  # 10
+        ```
+
+    2. Golang
+        ```go
+        package main
+
+        import (
+            "container/heap"
+            "fmt"
+        )
+
+        // MinHeap 예시
+        type MinHeap []int
+
+        func (h MinHeap) Len() int           { return len(h) }
+        func (h MinHeap) Less(i, j int) bool { return h[i] < h[j] }
+        func (h MinHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+        // Push / Pop은 포인터 리시버로 구현
+        func (h *MinHeap) Push(x interface{}) {
+            *h = append(*h, x.(int))
+        }
+
+        func (h *MinHeap) Pop() interface{} {
+            old := *h
+            n := len(old)
+            item := old[n-1]
+            *h = old[0 : n-1]
+            return item
+        }
+
+        func main() {
+            mh := &MinHeap{}
+            heap.Init(mh)
+
+            heap.Push(mh, 10)
+            heap.Push(mh, 3)
+            heap.Push(mh, 7)
+            fmt.Println(heap.Pop(mh)) // 3 (최소 값)
+            fmt.Println(heap.Pop(mh)) // 7
+            fmt.Println(heap.Pop(mh)) // 10
+        }
+        ```
+        - Go 기본 패키지 `container/heap`은 최소 힙 구현을 위한 인터페이스 제공
+
+* 우선순위 큐의 사용 사례
+    1. Dijkstra 알고리즘
+        - 그래프 최단 경로 계산에서, 현재까지의 최단 거리가 가장 작은 정점을 우선으로 탐색
+        - Min-Heap 사용
+
+    2. CPU 스케줄링 (오래된 OS 커널 개념)
+        - 우선순위가 높은 프로세스가 먼저 CPU 점유
+        - 시분할 시, 우선순위 재조정
+
+    3. 이벤트 시뮬레이션
+        - 타임스탬프가 작은 이벤트(시간이 빠른 이벤트)부터 처리
+
+    4. 허프만 코딩(Huffman Coding)
+        - 빈도가 가장 낮은 노드(우선순위가 높음)를 먼저 합침
+        - 문자 빈도 기반 트리 생성
+
+    5. 멀티 태스킹 환경의 작업 관리
+        - 태스크 매니저(Task Manager)에서 긴급하거나 중요한 태스크 먼저 처리
+
+    6. 데이터 스트림 분석
+        - 상위 K개 요소만 관리할 때, 최소 힙으로 유지하면 전체를 정렬하지 않고도 관리 가능
+
+* 우선순위 큐의 장단점
+    1. 장점
+        - 우선순위가 높은 요소부터 빠르게 꺼낼 수 있음.
+        - 힙(Heap)사용으로 **O(log n)**의 효율적인 삽입/삭제 가능
+        - 간단한 배열 혹은 연결 리스트 구현 대비 우선순위 처리에 최적화
+
+    2. 단점
+        - 임의 접근(중간 요소)를 원하는 경우 비효율적 (힙 트리에서 O(n) 탐색)
+        - 우선순위 갱신(Decrease-Key 등)이 자주 필요한 경우, 힙 구조를 재정렬하는 구현이 조금 번거로움
+        - 메모리 사용량 측면에서는 일반 큐와 크게 다르진 않으나, 내부 구조가 더 복잡
+
+* 실전 팁
+    1. Min-Heap vs Max-Heap
+        - Python: `heapq`는 기본 Min-Heap
+        - Max-Heap이 필요하면 `heapq`사용 시 음수로 변환, 혹은 직접 구현
+
+    2. Decrease-Key 연산
+        - 예: Dijkstra에서 노드 거리 갱신 -> 보통은 새로 삽입한 뒤 이전 요소를 사용하지 않는 식으로 처리(추가 메모리)
+
+    3. 동시성 고려
+        - 다중 스레드 환경이면 우선순위 큐 접근 시 락 (Lock)이나 락프리 알고리즘을 고려
+
+    4. 배열 정렬과의 비교
+        - 우선순위 큐가 필요한 경우: 매 삽입 시마다 정렬할 필요 없이 O(log n)에 처리 가능
+        - 한 번에 전체 정렬이 필요한 경우: 정렬 알고리즘(O(n log n))을 쓰는게 낫기도 함.
+
+    5. 실무 예시
+        - Huffman 압축, Dijkstra 최단 경로, 타임스탬프 기반 이벤트 처리, Top-K 문제 등등
+
+* 마무리
+    - 우선순위 큐는 우선순위가 있는 작업을 관리할 때 매우 유용한 자료구조입니다.
+    - 내부 구현은 **힙(Heap)**을 가장 자주 활용하며, 삽입/삭제 모두 O(log n) 시간에 가능.
+    - 실무에서 그래프 최단 경로 알고리즘, 작업 스케줄링, 이벤트 시뮬레이션, Huffman 코딩 등 다양한 문제 해결에 필수적으로 사용됩니다.
+
+
+# 힙 (Heap)
