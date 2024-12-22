@@ -4,7 +4,7 @@
 프로그래밍 및 컴퓨터 과학에서는 데이터의 효율적인 접근, 수정, 삽입, 삭제 등을 위해 다양한 자료구조를 사용합니다. 자료구조의 선택은 문제 해결의 효율성과 알고리즘의 성능에 큰 영향을 미칩니다.
 
 # 배열 (Array)
-[Array](./Data-Structured/Array.md)
+[Array](./Array.md)
 
 # 연결 리스트 (LinkedList)
 [Linked-List](./Data-Structured/Linked-List.md)
