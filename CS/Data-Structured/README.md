@@ -23,3 +23,6 @@
 
 # 힙 (Heap)
 [Heap](Heap.md)
+
+# 트리(Tree)
+[Tree](Tree.md)
