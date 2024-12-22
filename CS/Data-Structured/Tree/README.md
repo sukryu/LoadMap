@@ -1,3 +1,8 @@
+# 트리의 확장판
+
+## 이진 트리(Binary Tree)
+[Binary-Tree](./Binary-tree.md)
+
 # 트리 (Tree)
 
 * 개념

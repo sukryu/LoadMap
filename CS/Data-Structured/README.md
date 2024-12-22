@@ -25,4 +25,4 @@
 [Heap](Heap.md)
 
 # 트리(Tree)
-[Tree](Tree.md)
+[Tree](./Tree/README.md)
