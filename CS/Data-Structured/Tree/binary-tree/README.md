@@ -1,3 +1,8 @@
+# 이진 트리 기반 확장
+
+## 이진 검색 트리(BST)
+[Binary-Search-Tree(BST)](binary-search-tree.md)
+
 # 이진 트리 (Binary Tree)
 
 * 개념

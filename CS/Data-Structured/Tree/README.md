@@ -1,7 +1,7 @@
 # 트리의 확장판
 
 ## 이진 트리(Binary Tree)
-[Binary-Tree](./Binary-tree.md)
+[Binary-Tree](./binary-tree/README.md)
 
 # 트리 (Tree)
 
