@@ -4,6 +4,10 @@
 AVL 트리는 BST에서 발생하는 편향(Skewed) 문제를 해결하기 위해, 노드 높이 균형을 엄격하게 유지하는 자가 균형 이진 검색 트리의 한 종류입니다.
 [AVL](avl.md)
 
+## Red-Black Tree
+AVL 트리와 마찬가지로 편향(스큐) 문제를 해결하기 위한 균형(Binary Balanced) 트리의 한 종류입니다. 그러나 AVL 트리에 비해 균형 유지 조건이 조금 더 완화되어, 삽입·삭제 연산에서 회전(Rotation)의 발생 빈도가 줄어드는 특징이 있습니다.
+[Red-Black-Tree](red-black-tree.md)
+
 # 이진 검색 트리 (BST: Binary Search Tree)
 
 * 개념
