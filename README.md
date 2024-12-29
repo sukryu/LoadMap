@@ -133,10 +133,10 @@
 ### A. 기본 자료구조
 - 배열(O), 연결 리스트(O), 스택(O), 큐(O)
 - 트리(O), 그래프(O), 해시 테이블(O), 힙(O)
-- Trie(트라이)(O), 라디슐 트리(Radix Tree)
+- Trie(트라이)(O), 라디슐 트리(Radix Tree)(O)
   - 문자열 검색 최적화, 자동완성 기능 구현
   - Patricia Trie 변형 구조
-- Disjoint Set(Union-Find) 심화
+- Disjoint Set(Union-Find) 심화 (O)
   - Path Compression, Union by Rank 최적화
   - 동적 그래프 연결성, 군집화 응용
 
@@ -149,8 +149,8 @@
 ### C. 알고리즘 기초
 1. 기본/고급 정렬
    - 선택(O), 삽입(O), 버블(O), 퀵(O), 머지(O), 힙 정렬(O)
-   - 기수 정렬, 셸 정렬(O)
-   - 하이브리드 정렬(Timsort 등)
+   - 기수 정렬(O), 셸 정렬(O)
+   - 하이브리드 정렬(Timsort 등) (O)
 
 2. 탐색 알고리즘
    - 선형/이진 탐색(O)
