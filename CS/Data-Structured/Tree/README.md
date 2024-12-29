@@ -3,6 +3,51 @@
 ## 이진 트리(Binary Tree)
 [Binary-Tree](./binary-tree/README.md)
 
+```mermaid
+graph TD
+    T[Tree] -->|특수화| BT[Binary Tree]
+    BT -->|정렬 규칙 추가| BST[Binary Search Tree]
+    BST -->|높이 균형 추가| AVL[AVL Tree]
+    BST -->|색상 균형 추가| RB[Red-Black Tree]
+
+    T_DESC["• 계층적 구조
+    • N개 자식 가능
+    • 사이클 없음"]
+    style T_DESC text-align:left
+
+    BT_DESC["• 최대 2개 자식
+    • left, right 구분
+    • 순회: 전위/중위/후위"]
+    style BT_DESC text-align:left
+
+    BST_DESC["• left < parent < right
+    • 중위순회 = 정렬된 순서
+    • 평균 O(log n), 최악 O(n)"]
+    style BST_DESC text-align:left
+
+    AVL_DESC["• |BF| ≤ 1 (엄격한 균형)
+    • 회전으로 균형 유지
+    • 항상 O(log n)"]
+    style AVL_DESC text-align:left
+
+    RB_DESC["• Red/Black 색상 규칙
+    • 느슨한 균형
+    • 삽입/삭제 시 회전 적음"]
+    style RB_DESC text-align:left
+
+    T --- T_DESC
+    BT --- BT_DESC
+    BST --- BST_DESC
+    AVL --- AVL_DESC
+    RB --- RB_DESC
+
+    style T fill:#f9f,stroke:#333,stroke-width:4px
+    style BT fill:#bbf,stroke:#333,stroke-width:4px
+    style BST fill:#bfb,stroke:#333,stroke-width:4px
+    style AVL fill:#fbb,stroke:#333,stroke-width:4px
+    style RB fill:#fbf,stroke:#333,stroke-width:4px
+```
+
 # 트리 (Tree)
 
 * 개념
