@@ -133,7 +133,7 @@
 ### A. 기본 자료구조
 - 배열(O), 연결 리스트(O), 스택(O), 큐(O)
 - 트리(O), 그래프(O), 해시 테이블(O), 힙(O)
-- Trie(트라이), 라디슐 트리(Radix Tree)
+- Trie(트라이)(O), 라디슐 트리(Radix Tree)
   - 문자열 검색 최적화, 자동완성 기능 구현
   - Patricia Trie 변형 구조
 - Disjoint Set(Union-Find) 심화

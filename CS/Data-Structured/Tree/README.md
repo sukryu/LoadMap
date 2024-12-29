@@ -3,6 +3,18 @@
 ## 이진 트리(Binary Tree)
 [Binary-Tree](./binary-tree/README.md)
 
+## 세그먼트 트리(Segment Tree)
+[Segment Tree](segment.md)
+
+## 펜윅 트리 (Fenwick Tree)
+[Fenwick Tree](fenwick.md)
+
+# 트라이 (Trie)
+[Trie](trie.md)
+
+## 라디슐 트리 (Radix Tree)
+[Radix Tree](radix.md)
+
 ```mermaid
 graph TD
     T[Tree] -->|특수화| BT[Binary Tree]
