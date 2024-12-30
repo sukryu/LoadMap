@@ -154,8 +154,8 @@
 
 2. 탐색 알고리즘
    - 선형/이진 탐색(O)
-   - KMP, 라빈-카프, 보이어-무어
-   - Z 알고리즘, Aho-Corasick
+   - KMP(O), 라빈-카프(O), 보이어-무어 (O)
+   - Z 알고리즘(O), Aho-Corasick(O)
 
 ### D. 고급 그래프 알고리즘
 1. 최단 경로
@@ -177,19 +177,19 @@
    - 2-SAT 문제 해결
 
 ### E. 고급 자료구조
-1. 세그먼트 트리
+1. 세그먼트 트리 (O)
    - 구간 쿼리(합, 최대/최소)
    - Lazy Propagation
    - Persistent Segment Tree
 
-2. 펜윅 트리(Binary Indexed Tree)
+2. 펜윅 트리(Binary Indexed Tree) (O)
    - 구간 업데이트 최적화
    - 2D 펜윅 트리
 
 3. 문자열 자료구조
-   - 접미사 배열(Suffix Array)
+   - 접미사 배열(Suffix Array) (O)
    - LCP 배열
-   - 접미사 트리(Suffix Tree)
+   - 접미사 트리(Suffix Tree) (O)
    - Manacher 알고리즘
 
 ### F. 동적 프로그래밍 심화
