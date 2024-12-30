@@ -9,6 +9,7 @@
 [BFS](bfs.md)
 
 ### 사이클 탐지
+[Cycle Detect](cycle-detect.md)
 
 ### 위상 정렬 (Topological Sort)
 
