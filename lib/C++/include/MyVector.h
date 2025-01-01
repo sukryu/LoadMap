@@ -1,15 +1,3 @@
-/**
- * @file MyVector.h
- * @brief A custom dynamic array (similar to std::vector) implementation in C++.
- *
- * Rules / Guidelines:
- * 1. No direct usage of std::vector or other advanced containers.
- * 2. Memory reallocation is handled manually (reallocate function).
- * 3. Provide basic exception safety (throw std::out_of_range for invalid index).
- * 4. Implement copy/move constructors & operators to manage resource ownership.
- * 5. Keep interface similar to std::vector where possible (size(), capacity(), operator[], etc.).
- */
-
 #ifndef MY_VECTOR_H
 #define MY_VECTOR_H
 
@@ -313,8 +301,8 @@ namespace mydsa {
         T& back();
         const T& back() const;
 
-        T& data();
-        const T& data() const;
+        T* data() noexcept;
+        const T* data() const noexcept;
 
         /* ---------------------------
         *  Modifiers (insertion, deletion)
@@ -336,6 +324,9 @@ namespace mydsa {
          * @warning Undefined if the vector is empty
          */
         void pop_back();
+
+        template<typename... Args>
+        void emplace_back(Args&&... args);
 
         /**
          * @brief Insert a copy of value at position index
@@ -447,7 +438,7 @@ namespace mydsa {
     MyVector<T>::MyVector(std::initializer_list<T> init)
         : mData(nullptr), mSize(0), mCapacity(0)
     {
-        if (!init.empty()) {
+        if (init.size() > 0) {
             mData = new T[init.size()];
             mCapacity = init.size();
         }
@@ -578,10 +569,15 @@ namespace mydsa {
     }
 
     template<typename T>
-    void MyVector<T>::shrink_to_fit()
-    {
+    void MyVector<T>::shrink_to_fit() {
         if (mCapacity > mSize) {
-            reallocate(mSize);
+            if (mSize == 0) {
+                delete[] mData;
+                mData = nullptr;
+                mCapacity = 0;
+            } else {
+                reallocate(mSize);
+            }
         }
     }
 
@@ -610,8 +606,11 @@ namespace mydsa {
             }
         } else if (newSize < mSize) {
             // 초과 요소들 소멸
-            
+            for (std::size_t i = newSize; i < mSize; i++) {
+                mData[i].~T();
+            }
         }
+        mSize = newSize;  // 이 부분이 누락되어 있습니다
     }
     /* ------------------------------------------------
      *  Element access
@@ -678,7 +677,7 @@ namespace mydsa {
     }
 
     template <typename T>
-    T& MyVector<T>::data() {
+    T* MyVector<T>::data() noexcept {
         if (empty()) {
             throw std::out_of_range("MyVector::data - vector is empty");
         }
@@ -686,7 +685,7 @@ namespace mydsa {
     }
 
     template <typename T>
-    const T& MyVector<T>::data() const {
+    const T* MyVector<T>::data() const  noexcept{
         if (empty()) {
             throw std::out_of_range("MyVector::data - vector is empty");
         }
@@ -787,22 +786,59 @@ namespace mydsa {
 
     // private reallocate
     template <typename T>
-    void MyVector<T>::reallocate(std::size_t newCap)
-    {
-        // allocate new block
+    void MyVector<T>::reallocate(std::size_t newCap) {
         T* newData = new T[newCap];
-
-        // move or copy existing elements
-        for (std::size_t i = 0; i < mSize; i++) {
-            new (&newData[i]) T(std::move(mData[i]));
-            mData[i].~T(); // destroy old
+        std::size_t oldSize = mSize;  // 예외 발생 시 복구를 위해 저장
+        
+        try {
+            for (std::size_t i = 0; i < mSize; i++) {
+                new (&newData[i]) T(std::move(mData[i]));
+            }
         }
-
-        // delete old storage
+        catch (...) {
+            // 실패 시 이미 생성된 객체들 정리
+            for (std::size_t i = 0; i < oldSize; i++) {
+                newData[i].~T();
+            }
+            delete[] newData;
+            throw;  // 예외 재전파
+        }
+        
+        // 이전 데이터 정리
+        for (std::size_t i = 0; i < mSize; i++) {
+            mData[i].~T();
+        }
         delete[] mData;
-
+        
         mData = newData;
         mCapacity = newCap;
+    }
+
+    // 비교 연산자
+    template<typename T>
+    bool operator==(const MyVector<T>& lhs, const MyVector<T>& rhs) {
+        if (lhs.size() != rhs.size()) return false;
+        for (std::size_t i = 0; i < lhs.size(); ++i) {
+            if (lhs[i] != rhs[i]) return false;
+        }
+        return true;
+    }
+
+    template<typename T>
+    bool operator!=(const MyVector<T>& lhs, const MyVector<T>& rhs) {
+        return !(lhs == rhs);
+    }
+
+    // 요소 삽입을 위한 emplace_back
+    template<typename T>
+    template<typename... Args>
+    void MyVector<T>::emplace_back(Args&&... args) {
+        if (mSize >= mCapacity) {
+            std::size_t newCap = (mCapacity == 0) ? 1 : mCapacity * 2;
+            reallocate(newCap);
+        }
+        new (&mData[mSize]) T(std::forward<Args>(args)...);
+        ++mSize;
     }
 
 } // namespace mydsa
