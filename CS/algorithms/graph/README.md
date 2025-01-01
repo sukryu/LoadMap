@@ -28,5 +28,7 @@
 ## 최소 신장 트리 (기초)
 
 ### 크루스칼(Kruskal)
+[Kruskal](kk.md)
 
 ### 프림 (Prim)
+[Prim](pm.md)
