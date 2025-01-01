@@ -12,12 +12,17 @@
 [Cycle Detect](cycle-detect.md)
 
 ### 위상 정렬 (Topological Sort)
+[Topological Sort](ts.md)
 
 ## 최단 경로 알고리즘 (기초)
 
 ### 다익스트라 (Dijkstra)
+[Dijkstra](dijkstra.md)
 
 ### 벨만-포드 (Bellman-Ford)
+[Bellman-Ford](bellman-ford.md)
+
+### 플로이드-워셜 (Floyd-Warshall)
 
 ## 최소 신장 트리 (기초)
 
