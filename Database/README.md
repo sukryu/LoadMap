@@ -23,3 +23,17 @@
 6. NoSQL과 비교
     - MongoDB, Redis, Cassandra 등 NoSQL에서 SQL과 어떻게 다른지, 언제 RDB vs NoSQL 쓰는지
     - MLOps나 빅데이터 엔지니어 진로라면, SQL-on-Hadoop(Spark SQL, Presto, HiveQL) 같은 빅데이터 관련 SQL 방언도 흥미로움.
+
+7. 관계형 DB
+    - SQL 최적화, 인덱스 구조(B-Tree, Hash 인덱스), 조인 전략, 트랜잭션 격리 수준 등
+    - ORM(Hibernate/JPA, Sequelize, SQLAlchemy 등) 실무 사용 & 쿼리 튜닝
+    - Replica, Sharding, High Availability(e.g. Galera, Aurora, Ratroni 등)
+
+8. NoSQL / 분산 DB
+    - Redis, MongoDB, Cassandra, Elasticsearch 등 사용 사례
+    - CAP 이론(Consistency, Availability, Partition Tolerance), Eventual Consistency 이해
+    - 데이터 모델링(문서형/키-값형/와이드 컬럼형 등)
+
+9. 스토리지/파일 시스템
+    - 객체 스토리지(S3, GCS) 특징, 업로드/다운로드 방법, 보안 설정
+    - 분산 파일시스템(HDFS, Ceph, GlusterFS 등) 개념 (아주 심화까지는 아니어도 구조를 알면 좋음.)
