@@ -1576,3 +1576,202 @@ SQL(Structured Query Language)은 데이터베이스를 관리하고 조작하�
     FROM 주문
     WHERE 주문일 BETWEEN '2023-01-01' AND '2023-03-31';
     ```
+
+## Stored Procedure(저장 프로시저)와 Function(함수)
+
+1. Stored Procedure & Function의 개요
+    1. Stored Procedure
+        - 데이터베이스 내부에 저장되어 실행되는 프로그램 단위로, 여러 SQL 문을 하나의 로직으로 묶어 실행할 수 있다.
+        - 호출 시점에 필요한 파라미터(IN/OUT/INOUT)를 전달하고, 여러 쿼리를 일괄 수행하거나 복잡한 로직(조건문/반복문/변수사용 등)을 처리.
+
+        - 장점:
+            - 네트워크 트래픽 감소 (여러 개의 SQL 요청을 프로시저 내부에서 처리)
+            - 보안 강화(직접 테이블 접근 대신 프로시저 호출로 제한)
+            - 재사용성, 유지보수성 개선
+
+    2. Function
+        - 하나의 값을 반환해야 하며, SELECT 문 등에서 호출 가능(스칼라 함수 형태).
+        - Stored Procedure와 달리, 여러 OUT 파라미터 없이 단일 리턴값을 반환.
+        - 예: `SELECT 함수이름(열이름) FROM 테이블;`
+
+2. 기본 문법 & 예시
+    1. Stored Procedure
+        ```sql
+        DELIMITER //
+        CREATE PROCEDURE GetEmployeesByDepartment(IN deptName VARCHAR(50))
+        BEGIN
+            SELECT employee_name, salary
+            FROM employees
+            WHERE department = deptName;
+        END //
+        DELIMITER ;
+
+        -- 실행
+        CALL GetEmployeesByDepartment('IT');
+        ```
+        - IN 파라미터: 호출 시 값을 전달만 받고, 내부에서 그 값 변경 불가능
+        - OUT 파라미터: 프로시저 내부에서 계산된 값을 호출자에게 돌려줄 수 있음
+        - INOUT 파라미터: 호출 시 전달받고, 내부에서 변경 가능, 최종 변경된 값이 호출자에게 반환
+
+    2. Stored Function
+        ```sql
+        CREATE FUNCTION CalculateBonus(salary DECIMAL(10,2))
+        RETURNS DECIMAL(10,2)
+        DETERMINISTIC
+        BEGIN
+            RETURN salary * 0.1;
+        END;
+        ```
+        - 사용 예시(SELECT문 내부):
+        ```sql
+        SELECT employee_name, CalculateBonus(salary) AS bonus
+        FROM employees;
+        ```
+        - 주의: 함수는 SELECT 문이나 다른 SQL 구문에서 인라인으로 호출될 수 있지만, 반드시 하나의 값을 반환해야 함.
+
+3. 오류 처리(Error Handling)
+    1. MySQL 예시
+        ```sql
+        DELIMITER //
+        CREATE PROCEDURE TransferAmount(
+            IN fromAcc INT,
+            IN toAcc INT,
+            IN amount DECIMAL(10,2)
+        )
+        BEGIN
+            DECLARE EXIT HANDLER FOR SQLEXCEPTION
+            BEGIN
+                -- 오류 발생 시 처리
+                ROLLBACK;
+                SELECT 'Error occurred, transaction rolled back' AS msg;
+            END;
+
+            START TRANSACTION;
+                UPDATE account
+                SET balance = balance - amount
+                WHERE account_id = fromAcc;
+
+                UPDATE account
+                SET balance = balance + amount
+                WHERE account_id = toAcc;
+            COMMIT;
+        END //
+        DELIMITER ;
+        ```
+        - EXIT HANDLER: 예외 상황이 발생하면 핸들러 블록으로 이동.
+        - SQLEXCEPTION: 모든 SQL 오류에 대한 핸들러. 필요 시 `SQLWARNING`, `NOT FOUND` 등 구체적 핸들러 선언 가능.
+
+    2. Oracle PL/SQL 예시
+        ```sql
+        CREATE OR REPLACE PROCEDURE TransferAmount(
+            p_fromAcc IN NUMBER,
+            p_toAcc IN NUMBER,
+            p_amount IN NUMBER
+        )
+        IS
+            e_insufficient_funds EXCEPTION;
+        BEGIN
+            UPDATE account
+            SET balance = balance - p_amount
+            WHERE account_id = p_fromAcc;
+
+            IF SQL%ROWCOUNT = 0 THEN
+                RAISE_APPLICATION_ERROR(-20001, 'No fromAcc found');
+            END IF;
+
+            UPDATE account
+            SET balance = balance + p_amount
+            WHERE account_id = p_toAcc;
+
+            COMMIT;
+
+        EXCEPTION
+            WHEN e_insufficient_funds THEN
+                ROLLBACK;
+                DBMS_OUTPUT.PUT_LINE('Insufficient Funds');
+            WHEN OTHERS THEN
+                ROLLBACK;
+                DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        END;
+        ```
+        - EXCEPTION 블록: 커스텀 예외(`e_insufficient_funds`), `WHEN OTHERS` 등으로 구분.
+
+4. 커서(Cursor) 사용
+    1. 커서: SELECT 결과 집합을 순회하며 레코드를 한 행씩 처리
+    2. 타 언어(파이썬, 자바)에서 ResultSet과 유사. DB내부에서 로직 수행 시 사용.
+
+    - MySQL 예시
+        ```sql
+        DELIMITER //
+        CREATE PROCEDURE ListEmployees()
+        BEGIN
+            DECLARE done INT DEFAULT 0;
+            DECLARE empName VARCHAR(100);
+
+            DECLARE empCursor CURSOR FOR
+                SELECT employee_name FROM employees;
+
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+            OPEN empCursor;
+            REPEAT
+                FETCH empCursor INTO empName;
+                IF NOT done THEN
+                    SELECT CONCAT('Employee: ', empName) AS emp_output;
+                END IF;
+            UNTIL done END REPEAT;
+            CLOSE empCursor;
+        END //
+        DELIMITER ;
+        ```
+        - DECLARE empCursor: 커서 정의
+        - OPEN: 커서 열기
+        - FETCH: 한 행씩 가져오기
+        - CLOSE: 커서 닫기
+
+5. 트랜잭션 처리 (프로시저 내부)
+    - 이미 트랜잭션 제어(TCL)에서 설명했지만, 프로시저 내부에서 `START TRANSACTION / COMMIT / ROLLBACK`을 활용해 원자적 작업 구성 가능.
+    - 주의: 어떤 DB에서는 프로시저 내부에서 자동 COMMIT이 일어날 수도 있으니 DB별 트랜잭션 동작 방식 확인 필요.
+
+6. 동적 SQL 실행
+    1. MySQL
+        ```sql
+        DELIMITER //
+        CREATE PROCEDURE DynamicSelect(IN tblName VARCHAR(64))
+        BEGIN
+            SET @query = CONCAT('SELECT * FROM ', tblName, ' LIMIT 10');
+            PREPARE stmt FROM @query;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+        END //
+        DELIMITER ;
+        ```
+        - PREPARE/EXECUTE: 런타임에 문자열로 만든 쿼리를 실행.
+        - 보안 상 SQL Injection 위험이 커서 매개변수 바인딩 등 주의 필요.
+
+    2. Oracle (Native Dynamic SQL)
+        ```sql
+        CREATE OR REPLACE PROCEDURE DynamicSelect(p_tblName IN VARCHAR2)
+        IS
+            v_query VARCHAR2(1000);
+        BEGIN
+            v_query := 'SELECT * FROM ' || p_tblName || ' WHERE ROWNUM <= 10';
+            EXECUTE IMMEDIATE v_query;
+        END;
+        ```
+
+7. Stored Procedure & Function 활용 사례
+    1. 업무 로직 캡슐화
+        - 예: 신규 주문 처리 시 재고 차감, 로그 기록, 포인트 적립 등을 일괄 수행
+
+    2. 정기 배치 & ETL
+        - 야간 배치(매출 집계, 통계 테이블 업데이트)
+        - DB 내에서 대량 연산 처리(네트워크 트래픽 감소)
+
+    3. 보안/권한 분리
+        - 개발자나 애플리케이션이 직접 테이블 접근 대신 프로시저만 호출하도록 제한
+        - 접근 제어/검증 로직 포함 가능
+
+    4. 데이터 검증/트리거와 연계
+        - 입력값 체크, 제약조건을 프로시저 내에서 추가적으로 처리
+        - 트리거에서 프로시저 호출로 복잡 로직 처리
