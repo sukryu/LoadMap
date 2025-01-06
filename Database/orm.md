@@ -1305,3 +1305,432 @@
         5. 모니터링과 튜닝의 중요성
 
     * 각 캐시 레벨은 서로 다른 목적과 특성을 가지고 있으며, 적절한 사용을 통해 애플리케이션의 성능을 크게 향상시킬 수 있습니다.
+
+## ORM과 SQL 최적화
+
+1. N+1 문제
+    1. N+1 문제 개요
+        ```java
+        // N+1 문제가 발생하는 코드
+        // 1번의 부서 조회 + N번의 직원 조회
+        List<Department> departments = em.createQuery(
+            "SELECT d FROM Department d", Department.class
+        ).getResultList();  // 1번 쿼리
+
+        for (Department dept : departments) {
+            // 각 부서마다 직원 조회 쿼리 실행 (N번)
+            dept.getEmployees().size();  
+        }
+        ```
+
+    2. 해결 방안
+        1. Join Fetch를 사용한 즉시 로딩
+            ```java
+            // JPQL에서 JOIN FETCH 사용
+            List<Department> departments = em.createQuery(
+                "SELECT d FROM Department d JOIN FETCH d.employees",
+                Department.class
+            ).getResultList();  // 단 1번의 쿼리로 해결
+            ```
+
+        2. EntityGraph 사용
+            ```java
+            @EntityGraph(attributePaths = {"employees"})
+            @Query("SELECT d FROM Department d")
+            List<Department> findAllWithEmployees();
+            ```
+
+        3. Batch Size 설정
+            ```java
+            @Entity
+            public class Department {
+                @BatchSize(size = 100)  // 100개씩 일괄 조회
+                @OneToMany(mappedBy = "department")
+                private List<Employee> employees;
+            }
+
+            // 또는 글로벌 설정
+            // hibernate.default_batch_fetch_size = 100
+            ```
+
+        4. Subquery Fetch
+            ```java
+            // 서브쿼리를 사용한 최적화
+            List<Department> departments = em.createQuery(
+                "SELECT d FROM Department d " +
+                "WHERE d.id IN (SELECT e.department.id FROM Employee e)",
+                Department.class
+            ).getResultList();
+            ```
+
+    3. 성능 비교
+        ```sql
+        -- N+1 문제 발생 시 (N+1개의 쿼리)
+        SELECT * FROM departments;  -- 1번
+        SELECT * FROM employees WHERE department_id = ?;  -- N번 반복
+
+        -- Join Fetch 사용 시 (1개의 쿼리)
+        SELECT d.*, e.* 
+        FROM departments d 
+        LEFT JOIN employees e ON d.id = e.department_id;
+
+        -- Batch Size 적용 시 (1 + ceil(N/batch_size)개의 쿼리)
+        SELECT * FROM departments;
+        SELECT * FROM employees 
+        WHERE department_id IN (?, ?, ?, ...);  -- batch_size만큼
+        ```
+
+    4. 모니터링 및 디버깅
+        ```java
+        // SQL 로그 설정
+        spring.jpa.properties.hibernate.show_sql=true
+        spring.jpa.properties.hibernate.format_sql=true
+
+        // 바인딩 파라미터 로깅
+        logging.level.org.hibernate.type.descriptor.sql=trace
+
+        // 성능 측정
+        spring.jpa.properties.hibernate.generate_statistics=true
+        ```
+
+    * N+1 문제 방지를 위한 베스트 프랙티스:
+        1. 연관 관계 설계 시 Fetch 전략 신중히 선택
+        2. 필요한 데이터만 조회하도록 최적화
+        3. Join Fetch와 Batch Size를 적절히 활용
+        4. 엔티티 그래프 활용
+        5. 쿼리 실행 계획 주기적 모니터링
+
+    * 이러한 최적화 기법들을 통해 N+1 문제를 효과적으로 해결하고 애플리케이션의 성능을 향상시킬 수 있습니다.
+
+2. 복잡 쿼리의 직접 작성
+    1. 복잡한 집계 쿼리
+        ```java
+        // ORM 자동 생성 쿼리의 한계
+        @Query("SELECT d.name, COUNT(e), AVG(e.salary) " +
+            "FROM Department d LEFT JOIN d.employees e " +
+            "GROUP BY d.name")
+        List<Object[]> getDepartmentStats();
+
+        // Native Query로 최적화
+        @Query(value = """
+            WITH monthly_stats AS (
+                SELECT d.name, 
+                    DATE_TRUNC('month', e.hire_date) as month,
+                    COUNT(*) as emp_count,
+                    AVG(salary) as avg_salary
+                FROM departments d 
+                LEFT JOIN employees e ON d.id = e.department_id
+                GROUP BY d.name, DATE_TRUNC('month', e.hire_date)
+            )
+            SELECT * FROM monthly_stats
+            WHERE avg_salary > (SELECT AVG(salary) FROM employees)
+            """, nativeQuery = true)
+        List<Object[]> getDetailedStats();
+        ```
+
+    2. 윈도우 함수 활용
+        ```java
+        -- Native Query로 작성해야 하는 복잡한 분석 쿼리
+        @Query(value = """
+            SELECT e.*, 
+                salary,
+                AVG(salary) OVER (PARTITION BY department_id) as dept_avg,
+                salary - AVG(salary) OVER (PARTITION BY department_id) as diff_from_avg,
+                RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) as salary_rank
+            FROM employees e
+            """, nativeQuery = true)
+        List<EmployeeStats> getEmployeeRankings();
+        ```
+
+    3. 동적 쿼리 최적화
+        ```java
+        // JPA Criteria API
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Employee> query = cb.createQuery(Employee.class);
+        Root<Employee> employee = query.from(Employee.class);
+
+        // 동적 조건 구성
+        List<Predicate> predicates = new ArrayList<>();
+        if (department != null) {
+            predicates.add(cb.equal(employee.get("department"), department));
+        }
+        if (minSalary != null) {
+            predicates.add(cb.greaterThan(employee.get("salary"), minSalary));
+        }
+
+        // 성능 최적화를 위한 인덱스 힌트 추가
+        query.where(predicates.toArray(new Predicate[0]))
+            .orderBy(cb.desc(employee.get("salary")));
+
+        // Native SQL로 변환
+        String sql = """
+            SELECT /*+ INDEX(e emp_salary_idx) */ e.*
+            FROM employees e
+            WHERE (:department_id IS NULL OR department_id = :department_id)
+            AND (:min_salary IS NULL OR salary >= :min_salary)
+            ORDER BY salary DESC
+            """;
+        ```
+
+    4. 대량의 데이터 처리
+        ```java
+        // JDBC batch 처리 활용
+        @Modifying
+        @Query(value = """
+            INSERT INTO employee_archive (id, name, department, salary, archived_date)
+            SELECT id, name, department, salary, CURRENT_TIMESTAMP
+            FROM employees
+            WHERE termination_date < :cutoffDate
+            """, nativeQuery = true)
+        void archiveOldEmployees(@Param("cutoffDate") LocalDate cutoffDate);
+
+        // 벌크 연산 최적화
+        @Modifying
+        @Query("UPDATE Employee e SET e.salary = e.salary * 1.1 " +
+            "WHERE e.department.id = :departmentId")
+        int increaseSalaryForDepartment(@Param("departmentId") Long departmentId);
+        ```
+
+    5. 복잡한 조인과 서브쿼리
+        ```java
+        @Query(value = """
+            WITH RECURSIVE emp_hierarchy AS (
+                -- 기준 직원
+                SELECT id, name, manager_id, 1 as level
+                FROM employees
+                WHERE manager_id IS NULL
+                
+                UNION ALL
+                
+                -- 재귀적으로 부하 직원 찾기
+                SELECT e.id, e.name, e.manager_id, h.level + 1
+                FROM employees e
+                INNER JOIN emp_hierarchy h ON e.manager_id = h.id
+            )
+            SELECT * FROM emp_hierarchy
+            ORDER BY level, name
+            """, nativeQuery = true)
+        List<Object[]> getEmployeeHierarchy();
+        ```
+
+    * 주의 사항과 팁:
+        1. 복잡한 쿼리는 Native Query 사용을 두려워하지 말 것
+        2. 실행 계획 확인과 성능 모니터링 필수
+        3. 인덱스 활용 고려
+        4. 대량 데이터 처리 시 배치 처리 활용
+        5. ORM의 장점과 SQL의 장점을 적절히 조합
+    
+    * 이러한 방식으로 ORM의 편의성과 Native SQL의 강력함을 함께 활용할 수 있습니다.
+
+3. 인덱스 설계
+    1. ORM에서의 인덱스 정의
+        ```java
+        // JPA에서의 인덱스 정의
+        @Entity
+        @Table(name = "employees",
+            indexes = {
+                @Index(name = "idx_emp_email", columnList = "email", unique = true),
+                @Index(name = "idx_emp_dept_salary", columnList = "department_id, salary")
+            }
+        )
+        public class Employee {
+            @Id
+            private Long id;
+            
+            @Column(nullable = false)
+            private String email;
+            
+            @ManyToOne
+            @JoinColumn(name = "department_id")
+            private Department department;
+            
+            private BigDecimal salary;
+        }
+        ```
+
+    2. 복합 인덱스 설계
+        ```java
+        // 다중 컬럼 인덱스
+        @Entity
+        @Table(indexes = {
+            @Index(name = "idx_search_optimization",
+                columnList = "department_id, hire_date DESC, salary DESC")
+        })
+        public class Employee {
+            // 자주 사용되는 검색 조건을 고려한 인덱스
+            @Query("""
+                SELECT e FROM Employee e
+                WHERE e.department.id = :deptId
+                AND e.hireDate >= :startDate
+                ORDER BY e.salary DESC
+                """)
+            List<Employee> findByDepartmentWithSalary(
+                @Param("deptId") Long departmentId,
+                @Param("startDate") LocalDate startDate);
+        }
+        ```
+
+    3. 수동 DDL 작성
+        ```sql
+        -- 직접 작성하는 인덱스 DDL
+        CREATE INDEX CONCURRENTLY idx_employee_search 
+        ON employees (department_id, hire_date DESC, salary DESC)
+        WHERE status = 'ACTIVE';
+
+        -- 부분 인덱스
+        CREATE INDEX idx_high_salary_employees 
+        ON employees (department_id, name)
+        WHERE salary > 50000;
+        ```
+
+    4. 인덱스 모니터링과 관리
+        ```java
+        // 인덱스 사용 확인을 위한 로깅
+        @Query(value = """
+            EXPLAIN ANALYZE
+            SELECT /*+ INDEX(e idx_emp_dept_salary) */ *
+            FROM employees e
+            WHERE department_id = ?
+            AND salary >= ?
+            """, nativeQuery = true)
+        String explainQueryPlan(Long deptId, BigDecimal minSalary);
+        ```
+
+    5. 인덱스 설계 고려사항
+        ```plaintext
+        1. 선택도(Selectivity)
+            - 높은 선택도: email, employee_id
+            - 낮은 선택도: gender, status
+
+        2. 데이터 분포
+            - 균일 분포: 생성일자, 순차 ID
+            - 비균일 분포: 부서별 직원 수
+
+        3. 쿼리 패턴
+            - 검색 조건 (WHERE 절)
+            - 정렬 조건 (ORDER BY)
+            - 조인 조건
+
+        4. 데이터 변경 빈도
+            - 읽기 중심 테이블: 더 많은 인덱스 허용
+            - 쓰기 중심 테이블: 인덱스 최소화
+        ```
+
+    * 주의 사항과 베스트 프랙티스:
+        1. 필요한 인덱스만 생성(과도한 인덱스는 성능 저하)
+        2. 복합 인덱스 순서 최적화(선택도가 높은 컬럼을 앞에 배치)
+        3. 인덱스 재구성 주기적 수행
+        4. 실행 계획 모니터링
+        5. 부분 인덱스 활용 검토
+
+    * 이러한 인덱스 설계와 관리를 통해 ORM의 성능을 최적화할 수 있습니다.
+
+4. 실행계획 분석
+    1. ORM 쿼리 로깅과 실행계획
+        ```java
+        // JPA/Hibernate 로깅 설정
+        spring.jpa.properties.hibernate.show_sql=true
+        spring.jpa.properties.hibernate.format_sql=true
+        spring.jpa.properties.hibernate.use_sql_comments=true
+
+        // 실행계획 확인
+        @Query(value = "EXPLAIN ANALYZE SELECT * FROM employees WHERE department_id = ?", 
+            nativeQuery = true)
+        String getQueryPlan(Long departmentId);
+        ```
+
+    2. 실행계획 분석과 최적화
+        ```sql
+        -- 실행계획 분석
+        EXPLAIN ANALYZE
+        SELECT e.*, d.name as dept_name
+        FROM employees e
+        INNER JOIN departments d ON e.department_id = d.id
+        WHERE e.salary > 50000
+        ORDER BY e.hire_date DESC;
+
+        -- 실행계획 결과 예시
+        /*
+        Nested Loop  (cost=0.00..28.75 rows=150)
+        ->  Index Scan using emp_salary_idx on employees e
+            (cost=0.00..15.62 rows=100)
+        ->  Index Scan using dept_pkey on departments d
+            (cost=0.00..0.25 rows=1)
+        */
+        ```
+
+    3. 옵티마이저 힌트 적용
+        ```java
+        // JPA에서 힌트 사용
+        @QueryHints(value = {
+            @QueryHint(name = "org.hibernate.comment", 
+                    value = "/*+ INDEX(employees emp_idx) */")
+        })
+        List<Employee> findByDepartmentOptimized(Long departmentId);
+
+        // Native Query에서 힌트 사용
+        @Query(value = """
+            SELECT /*+ INDEX(e emp_salary_dept_idx) */
+                e.*, d.name as dept_name
+            FROM employees e
+            JOIN departments d ON e.department_id = d.id
+            WHERE e.salary > :minSalary
+            """, nativeQuery = true)
+        List<Object[]> findHighSalaryEmployees(@Param("minSalary") BigDecimal minSalary);
+        ```
+
+    4. 성능 모니터링과 튜닝
+        ```java
+        // 성능 통계 활성화
+        spring.jpa.properties.hibernate.generate_statistics=true
+        spring.jpa.properties.hibernate.session.events.log.LOG_QUERIES_SLOWER_THAN_MS=25
+
+        // 쿼리 실행 시간 측정
+        @Autowired
+        private EntityManager entityManager;
+
+        public List<Employee> findEmployeesWithPerformanceLog() {
+            long startTime = System.currentTimeMillis();
+            
+            List<Employee> result = entityManager
+                .createQuery("SELECT e FROM Employee e", Employee.class)
+                .getResultList();
+            
+            long endTime = System.currentTimeMillis();
+            log.info("Query execution time: {} ms", endTime - startTime);
+            
+            return result;
+        }
+        ```
+
+    5. 쿼리 튜닝 체크리스트
+        ```plaintext
+        1. 인덱스 활용 확인
+            - 적절한 인덱스가 있는가?
+            - 인덱스가 효율적으로 사용되고 있는가?
+
+        2. 조인 최적화
+            - 조인 순서가 적절한가?
+            - 불필요한 조인이 없는가?
+
+        3. 데이터 접근 패턴
+            - N+1 문제가 발생하지 않는가?
+            - 페이징이 효율적으로 동작하는가?
+
+        4. 캐시 활용
+            - 적절한 캐싱 전략을 사용하고 있는가?
+            - 캐시 히트율은 적절한가?
+
+        5. 배치 처리
+            - 대량 데이터 처리 시 배치 처리를 활용하는가?
+            - 적절한 배치 사이즈를 설정했는가?
+        ```
+
+    * 실행계획 분석 시 주의사항:
+        1. 실제 데이터와 유사한 테스트 데이터 사용
+        2. 장기적인 성능 모니터링
+        3. 실행계획 변경 시 신중한 검토
+        4. 캐시 영향 고려
+        5. DB 벤더별 특성 이해
+
+    * 이러한 실행계획 분석과 최적화를 통해 ORM의 성능을 지속적으로 개선할 수 있습니다.
