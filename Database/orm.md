@@ -1,0 +1,1307 @@
+# ORM과의 연계
+
+1. ORM의 개념과 필요성
+    1. ORM이란?
+        * ORM(Object-Relational Mapping)은 객체 지향 프로그래밍의 객체(Object)와 관계형 데이터베이스(RDB)의 테이블을 자동으로 매핑해주는 기술입니다.
+            ```java
+            // ORM 사용 전 (Raw SQL)
+            String sql = "INSERT INTO users (name, email) VALUES (?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, "John");
+            stmt.setString(2, "john@example.com");
+            stmt.executeUpdate();
+
+            // ORM 사용 후 (예: JPA)
+            User user = new User();
+            user.setName("John");
+            user.setEmail("john@example.com");
+            entityManager.persist(user);
+            ```
+
+    2. ORM의 필요성
+        1. 생산성 향상
+            - 반복적인 SQL 작성 감소
+            - 데이터베이스 작업을 객체 지향적으로 처리
+            - 자동 CRUD 쿼리 생성
+
+        2. 유지보수성 향상
+            - 테이블 스키마 변경 시 SQL 수정 최소화
+            - 객체 중심의 코드 작성으로 가독성 향상
+            - 비즈니스 로직에 집중 가능
+
+        3. 데이터베이스 독립성
+            - DB 벤더 교체 시 코드 수정 최소화
+            - 다양한 데이터베이스 동시 지원
+            - 방언(Dialect) 설정으로 DB 전환 용이
+
+    3. ORM의 Trade-offs
+        1. 장점
+            - 직관적인 객체 중심 개발
+            - 생산성과 유지보수성 향상
+            - DB 추상화로 이식성 증가
+            - 기본적인 CRUD 작업 자동화
+
+        2. 단점
+            ```sql
+            -- ORM이 생성한 비효율적인 쿼리 예시
+            SELECT * FROM orders o 
+            JOIN order_items oi ON o.id = oi.order_id
+            JOIN products p ON oi.product_id = p.id
+            WHERE o.status = 'PENDING'
+            -- 실제로는 일부 컬럼만 필요한데 모든 컬럼을 조회
+            ```
+            - 복잡한 쿼리의 경우 성능 최적화 어려움
+            - 초기 학습 곡선이 높음
+            - 직접 SQL 작성보다 세밀한 제어가 어려울 수 있음.
+            - 잘못 사용 시 성능 저하(N+1 문제 등)
+
+    4. SQL 지식과의 연계
+        ```java
+        // ORM의 JPQL
+        String jpql = "SELECT o FROM Order o WHERE o.status = :status";
+        TypedQuery<Order> query = em.createQuery(jpql, Order.class);
+        query.setParameter("status", "PENDING");
+
+        // Native SQL
+        String sql = "SELECT * FROM orders WHERE status = ?";
+        Query query = em.createNativeQuery(sql, Order.class);
+        query.setParameter(1, "PENDING");
+        ```
+        - ORM을 효과적으로 사용하기 위해서는 SQL에 대한 이해가 필수
+        - 쿼리 최적화와 성능 튜닝 시 SQL 지식 필요
+        - Complex 쿼리는 Native SQL과 혼용하여 사용
+
+## 대표적인 ORM 프레임워크 예시
+
+1. Java/Hibernate(JPA)
+    1. 기본 엔티티 매핑
+        ```java
+        @Entity
+        @Table(name = "employees")
+        public class Employee {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+
+            @Column(name = "first_name", length = 50, nullable = false)
+            private String firstName;
+
+            @Column(name = "salary")
+            private BigDecimal salary;
+
+            @Temporal(TemporalType.TIMESTAMP)
+            private Date hireDate;
+        }
+        ```
+
+    2. 관계 매핑
+        ```java
+        @Entity
+        public class Department {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+
+            // 1:N 관계 매핑
+            @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
+            private List<Employee> employees = new ArrayList<>();
+
+            // N:1 관계 매핑
+            @ManyToOne
+            @JoinColumn(name = "company_id")
+            private Company company;
+        }
+        ```
+
+    3. JPQL vs Native SQL
+        ```java
+        // JPQL 사용
+        String jpql = "SELECT e FROM Employee e WHERE e.salary > :minSalary";
+        List<Employee> employees = entityManager
+            .createQuery(jpql, Employee.class)
+            .setParameter("minSalary", new BigDecimal("50000"))
+            .getResultList();
+
+        // Native SQL 사용
+        String sql = "SELECT * FROM employees WHERE salary > ?";
+        List<Employee> employees = entityManager
+            .createNativeQuery(sql, Employee.class)
+            .setParameter(1, 50000)
+            .getResultList();
+        ```
+
+    4. Lazy/Eager Loading
+        ```java
+        @Entity
+        public class Employee {
+            // 즉시 로딩 (Eager Loading)
+            @ManyToOne(fetch = FetchType.EAGER)
+            private Department department;
+
+            // 지연 로딩 (Lazy Loading)
+            @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
+            private List<Project> projects;
+        }
+
+        // N+1 문제 발생 예시
+        List<Employee> employees = em.createQuery("SELECT e FROM Employee e", Employee.class)
+            .getResultList();
+
+        // 각 employee에 대해 추가 쿼리 발생
+        for (Employee emp : employees) {
+            System.out.println(emp.getDepartment().getName()); // 추가 쿼리 발생!
+        }
+
+        // N+1 문제 해결을 위한 JOIN FETCH 사용
+        List<Employee> employees = em.createQuery(
+            "SELECT e FROM Employee e JOIN FETCH e.department", 
+            Employee.class
+        ).getResultList();
+        ```
+
+    5. 트랜잭션 관리
+        ```java
+        @Transactional
+        public void updateEmployeeSalary(Long empId, BigDecimal newSalary) {
+            Employee emp = entityManager.find(Employee.class, empId);
+            emp.setSalary(newSalary);
+            // 트랜잭션 종료 시 자동으로 변경사항 반영
+        }
+        ```
+
+    6. 캐싱 전략
+        ```java
+        @Entity
+        @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+        public class Department {
+            @Id
+            private Long id;
+
+            @OneToMany(mappedBy = "department")
+            @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+            private Set<Employee> employees;
+        }
+        ```
+
+    * 이러한 JPA/Hibernate의 기능들은 객체 지향적인 방식으로 데이터베이스를 다룰 수 있게 해주지만, 적절한 사용을 위해서는 내부적으로 생성되는 SQL과 실행 계획을 이해하는 것이 중요합니다.
+
+2. Python/SQLAlchemy
+    1. 기본 모델 정의 (Declarative Base)
+        ```python
+        from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
+        from sqlalchemy.ext.declarative import declarative_base
+        from sqlalchemy.orm import relationship
+
+        Base = declarative_base()
+
+        class Employee(Base):
+            __tablename__ = 'employees'
+            
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50), nullable=False)
+            email = Column(String(100), unique=True)
+            department_id = Column(Integer, ForeignKey('departments.id'))
+            
+            # 관계 설정
+            department = relationship("Department", back_populates="employees")
+        ```
+
+    2. 세션 관리와 CRUD 작업
+        ```python
+        from sqlalchemy.orm import sessionmaker
+
+        # 엔진 및 세션 설정
+        engine = create_engine('postgresql://user:pass@localhost/dbname')
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # Create
+        new_emp = Employee(name="John Doe", email="john@example.com")
+        session.add(new_emp)
+        session.commit()
+
+        # Read
+        employees = session.query(Employee).filter(Employee.name.like('John%')).all()
+
+        # Update
+        employee = session.query(Employee).filter_by(id=1).first()
+        employee.name = "John Smith"
+        session.commit()
+
+        # Delete
+        session.delete(employee)
+        session.commit()
+        ```
+
+    3. ORM vs Core API
+        ```python
+        # ORM 방식
+        employees = session.query(Employee).filter(Employee.salary > 50000).all()
+
+        # Core API 방식
+        from sqlalchemy import select
+        stmt = select(Employee.__table__).where(Employee.__table__.c.salary > 50000)
+        result = session.execute(stmt)
+        ```
+
+    4. Alembic을 이용한 마이그레이션
+        ```python
+        # alembic/env.py
+        from alembic import context
+        from sqlalchemy import engine_from_config
+        from models import Base
+
+        target_metadata = Base.metadata
+
+        # migrations/versions/xxxxx_create_employees.py
+        from alembic import op
+        import sqlalchemy as sa
+
+        def upgrade():
+            op.create_table(
+                'employees',
+                sa.Column('id', sa.Integer(), primary_key=True),
+                sa.Column('name', sa.String(50), nullable=False),
+                sa.Column('email', sa.String(100), unique=True)
+            )
+
+        def downgrade():
+            op.drop_table('employees')
+        ```
+        ```bash
+        # 마이그레이션 명령어
+        alembic revision --autogenerate -m "Create employees table"
+        alembic upgrade head
+        ```
+
+3. Python/Django ORM
+    1. 모델 정의
+        ```python
+        from django.db import models
+
+        class Department(models.Model):
+            name = models.CharField(max_length=100)
+            location = models.CharField(max_length=200)
+
+        class Employee(models.Model):
+            name = models.CharField(max_length=100)
+            email = models.EmailField(unique=True)
+            salary = models.DecimalField(max_digits=10, decimal_places=2)
+            department = models.ForeignKey(
+                Department,
+                on_delete=models.CASCADE,
+                related_name='employees'
+            )
+            created_at = models.DateTimeField(auto_now_add=True)
+        ```
+
+    2. QuerySet API 사용
+        ```python
+        # Create
+        employee = Employee.objects.create(
+            name="Jane Doe",
+            email="jane@example.com",
+            department_id=1
+        )
+
+        # Read with filtering and joining
+        employees = Employee.objects.select_related('department').filter(
+            salary__gt=50000
+        ).order_by('-created_at')
+
+        # Aggregate queries
+        from django.db.models import Avg, Count
+        dept_stats = Department.objects.annotate(
+            employee_count=Count('employees'),
+            avg_salary=Avg('employees__salary')
+        )
+        ```
+
+    3. 마이그레이션
+        ```bash
+        # 마이그레이션 파일 생성
+        python manage.py makemigrations
+
+        # 마이그레이션 적용
+        python manage.py migrate
+
+        # 특정 앱의 마이그레이션 내역 확인
+        python manage.py showmigrations myapp
+        ```
+
+    4. 최적화 기법
+        ```python
+        # N+1 문제 해결을 위한 select_related 사용
+        employees = Employee.objects.select_related('department').all()
+
+        # M:N 관계에서는 prefetch_related 사용
+        departments = Department.objects.prefetch_related('employees').all()
+
+        # 대량 생성 시 bulk_create 사용
+        Employee.objects.bulk_create([
+            Employee(name='User1', email='user1@example.com'),
+            Employee(name='User2', email='user2@example.com'),
+        ])
+        ```
+
+* 이처럼 Python에서는 SQLAlchemy와 Django ROM이 각각 다른 방식으로 ORM 기능을 제공합니다. SQLAlchemy는 좀 더 SQL에 가까운 우연한 인터페이스를 제공하는 반면, Django ORM은 좀 더 추상화된 고수준의 인터페이스를 제공합니다.
+
+4. Go의 ORM과 데이터베이스 도구들
+    1. GORM
+        ```go
+        // 모델 정의
+        type Employee struct {
+            gorm.Model               // ID, CreatedAt, UpdatedAt, DeletedAt 포함
+            Name      string         `gorm:"size:255;not null"`
+            Email     string         `gorm:"uniqueIndex"`
+            Salary    decimal.Decimal
+            DepartmentID uint
+            Department  Department    `gorm:"foreignKey:DepartmentID"`
+        }
+
+        type Department struct {
+            ID       uint
+            Name     string
+            Employees []Employee     `gorm:"foreignKey:DepartmentID"`
+        }
+
+        // DB 연결 및 마이그레이션
+        db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+        if err != nil {
+            panic("failed to connect database")
+        }
+        db.AutoMigrate(&Employee{}, &Department{})
+
+        // CRUD 작업
+        // Create
+        db.Create(&Employee{Name: "John", Email: "john@example.com"})
+
+        // Read
+        var employee Employee
+        db.First(&employee, 1) // id로 찾기
+        db.Where("name = ?", "John").First(&employee)
+
+        // Update
+        db.Model(&employee).Update("Name", "John Smith")
+
+        // Delete
+        db.Delete(&employee)
+
+        // Hooks 사용
+        func (e *Employee) BeforeCreate(tx *gorm.DB) (err error) {
+            e.Email = strings.ToLower(e.Email)
+            return
+        }
+        ```
+
+    2. SQLC SQL 우선 접근 방식을 제공하는 코드 생성 도구
+        ```sql
+        -- queries.sql
+        -- name: GetEmployee :one
+        SELECT * FROM employees
+        WHERE id = $1 LIMIT 1;
+
+        -- name: ListEmployees :many
+        SELECT * FROM employees
+        WHERE department_id = $1;
+
+        -- name: CreateEmployee :one
+        INSERT INTO employees (name, email, department_id)
+        VALUES ($1, $2, $3)
+        RETURNING *;
+        ```
+        ```go
+        // 생성된 Go 코드 사용
+        employee, err := queries.GetEmployee(ctx, 1)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        employees, err := queries.ListEmployees(ctx, deptID)
+        ```
+
+    3. Ent (Facebook의 엔티티 프레임워크)스키마 기반 ORM으로 타입 안정성 제공
+        ```go
+        // 스키마 정의
+        type Employee struct {
+            ent.Schema
+        }
+
+        func (Employee) Fields() []ent.Field {
+            return []ent.Field{
+                field.String("name"),
+                field.String("email").Unique(),
+                field.Float("salary"),
+            }
+        }
+
+        func (Employee) Edges() []ent.Edge {
+            return []ent.Edge{
+                edge.To("department", Department.Type),
+            }
+        }
+
+        // 사용 예시
+        client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        // CRUD 작업
+        employee, err := client.Employee.
+            Create().
+            SetName("John").
+            SetEmail("john@example.com").
+            Save(ctx)
+        ```
+
+    4. PGX PosgreSQL에 특화된 드라이버 및 툴킷
+        ```go
+        // 연결 풀 사용
+        pool, err := pgxpool.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        // 트랜잭션 처리
+        tx, err := pool.Begin(context.Background())
+        if err != nil {
+            log.Fatal(err)
+        }
+        defer tx.Rollback(context.Background())
+
+        // 배치 작업
+        batch := &pgx.Batch{}
+        batch.Queue("INSERT INTO employees (name) VALUES ($1)", "John")
+        batch.Queue("INSERT INTO employees (name) VALUES ($1)", "Jane")
+
+        br := pool.SendBatch(context.Background(), batch)
+        defer br.Close()
+        ```
+
+    5. SQLBoiler
+        - 데이터베이스 스키마로부터 타입 안전한 Go 코드 생성
+        ```go
+        // 자동 생성된 모델 사용
+        employee, err := models.FindEmployee(ctx, db, employeeID)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        // 관계 로딩
+        department, err := employee.Department().One(ctx, db)
+        if err != nil {
+            log.Fatal(err)
+        }
+        ```
+
+* 각 도구의 특징:
+    - GORM: 가장 널리 사용되는 Go ORM, Active Record 패턴 구현
+    - SQLC: SQL 우선 접근으로 성능과 타입 안정성 강조
+    - Ent: 스키마 중심 설계와 강력한 타입 시스템
+    - PGX: PostgreSQL 특화 기능과 고성능
+    - SQLBoiler: 데이터베이스 우선 접근과 코드 생성
+
+* 선택 기준:
+    1. 프로젝트 규모와 복잡성
+    2. 성능 요구사항
+    3. 팀의 SQL 친숙도
+    4. 데이터베이스 특화 기능 필요 여부
+    5. 개발 생산성 vs 유연성
+
+* 각 도구는 자신만의 장단점이 있으므로, 프로젝트 요구사항에 따라 적절한 도구를 선택하는 것이 중요합니다.
+
+5. 기타 언어별 대표적인 ORM
+    1. Ruby on Rails - ActiveRecord
+        ```ruby
+        # 모델 정의
+        class Employee < ApplicationRecord
+        belongs_to :department
+        has_many :projects
+        validates :email, presence: true, uniqueness: true
+        
+        # 스코프 정의
+        scope :active, -> { where(status: 'active') }
+        scope :high_salary, -> { where('salary > ?', 50000) }
+        end
+
+        # CRUD 작업
+        # Create
+        employee = Employee.create(
+        name: "John Doe",
+        email: "john@example.com",
+        department_id: 1
+        )
+
+        # Read with associations
+        employees = Employee.includes(:department)
+                        .where(status: 'active')
+                        .order(created_at: :desc)
+
+        # Update
+        employee.update(salary: 60000)
+
+        # Delete
+        employee.destroy
+        ```
+
+    2. PHP Laravel - Eloquent
+        ```php
+        // 모델 정의
+        class Employee extends Model
+        {
+            protected $fillable = ['name', 'email', 'salary'];
+
+            public function department()
+            {
+                return $this->belongsTo(Department::class);
+            }
+        }
+
+        // CRUD 및 쿼리 빌더
+        // Create
+        $employee = Employee::create([
+            'name' => 'Jane Smith',
+            'email' => 'jane@example.com'
+        ]);
+
+        // Read with conditions
+        $employees = Employee::where('salary', '>', 50000)
+                            ->with('department')
+                            ->get();
+
+        // Relationships
+        $department->employees()->save($employee);
+        ```
+
+    3. Node.js - Sequelize
+        ```javascript
+        // 모델 정의
+        const Employee = sequelize.define('Employee', {
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        email: {
+            type: DataTypes.STRING,
+            unique: true
+        }
+        });
+
+        // CRUD 작업
+        // Create
+        const employee = await Employee.create({
+        name: 'Tom Wilson',
+        email: 'tom@example.com'
+        });
+
+        // Read with associations
+        const employees = await Employee.findAll({
+        include: [{
+            model: Department,
+            where: { name: 'IT' }
+        }],
+        where: {
+            salary: {
+            [Op.gt]: 50000
+            }
+        }
+        });
+        ```
+
+    4. C# - Entity Framework Core
+        ```csharp
+        // 모델 정의
+        public class Employee
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Email { get; set; }
+            public Department Department { get; set; }
+        }
+
+        // DbContext 설정
+        public class AppDbContext : DbContext
+        {
+            public DbSet<Employee> Employees { get; set; }
+            public DbSet<Department> Departments { get; set; }
+        }
+
+        // CRUD 및 LINQ 사용
+        // Create
+        var employee = new Employee { Name = "Alice Brown" };
+        context.Employees.Add(employee);
+        await context.SaveChangesAsync();
+
+        // Query with LINQ
+        var employees = await context.Employees
+            .Where(e => e.Department.Name == "IT")
+            .Include(e => e.Department)
+            .ToListAsync();
+        ```
+
+    5. Rust - Diesel
+        ```rust
+        // 스키마 정의
+        table! {
+            employees (id) {
+                id -> Int4,
+                name -> Varchar,
+                email -> Varchar,
+            }
+        }
+
+        // 모델 정의
+        #[derive(Queryable)]
+        struct Employee {
+            id: i32,
+            name: String,
+            email: String,
+        }
+
+        // CRUD 작업
+        diesel::insert_into(employees::table)
+            .values(&new_employee)
+            .execute(&mut conn)?;
+
+        let results = employees::table
+            .filter(employees::department_id.eq(1))
+            .load::<Employee>(&mut conn)?;
+        ```
+    
+    * 각 ORM의 특징:
+        1. ActiveRecord(Ruby)
+            - Convention over Configurtion 원칙
+            - 직관적이고 간결한 문법
+            - 마이그레이션 시스템이 잘 갖쳐줘 있음
+
+        2. Eloquent (PHP)
+            - Laravel 프레임워크의 강력한 생태계
+            - 우아한 문법과 쿼리 빌더
+            - 이벤트/옵저버 패턴 지원
+
+        3. Sequelize(Node.js)
+            - 프로미스 기반 비동기 작업
+            - 다양한 DB 지원 (MySQL, PostgreSQL, SQLite 등)
+            - 트랜잭션과 관계 설정이 용이
+
+        4. Entity Framework Core (C#)
+            - LINQ를 통한 강력한 쿼리 기능
+            - 마이그레이션 자동화
+            - 비동기 작업 지원
+
+        5. Diesel (Rust)
+            - 컴파일 시점 타입 체크
+            - 높은 성능
+            - SQL과 가까운 추상화 레벨
+
+    * 이러한 다양한 ORM들은 각 언어의 특성과 생태계에 맞춰 최적화되어 있으며, 해당 언어의 장점을 최대한 활용할 수 있도록 설계되어 있습니다.
+
+## ORM의 내부 동작 원리
+
+1. 매핑(Mapping)
+    1. 클래스와 테이블 매핑
+        ```java
+        // Java JPA 예시
+        @Entity
+        @Table(name = "employees")
+        public class Employee {
+            @Id @GeneratedValue
+            private Long id;
+            
+            @Column(name = "full_name", length = 100)
+            private String name;
+            
+            @Temporal(TemporalType.TIMESTAMP)
+            private Date hireDate;
+            
+            @Enumerated(EnumType.STRING)
+            private EmployeeStatus status;
+        }
+        ```
+        - 실제 생성되는 DDL:
+            ```sql
+            CREATE TABLE employees (
+                id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                full_name VARCHAR(100),
+                hire_date TIMESTAMP,
+                status VARCHAR(20)
+            );
+            ```
+
+    2. 자료형 변환 매핑
+        ```python
+        # SQLAlchemy 예시
+        class Product(Base):
+            __tablename__ = 'products'
+            
+            id = Column(Integer, primary_key=True)
+            price = Column(Numeric(10, 2))  # Decimal로 매핑
+            tags = Column(ARRAY(String))    # 배열 타입 매핑
+            metadata = Column(JSON)         # JSON 타입 매핑
+        ```
+        - 데이터베이스 변환:
+            ```python
+            # Python 객체
+            product = Product(
+                price=Decimal('199.99'),
+                tags=['electronics', 'new'],
+                metadata={'color': 'black', 'weight': '150g'}
+            )
+
+            # 실제 DB 저장 시
+            """
+            INSERT INTO products (price, tags, metadata)
+            VALUES (
+                199.99,
+                ARRAY['electronics', 'new'],
+                '{"color": "black", "weight": "150g"}'
+            )
+            """
+            ```
+
+    3. 관계 매핑
+        ```java
+        // 1:1 관계
+        @Entity
+        public class Employee {
+            @OneToOne
+            @JoinColumn(name = "detail_id")
+            private EmployeeDetail detail;
+        }
+
+        // 1:N 관계
+        @Entity
+        public class Department {
+            @OneToMany(mappedBy = "department")
+            private List<Employee> employees = new ArrayList<>();
+        }
+
+        // M:N 관계
+        @Entity
+        public class Project {
+            @ManyToMany
+            @JoinTable(
+                name = "project_employees",
+                joinColumns = @JoinColumn(name = "project_id"),
+                inverseJoinColumns = @JoinColumn(name = "employee_id")
+            )
+            private Set<Employee> employees = new HashSet<>();
+        }
+        ```
+        - 생성되는 테이블 구조:
+            ```sql
+            -- 1:1 관계
+            CREATE TABLE employees (
+                id BIGINT PRIMARY KEY,
+                detail_id BIGINT UNIQUE,
+                FOREIGN KEY (detail_id) REFERENCES employee_details(id)
+            );
+
+            -- 1:N 관계
+            CREATE TABLE employees (
+                id BIGINT PRIMARY KEY,
+                department_id BIGINT,
+                FOREIGN KEY (department_id) REFERENCES departments(id)
+            );
+
+            -- M:N 관계
+            CREATE TABLE project_employees (
+                project_id BIGINT,
+                employee_id BIGINT,
+                PRIMARY KEY (project_id, employee_id),
+                FOREIGN KEY (project_id) REFERENCES projects(id),
+                FOREIGN KEY (employee_id) REFERENCES employees(id)
+            );
+            ```
+
+    4. 복합 키 매핑
+        ```java
+        @Entity
+        public class OrderItem {
+            @EmbeddedId
+            private OrderItemId id;
+
+            @MapsId("orderId")
+            @ManyToOne
+            private Order order;
+
+            @MapsId("productId")
+            @ManyToOne
+            private Product product;
+            
+            private int quantity;
+        }
+
+        @Embeddable
+        public class OrderItemId implements Serializable {
+            private Long orderId;
+            private Long productId;
+        }
+        ```
+
+    * 이러한 매핑 메커니즘을 통해 ORM은 객체 모델과 관계형 데이터베이스 모델 간의 차이(임피던스 불일치)를 해결합니다. 개발자는 객체 지향적으로 코드를 작성하고, ORM이 이를 적절한 데이터베이스 구조로 변환하여 저장합니다.
+
+2. 세션/엔티티 매니저
+    1. 영속성 컨텍스트(Persistence Context)
+        ```java
+        // JPA 예시
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPU");
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            
+            // 영속성 컨텍스트에 엔티티 저장
+            Employee emp = new Employee("John");
+            em.persist(emp);  // 1차 캐시에 저장
+            
+            // 영속성 컨텍스트에서 조회
+            Employee found = em.find(Employee.class, 1L);  // DB 조회 없이 캐시에서 반환
+            
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
+        ```
+
+    2. 엔티티 상태 생명주기
+        ```python
+        # SQLAlchemy 예시
+        from sqlalchemy.orm import Session
+
+        # 1. Transient (비영속) 상태
+        employee = Employee(name="Alice")  # 객체만 생성, 아직 세션과 무관
+
+        # 2. Persistent (영속) 상태
+        session.add(employee)  # 세션에 객체 추가
+        session.commit()       # DB에 실제 반영
+
+        # 3. Detached (준영속) 상태
+        session.expunge(employee)  # 세션에서 분리
+
+        # 4. Removed (삭제) 상태
+        session.delete(employee)   # 삭제 마킹
+        session.commit()          # DB에서 실제 삭제
+        ```
+
+    3. 세션 관리 예시
+        ```java
+        // Hibernate 세션 예시
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+
+        try {
+            tx = session.beginTransaction();
+            
+            // 영속성 컨텍스트 작업
+            Employee emp = session.get(Employee.class, 1L);  // 조회
+            emp.setName("New Name");  // 변경 감지 대상이 됨
+            
+            // 중간 저장 및 초기화
+            session.flush();  // 변경사항 DB 반영
+            session.clear();  // 영속성 컨텍스트 초기화
+            
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+        ```
+
+    4. 영속성 전이(Cascade)
+        ```java
+        @Entity
+        public class Department {
+            @Id @GeneratedValue
+            private Long id;
+            
+            @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+            private List<Employee> employees = new ArrayList<>();
+            
+            public void addEmployee(Employee employee) {
+                employees.add(employee);
+                employee.setDepartment(this);
+            }
+        }
+
+        // 사용 예시
+        Department dept = new Department();
+        dept.addEmployee(new Employee("John"));
+        dept.addEmployee(new Employee("Alice"));
+
+        // 부서 저장 시 직원도 함께 저장됨 (CASCADE)
+        entityManager.persist(dept);
+        ```
+
+    5. 지연 로딩과 즉시 로딩
+        ```java
+        @Entity
+        public class Employee {
+            @ManyToOne(fetch = FetchType.LAZY)  // 지연 로딩
+            private Department department;
+            
+            @OneToOne(fetch = FetchType.EAGER)  // 즉시 로딩
+            private EmployeeDetail detail;
+        }
+
+        // 지연 로딩 동작
+        Employee emp = em.find(Employee.class, 1L);
+        // 이 시점에는 department가 프록시 객체
+
+        dept = emp.getDepartment();  // 실제 사용 시점에 DB에서 로딩
+        ```
+
+    * 영속성 컨텍스트의 주요 이점:
+        1. 1차 캐시
+        2. 동일성 보장
+        3. 변경 감지(Dirty Checking)
+        4. 지연 로딩(Lazy Loading)
+        5. 트랜잭션을 지원하는 쓰기 지연(Transactional Write-Behind)
+
+    * 이러한 메커니즘을 통해 ORM은 객체 지향적인 방식으로 데이터베이스 작업을 수행하면서도, 성능과 데이터 일관성을 보장할 수 있습니다.
+
+3. 쿼리 생성
+    1. ORM의 통적 쿼리 생성
+        ```java
+        // JPA JPQL 예시
+        // 엔티티 기반 쿼리
+        String jpql = "SELECT e FROM Employee e WHERE e.salary > :minSalary";
+        List<Employee> employees = em.createQuery(jpql, Employee.class)
+            .setParameter("minSalary", 50000)
+            .getResultList();
+
+        // 실제 생성되는 SQL
+        /*
+        SELECT e.id, e.name, e.salary, e.department_id 
+        FROM employees e 
+        WHERE e.salary > 50000
+        */
+        ```
+
+    2. 다양한 쿼리 방식
+        ```java
+        // 1. JPQL/HQL
+        List<Employee> employees = em.createQuery(
+            "SELECT e FROM Employee e JOIN e.department d WHERE d.name = :deptName", 
+            Employee.class
+        ).setParameter("deptName", "IT").getResultList();
+
+        // 2. Native SQL
+        List<Employee> employees = em.createNativeQuery(
+            "SELECT * FROM employees WHERE department_id IN (SELECT id FROM departments WHERE location = ?)", 
+            Employee.class
+        ).setParameter(1, "Seoul").getResultList();
+
+        // 3. Criteria API (동적 쿼리)
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Employee> cq = cb.createQuery(Employee.class);
+        Root<Employee> employee = cq.from(Employee.class);
+
+        // 동적 조건 구성
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (name != null) {
+            predicates.add(cb.like(employee.get("name"), "%" + name + "%"));
+        }
+        if (minSalary != null) {
+            predicates.add(cb.greaterThan(employee.get("salary"), minSalary));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+        List<Employee> results = em.createQuery(cq).getResultList();
+        ```
+
+    3. QueryBuilder 패턴
+        ```python
+        # SQLAlchemy 예시
+        from sqlalchemy import select
+
+        # 기본 쿼리 빌더
+        query = select(Employee).where(
+            Employee.department_id == 1
+        ).order_by(
+            Employee.salary.desc()
+        )
+
+        # 조건부 쿼리 구성
+        def build_search_query(name=None, min_salary=None, department=None):
+            query = select(Employee)
+            if name:
+                query = query.where(Employee.name.like(f'%{name}%'))
+            if min_salary:
+                query = query.where(Employee.salary >= min_salary)
+            if department:
+                query = query.join(Department).where(Department.name == department)
+            return query
+        ```
+
+    4. DML 쿼리 생성
+        ```java
+        // Insert 쿼리
+        Employee emp = new Employee("John", 60000);
+        em.persist(emp);
+        // INSERT INTO employees (name, salary) VALUES ('John', 60000)
+
+        // Update 쿼리
+        Employee emp = em.find(Employee.class, 1L);
+        emp.setSalary(65000);
+        // UPDATE employees SET salary = 65000 WHERE id = 1
+
+        // Delete 쿼리
+        em.remove(emp);
+        // DELETE FROM employees WHERE id = 1
+
+        // Bulk 연산
+        int updatedCount = em.createQuery(
+            "UPDATE Employee e SET e.salary = e.salary * 1.1 WHERE e.department.id = :deptId"
+        ).setParameter("deptId", 1L)
+        .executeUpdate();
+        ```
+
+    5. 서브쿼리와 조인
+        ```java
+        // 서브쿼리 예시
+        String jpql = """
+            SELECT e FROM Employee e 
+            WHERE e.salary > (
+                SELECT AVG(e2.salary) 
+                FROM Employee e2 
+                WHERE e2.department = e.department
+            )
+        """;
+
+        // 복잡한 조인 예시
+        String jpql = """
+            SELECT DISTINCT e FROM Employee e 
+            LEFT JOIN FETCH e.department d 
+            LEFT JOIN FETCH e.projects p 
+            WHERE d.location IN ('Seoul', 'Busan')
+        """;
+        ```
+
+    * 생성된 쿼리의 특징:
+        1. 데이터베이스 방언(Dialect) 적용
+        2. 성능 최적화(적절한 인덱스 사용)
+        3. 타입 안정성 보장
+        4. 동적 쿼리 생성 용이
+        5. 페이징, 정렬 등 공통 기능 자동 지원
+
+    * 이처럼 ORM은 다양한 방식으로 SQL을 생성하며, 개발자는 상황에 따라 적절한 쿼리 작성 방식을 선택할 수 있습니다.
+
+4. 변경 감지(Dirty Checking)
+    1. 기본 동작 원리
+        ```java
+        // JPA 예시
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+            
+            // 엔티티 조회
+            Employee emp = em.find(Employee.class, 1L);
+            
+            // 엔티티 수정 - 별도의 update() 메서드 호출 없음
+            emp.setName("New Name");  // 변경 감지 대상
+            emp.setSalary(70000);     // 변경 감지 대상
+            
+            tx.commit();  // 커밋 시점에 변경 감지 동작
+            // UPDATE employees SET name = ?, salary = ? WHERE id = ?
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
+        ```
+
+    2. 스냅샷 기반 비교
+        ```python
+        # SQLAlchemy 예시
+        from sqlalchemy.orm import Session
+
+        session = Session(engine)
+
+        try:
+            # 초기 상태 스냅샷 생성
+            employee = session.query(Employee).get(1)
+            # 내부적으로 {'name': 'John', 'salary': 60000} 스냅샷 저장
+            
+            # 엔티티 변경
+            employee.name = "John Smith"
+            employee.salary = 65000
+            
+            # 커밋 시 스냅샷과 비교하여 변경된 필드만 UPDATE
+            session.commit()
+        except:
+            session.rollback()
+            raise
+        ```
+
+    3. 변경 감지 최적화
+        ```java
+        @Entity
+        @DynamicUpdate  // 변경된 필드만 UPDATE 쿼리에 포함
+        public class Employee {
+            @Id
+            private Long id;
+            
+            private String name;
+            
+            @Column(updatable = false)  // 수정 불가 필드
+            private LocalDateTime createdAt;
+            
+            @Version  // 동시성 제어를 위한 버전 관리
+            private Long version;
+        }
+        ```
+
+    4. Bulk 연산과 변경 감지
+        ```java
+        // 일반적인 변경 감지 (N번의 UPDATE)
+        List<Employee> employees = em.createQuery("SELECT e FROM Employee e", Employee.class)
+            .getResultList();
+
+        for (Employee emp : employees) {
+            emp.setSalary(emp.getSalary() * 1.1);  // 각각 변경 감지 발생
+        }
+
+        // Bulk 연산 (1번의 UPDATE)
+        int updatedCount = em.createQuery(
+            "UPDATE Employee e SET e.salary = e.salary * 1.1"
+        ).executeUpdate();
+        ```
+
+    5. 변경 감지와 성능
+        ```java
+        @Entity
+        public class Employee {
+            @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+            private List<Project> projects = new ArrayList<>();
+            
+            public void addProject(Project project) {
+                projects.add(project);
+                project.setEmployee(this);  // 양방향 관계 설정
+            }
+        }
+
+        // 변경 감지 범위 제한
+        @EntityListeners(AuditingEntityListener.class)
+        public class BaseEntity {
+            @LastModifiedDate
+            private LocalDateTime updatedAt;
+            
+            @LastModifiedBy
+            private String updatedBy;
+        }
+        ```
+
+    * 변경 감지의 주요 특징:
+        1. 자동 감지: 별도의 update() 메서드 호출 불필요
+        2. 스냅샷 관리: 초기 상태와 비교하여 변경 감지
+        3. 성능 최적화: 변경된 필드만 UPDATE 쿼리에 포함
+        4. 트랜잭션 범위: 트랜잭션 커밋 시점에 동작
+        5. 영속성 컨텍스트: 관리되는 엔티티만 대상
+
+    * 변경 감지는 ORM의 핵심 기능 중 하나로, 객체 지향적인 코드 작성을 가능하게 하면서도 데이터베이스와의 동기화를 자동으로 처리해줍니다.
+
+5. 캐싱
+    1. 1차 캐시 (Session/영속성 컨텍스트 범위)
+        ```java
+        // JPA 예시
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            // 1차 캐시에 저장
+            Employee emp1 = em.find(Employee.class, 1L);  // DB 조회
+            Employee emp2 = em.find(Employee.class, 1L);  // 캐시에서 조회
+            
+            System.out.println(emp1 == emp2);  // true (동일성 보장)
+            
+            // 캐시 초기화
+            em.clear();  // 1차 캐시 전체 초기화
+            em.detach(emp1);  // 특정 엔티티만 캐시에서 제거
+        } finally {
+            em.close();  // 1차 캐시 소멸
+        }
+        ```
+
+    2. 2차 캐시 (애플리케이션 전역)
+        ```java
+        @Entity
+        @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+        public class Department {
+            @Id
+            private Long id;
+            
+            @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+            @OneToMany(mappedBy = "department")
+            private List<Employee> employees = new ArrayList<>();
+        }
+
+        // 하이버네이트 2차 캐시 설정
+        Properties props = new Properties();
+        props.put("hibernate.cache.use_second_level_cache", "true");
+        props.put("hibernate.cache.region.factory_class", 
+                "org.hibernate.cache.ehcache.EhCacheRegionFactory");
+        ```
+
+    3. 쿼리 캐시
+        ```java
+        // 쿼리 결과 캐싱
+        Query query = em.createQuery(
+            "SELECT e FROM Employee e WHERE e.department.id = :deptId"
+        );
+        query.setHint("org.hibernate.cacheable", "true");
+        query.setParameter("deptId", 1L);
+        List<Employee> employees = query.getResultList();
+
+        // NamedQuery with 캐시
+        @Entity
+        @NamedQuery(
+            name = "Employee.findByDepartment",
+            query = "SELECT e FROM Employee e WHERE e.department.id = :deptId",
+            hints = @QueryHint(name = "org.hibernate.cacheable", value = "true")
+        )
+        public class Employee { ... }
+        ```
+
+    4. 캐시 전략
+        ```java
+        // 다양한 캐시 전략
+        @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)  // 읽기 전용
+        @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)  // 읽기-쓰기
+        @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)  // 엄격한 읽기-쓰기
+        @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)  // 트랜잭션 지원
+
+        // 캐시 영역 설정
+        @Cache(region = "employee", usage = CacheConcurrencyStrategy.READ_WRITE)
+        ```
+
+    5. 캐시 레벨 비교
+        ```plaintext
+        1차 캐시:
+        - 영속성 컨텍스트 범위
+        - 객체 동일성(==) 보장
+        - 트랜잭션 격리 수준 유지
+
+        2차 캐시:
+        - 애플리케이션 전체 범위
+        - 동시성 고려 필요
+        - L2 캐시 히트율 모니터링 중요
+
+        DB 캐시:
+        - 데이터베이스 서버 레벨
+        - SQL 결과 캐싱
+        - 모든 애플리케이션이 공유
+        ```
+
+    * 캐시 사용시 주의사항:
+        1. 메모리 사용량 관리
+        2. 캐시 정합성 유지
+        3. 캐시 라이프사이클 관리
+        4. 적절한 캐시 전략 선택
+        5. 모니터링과 튜닝의 중요성
+
+    * 각 캐시 레벨은 서로 다른 목적과 특성을 가지고 있으며, 적절한 사용을 통해 애플리케이션의 성능을 크게 향상시킬 수 있습니다.

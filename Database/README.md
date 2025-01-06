@@ -1,13 +1,3 @@
-# 보완/확장 계획
-
-1. Stored Procedure, Function, Trigger의 고급 활용
-    - 이미 트리거 예시는 있지만, DB별로 프로시저 작성, 에러처리(TRY/CATCH), 변수/커서 사용 등 좀 더 상세한 예시가 있으면 실무에서 써먹기 좋음.
-    - Oracle의 PL/SQL, PostgreSQL의 PL/pgSQL, MSSQL의 T-SQL 등 구체적인 예시도 도움이 됨.
-
-2. ORM과의 연계
-    - JPA, Hibernate, Django ORM, SQLAlchemy, etc.
-    - "SQL 짜는 관점 + ORM에서 자동 생성/최적화된 SQL 보는 관점"을 비교해보면, 실제 프로젝트 시야가 넓어짐.
-
 3. 데이터베이스 설계 이론
     - 정규화/비정규화, 각 종 키(key) 정의, ERD 설계 패턴, 데이터 모델링 기법 등
     - 이미 DDL/제약조건 부분에서 어느 정도 언급했지만, 좀 더 "DB 스키마 설계" 이론에 초점을 맞춘 정리도 있으면 "DB 스키마 아키텍트" 관점에서 도움이 됨.
