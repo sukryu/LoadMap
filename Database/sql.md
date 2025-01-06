@@ -1775,3 +1775,181 @@ SQL(Structured Query Language)은 데이터베이스를 관리하고 조작하�
     4. 데이터 검증/트리거와 연계
         - 입력값 체크, 제약조건을 프로시저 내에서 추가적으로 처리
         - 트리거에서 프로시저 호출로 복잡 로직 처리
+
+## 복잡 쿼리 튜닝
+
+1. N+1 문제 해결
+    ```sql
+    -- N+1 문제가 발생하는 일반적인 패턴
+    SELECT * FROM 주문; -- 1번 쿼리
+    SELECT * FROM 주문상세 WHERE 주문ID = ?; -- N번 반복
+
+    -- 해결방법 1: JOIN 사용
+    SELECT O.*, D.*
+    FROM 주문 O
+    INNER JOIN 주문상세 D ON O.주문ID = D.주문ID;
+
+    -- 해결방법 2: EXISTS 사용
+    SELECT *
+    FROM 주문 O
+    WHERE EXISTS (
+        SELECT 1 
+        FROM 주문상세 D 
+        WHERE O.주문ID = D.주문ID
+    );
+    ```
+
+2. 대규모 JOIN 최적화
+    ```sql
+    -- 최적화 전: 많은 테이블을 한 번에 JOIN
+    SELECT *
+    FROM 주문 O
+    JOIN 고객 C ON O.고객ID = C.고객ID
+    JOIN 상품 P ON O.상품ID = P.상품ID
+    JOIN 배송 D ON O.주문ID = D.주문ID
+    JOIN 결제 PM ON O.주문ID = PM.주문ID;
+
+    -- 최적화 후: 필요한 컬럼만 선택하고 중간 결과를 임시 테이블로 저장
+    WITH 주문기본 AS (
+        SELECT O.주문ID, O.주문일자, C.고객명
+        FROM 주문 O
+        JOIN 고객 C ON O.고객ID = C.고객ID
+    ),
+    주문상세 AS (
+        SELECT O.주문ID, P.상품명, D.배송상태
+        FROM 주문 O
+        JOIN 상품 P ON O.상품ID = P.상품ID
+        JOIN 배송 D ON O.주문ID = D.주문ID
+    )
+    SELECT *
+    FROM 주문기본 A
+    JOIN 주문상세 B ON A.주문ID = B.주문ID;
+    ```
+
+3. 서브쿼리 최적화
+    ```sql
+    -- IN vs EXISTS 비교
+    -- IN: 서브쿼리 결과를 모두 메모리에 로드
+    SELECT * FROM 직원
+    WHERE 부서ID IN (
+        SELECT 부서ID FROM 부서 WHERE 지역 = '서울'
+    );
+
+    -- EXISTS: 조건 만족하는 첫 레코드만 확인
+    SELECT * FROM 직원 E
+    WHERE EXISTS (
+        SELECT 1 FROM 부서 D
+        WHERE D.부서ID = E.부서ID
+        AND D.지역 = '서울'
+    );
+
+    -- JOIN: 명시적 조인이 더 효율적인 경우
+    SELECT E.* FROM 직원 E
+    JOIN 부서 D ON E.부서ID = D.부서ID
+    WHERE D.지역 = '서울';
+    ```
+
+4. 실행 계획과 힌트 사용
+    ```sql
+    -- 실행 계획 확인
+    EXPLAIN ANALYZE
+    SELECT /*+ INDEX(employees idx_emp_dept) */
+        E.이름,
+        D.부서명,
+        S.급여
+    FROM 직원 E
+    JOIN 부서 D ON E.부서ID = D.부서ID
+    JOIN 급여 S ON E.직원ID = S.직원ID
+    WHERE E.입사일 >= '2023-01-01';
+
+    -- 힌트 사용 예시
+    SELECT /*+ INDEX_DESC(O idx_order_date) */ *
+    FROM 주문 O
+    WHERE O.주문일자 BETWEEN '2023-01-01' AND '2023-12-31';
+    ```
+
+## Materialized View(물리화 뷰)
+
+1. 기본 생성과 사용
+    ```sql
+    -- Oracle에서의 물리화 뷰 생성
+    CREATE MATERIALIZED VIEW 일별매출통계
+    BUILD IMMEDIATE
+    REFRESH ON COMMIT
+    AS
+    SELECT 
+        TRUNC(주문일자) as 날짜,
+        COUNT(*) as 주문건수,
+        SUM(주문금액) as 총매출,
+        AVG(주문금액) as 평균주문금액
+    FROM 주문
+    GROUP BY TRUNC(주문일자);
+
+    -- PostgreSQL에서의 물리화 뷰 생성
+    CREATE MATERIALIZED VIEW 월별고객통계
+    AS
+    SELECT 
+        DATE_TRUNC('month', 가입일) as 월,
+        COUNT(*) as 신규고객수,
+        SUM(초기구매액) as 총구매액
+    FROM 고객
+    GROUP BY DATE_TRUNC('month', 가입일)
+    WITH DATA;
+    ```
+
+2. 리프레시 전략
+    ```sql
+    -- 완전 리프레시
+    REFRESH MATERIALIZED VIEW 일별매출통계;
+
+    -- 증분 리프레시 (Oracle)
+    CREATE MATERIALIZED VIEW LOG ON 주문
+    WITH SEQUENCE, ROWID
+    INCLUDING NEW VALUES;
+
+    CREATE MATERIALIZED VIEW 일별매출통계
+    BUILD IMMEDIATE
+    REFRESH FAST ON COMMIT
+    AS SELECT /* 쿼리 */;
+
+    -- 주기적 리프레시 (PostgreSQL)
+    REFRESH MATERIALIZED VIEW CONCURRENTLY 월별고객통계;
+    ```
+
+3. 실제 사용 사례
+    ```sql
+    -- 대시보드용 집계 데이터
+    CREATE MATERIALIZED VIEW 매출대시보드
+    REFRESH ON DEMAND
+    AS
+    SELECT 
+        D.부서명,
+        P.상품카테고리,
+        SUM(O.주문금액) as 매출액,
+        COUNT(DISTINCT O.고객ID) as 구매고객수,
+        AVG(O.주문금액) as 평균주문금액,
+        MAX(O.주문금액) as 최대주문금액
+    FROM 주문 O
+    JOIN 부서 D ON O.담당부서ID = D.부서ID
+    JOIN 상품 P ON O.상품ID = P.상품ID
+    WHERE O.주문일자 >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -12)
+    GROUP BY D.부서명, P.상품카테고리;
+    ```
+
+4. 주의사항과 최적화 팁
+    ```sql
+    -- 인덱스 활용
+    CREATE INDEX idx_mv_sales_dept_cat ON 매출대시보드(부서명, 상품카테고리);
+
+    -- 파티셔닝 적용
+    CREATE MATERIALIZED VIEW 주문이력통계
+    PARTITION BY RANGE (날짜) (
+        PARTITION p_2023_q1 VALUES LESS THAN (TO_DATE('2023-04-01')),
+        PARTITION p_2023_q2 VALUES LESS THAN (TO_DATE('2023-07-01')),
+        PARTITION p_2023_q3 VALUES LESS THAN (TO_DATE('2023-10-01')),
+        PARTITION p_2023_q4 VALUES LESS THAN (TO_DATE('2024-01-01'))
+    )
+    AS SELECT /* 쿼리 */;
+    ```
+
+* 이러한 최적화 기법들은 특히 대규모 데이터를 다루는 시스템에서 매우 중요하며, 적절한 사용으로 성능을 크게 개선할 수 있습니다.
