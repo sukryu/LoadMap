@@ -1734,3 +1734,662 @@
         5. DB 벤더별 특성 이해
 
     * 이러한 실행계획 분석과 최적화를 통해 ORM의 성능을 지속적으로 개선할 수 있습니다.
+
+## DB 마이그레이션 도구
+
+1. 버전 관리
+    1. Alembic (SQLAlchemy)
+        ```python
+        # migrations/env.py
+        from alembic import context
+        from sqlalchemy import engine_from_config
+        from models import Base
+
+        target_metadata = Base.metadata
+
+        # migrations/versions/1a2b3c4d5e6f_create_employees.py
+        def upgrade():
+            op.create_table(
+                'employees',
+                sa.Column('id', sa.Integer(), primary_key=True),
+                sa.Column('email', sa.String(255), unique=True),
+                sa.Column('department_id', sa.Integer(), nullable=True),
+                sa.ForeignKeyConstraint(['department_id'], ['departments.id'])
+            )
+
+        def downgrade():
+            op.drop_table('employees')
+        ```
+
+    2. Flyway (Java)
+        ```java
+        -- V1__Create_employees.sql
+        CREATE TABLE employees (
+            id BIGINT PRIMARY KEY AUTO_INCREMENT,
+            email VARCHAR(255) UNIQUE,
+            department_id BIGINT,
+            FOREIGN KEY (department_id) REFERENCES departments(id)
+        );
+
+        -- V2__Add_salary_column.sql
+        ALTER TABLE employees
+        ADD COLUMN salary DECIMAL(10,2);
+        ```
+
+    3. Django migrations
+        ```python
+        # migrations/0001_initial.py
+        from django.db import migrations, models
+
+        class Migration(migrations.Migration):
+            initial = True
+
+            dependencies = []
+
+            operations = [
+                migrations.CreateModel(
+                    name='Employee',
+                    fields=[
+                        ('id', models.AutoField(primary_key=True)),
+                        ('email', models.EmailField(unique=True)),
+                        ('department', models.ForeignKey('Department', on_delete=models.CASCADE))
+                    ],
+                ),
+            ]
+        ```
+
+2. Roll Forward/Backward
+    1. 단계별 마이그레이션
+        ```python
+        # 1. 새 컬럼 추가
+        def upgrade_v1():
+            op.add_column('employees', 
+                sa.Column('new_salary', sa.Numeric(10, 2))
+            )
+
+        # 2. 데이터 마이그레이션
+        def upgrade_v2():
+            op.execute("""
+                UPDATE employees 
+                SET new_salary = salary * 1.1
+                WHERE department_id = 1
+            """)
+
+        # 3. 이전 컬럼 제거
+        def upgrade_v3():
+            op.drop_column('employees', 'salary')
+            op.alter_column('employees', 'new_salary',
+                        new_column_name='salary')
+        ```
+
+    2. CI/CD 파이프라인 연동
+        ```yaml
+        # GitHub Actions example
+        name: Database Migration
+        on:
+        push:
+            branches: [ main ]
+
+        jobs:
+        migrate:
+            runs-on: ubuntu-latest
+            steps:
+            - uses: actions/checkout@v2
+            
+            - name: Run migrations
+                run: |
+                alembic upgrade head
+                # or
+                python manage.py migrate
+                # or
+                flyway migrate
+        ```
+
+    3. 무중단 배포 전략
+        ```sql
+        -- 1. 이전 버전과 호환되는 새 컬럼 추가
+        ALTER TABLE employees ADD COLUMN new_email VARCHAR(255);
+
+        -- 2. 애플리케이션에서 두 컬럼 동시 업데이트
+        UPDATE employees SET new_email = email;
+
+        -- 3. 새 버전 배포 후 이전 컬럼 제거
+        ALTER TABLE employees DROP COLUMN email;
+        ALTER TABLE employees RENAME COLUMN new_email TO email;
+        ```
+
+* 마이그레이션 도구의 장점:
+    1. 버전 관리 자동화
+    2. 롤백 가능성 확보
+    3. 팁 협업 용이
+    4. 배포 자동화 가능
+    5. 스키마 변경 이력 추적
+
+* 주의사항:
+    1. 마이그레이션 순서 관리
+    2. 대용량 데이터 마이그레이션 시 성능 고려
+    3. 백업 및 롤백 계획 수립
+    4. 데이터 정합성 검증
+    5. 운영 환경 영향도 최소화
+
+* 이러한 마이그레이션 도구를 활용하면 데이터베이스 스키마 변경을 보다 안전하고 효율적으로 관리할 수 있습니다.
+
+## ORM과 Stored Procedure 연동 예제
+
+1. 기본 모델 및 설정
+    ```python
+    # models.py
+    from sqlalchemy import Column, Integer, String, Numeric, DateTime
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+    class Employee(Base):
+        __tablename__ = 'employees'
+        
+        id = Column(Integer, primary_key=True)
+        name = Column(String(50), nullable=False)
+        department = Column(String(50))
+        salary = Column(Numeric(10, 2))
+        hire_date = Column(DateTime)
+
+    # database.py
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    DATABASE_URL = "postgresql://user:pass@localhost/dbname"
+    engine = create_engine(DATABASE_URL)
+    SessionLocal = sessionmaker(bind=engine)
+    ```
+
+2. Stored Procedure 생성
+    ```sql
+    -- 부서별 급여 통계를 계산하는 프로시저
+    CREATE OR REPLACE PROCEDURE calculate_department_stats(
+        IN p_department VARCHAR(50),
+        OUT p_avg_salary NUMERIC,
+        OUT p_total_employees INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        SELECT AVG(salary), COUNT(*)
+        INTO p_avg_salary, p_total_employees
+        FROM employees
+        WHERE department = p_department;
+    END;
+    $$;
+
+    -- 급여 인상 프로시저
+    CREATE OR REPLACE PROCEDURE increase_salary(
+        IN p_department VARCHAR(50),
+        IN p_increase_rate NUMERIC
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        UPDATE employees
+        SET salary = salary * (1 + p_increase_rate)
+        WHERE department = p_department;
+    END;
+    $$;
+    ```
+
+3. ORM과 Stored Procedure 연동
+    ```python
+    # operations.py
+    from sqlalchemy import text
+    from datetime import datetime
+    from decimal import Decimal
+    from database import SessionLocal
+    from models import Employee
+
+    class EmployeeService:
+        def __init__(self):
+            self.db = SessionLocal()
+
+        def create_employee(self, name: str, department: str, salary: Decimal):
+            """ORM을 사용한 기본 CRUD"""
+            try:
+                employee = Employee(
+                    name=name,
+                    department=department,
+                    salary=salary,
+                    hire_date=datetime.now()
+                )
+                self.db.add(employee)
+                self.db.commit()
+                return employee
+            except Exception as e:
+                self.db.rollback()
+                raise e
+
+        def get_department_stats(self, department: str):
+            """Stored Procedure 호출"""
+            try:
+                result = self.db.execute(
+                    text("CALL calculate_department_stats(:dept, :avg, :count)"),
+                    {
+                        "dept": department,
+                        "avg": 0.0,  # OUT 파라미터
+                        "count": 0   # OUT 파라미터
+                    }
+                )
+                return dict(result.mappings())
+            except Exception as e:
+                print(f"Error calling stored procedure: {e}")
+                raise e
+
+        def increase_department_salary(self, department: str, increase_rate: float):
+            """복잡한 업데이트는 Stored Procedure 사용"""
+            try:
+                self.db.execute(
+                    text("CALL increase_salary(:dept, :rate)"),
+                    {
+                        "dept": department,
+                        "rate": increase_rate
+                    }
+                )
+                self.db.commit()
+            except Exception as e:
+                self.db.rollback()
+                raise e
+    ```
+
+4. 실제 사용 예시
+    ```python
+    # main.py
+    from decimal import Decimal
+    from operations import EmployeeService
+
+    def main():
+        service = EmployeeService()
+
+        # ORM을 사용한 기본 CRUD
+        new_employee = service.create_employee(
+            name="John Doe",
+            department="IT",
+            salary=Decimal("50000.00")
+        )
+        print(f"Created employee: {new_employee.name}")
+
+        # Stored Procedure를 통한 통계 확인
+        stats = service.get_department_stats("IT")
+        print(f"IT 부서 통계:")
+        print(f"평균 급여: {stats['p_avg_salary']}")
+        print(f"총 직원 수: {stats['p_total_employees']}")
+
+        # Stored Procedure를 통한 급여 인상
+        service.increase_department_salary("IT", 0.1)  # 10% 인상
+        print("급여 인상 완료")
+
+    if __name__ == "__main__":
+        main()
+    ```
+
+5. 타 언어에서의 연동
+    1. Java (JPA/Hibernate)
+        ```java
+        // Entity
+        @Entity
+        @Table(name = "employees")
+        public class Employee {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private String department;
+            private BigDecimal salary;
+        }
+
+        // Stored Procedure 호출
+        @Repository
+        public class EmployeeRepository {
+            @PersistenceContext
+            private EntityManager em;
+
+            // 일반 ORM 사용
+            public void save(Employee employee) {
+                em.persist(employee);
+            }
+
+            // Stored Procedure 호출
+            public List<Object[]> getDepartmentStats(String department) {
+                StoredProcedureQuery query = em
+                    .createStoredProcedureQuery("calculate_department_stats")
+                    .registerStoredProcedureParameter("p_department", String.class, ParameterMode.IN)
+                    .registerStoredProcedureParameter("p_avg_salary", BigDecimal.class, ParameterMode.OUT)
+                    .registerStoredProcedureParameter("p_total_employees", Integer.class, ParameterMode.OUT)
+                    .setParameter("p_department", department);
+
+                query.execute();
+                return Arrays.asList(
+                    query.getOutputParameterValue("p_avg_salary"),
+                    query.getOutputParameterValue("p_total_employees")
+                );
+            }
+        }
+        ```
+
+    2. Node.js (Sequelize)
+        ```javascript
+        // Model
+        const Employee = sequelize.define('Employee', {
+        name: DataTypes.STRING,
+        department: DataTypes.STRING,
+        salary: DataTypes.DECIMAL(10, 2)
+        });
+
+        // Stored Procedure 호출
+        async function getDepartmentStats(department) {
+        const [results] = await sequelize.query(
+            'CALL calculate_department_stats(:department, @avg, @count)',
+            {
+            replacements: { department },
+            type: QueryTypes.RAW
+            }
+        );
+
+        const [[stats]] = await sequelize.query(
+            'SELECT @avg as avg_salary, @count as total_employees'
+        );
+        
+        return stats;
+        }
+
+        // 사용 예시
+        async function main() {
+        // ORM 사용
+        const employee = await Employee.create({
+            name: 'John',
+            department: 'IT',
+            salary: 50000
+        });
+
+        // Stored Procedure 호출
+        const stats = await getDepartmentStats('IT');
+        console.log(stats);
+        }
+        ```
+
+    3. C# (Entity Framework)
+        ```csharp
+        // Entity
+        public class Employee
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Department { get; set; }
+            public decimal Salary { get; set; }
+        }
+
+        // Context
+        public class AppDbContext : DbContext
+        {
+            public DbSet<Employee> Employees { get; set; }
+
+            // Stored Procedure 매핑
+            public virtual async Task<DepartmentStats> GetDepartmentStatsAsync(
+                string department)
+            {
+                var paramDepartment = new SqlParameter("@Department", department);
+                var paramAvgSalary = new SqlParameter
+                {
+                    ParameterName = "@AvgSalary",
+                    SqlDbType = SqlDbType.Decimal,
+                    Direction = ParameterDirection.Output
+                };
+                var paramCount = new SqlParameter
+                {
+                    ParameterName = "@TotalEmployees",
+                    SqlDbType = SqlDbType.Int,
+                    Direction = ParameterDirection.Output
+                };
+
+                await Database.ExecuteSqlRawAsync(
+                    "EXEC calculate_department_stats @Department, @AvgSalary OUT, @TotalEmployees OUT",
+                    paramDepartment, paramAvgSalary, paramCount);
+
+                return new DepartmentStats
+                {
+                    AvgSalary = (decimal)paramAvgSalary.Value,
+                    TotalEmployees = (int)paramCount.Value
+                };
+            }
+        }
+
+        // 사용 예시
+        public async Task ProcessEmployeeData()
+        {
+            using var context = new AppDbContext();
+            
+            // ORM 사용
+            var employee = new Employee
+            {
+                Name = "Alice",
+                Department = "IT",
+                Salary = 60000M
+            };
+            context.Employees.Add(employee);
+            await context.SaveChangesAsync();
+
+            // Stored Procedure 호출
+            var stats = await context.GetDepartmentStatsAsync("IT");
+            Console.WriteLine($"Average Salary: {stats.AvgSalary}");
+        }
+        ```
+
+    4. Ruby on Rails (Active Record)
+        ```ruby
+        # Model
+        class Employee < ApplicationRecord
+        # Stored Procedure 호출 메서드
+        def self.department_stats(department)
+            result = ActiveRecord::Base.connection.execute(
+            "CALL calculate_department_stats(?, @avg, @count)", 
+            [department]
+            )
+            
+            stats = ActiveRecord::Base.connection.execute(
+            "SELECT @avg as avg_salary, @count as total_employees"
+            ).first
+            
+            OpenStruct.new(
+            avg_salary: stats['avg_salary'],
+            total_employees: stats['total_employees']
+            )
+        end
+        end
+
+        # 사용 예시
+        # ORM 사용
+        employee = Employee.create!(
+        name: 'Bob',
+        department: 'IT',
+        salary: 55000
+        )
+
+        # Stored Procedure 호출
+        stats = Employee.department_stats('IT')
+        puts "Average Salary: #{stats.avg_salary}"
+        ```
+
+* 이 처럼 각 언어와 프레임워크는 자신만의 방식으로 ORM과 Stored Procedure를 연동할 수 있는 기능을 제공합니다. 어떤 방식을 선택하든 중요한 점은:
+    1. ORM의 편의성과 Stored Procedure의 성능을 적절히 조합
+    2. 트랜잭션 관리에 주의
+    3. 에러 처리 구현
+    4. 데이터베이스 연결 관리
+    5. 테스트 용이성 확보
+
+    - 이러한 점들을 고려하여 구현하면 됩니다.
+
+## 모범 사례 & 주의사항
+
+1. CRUD와 복잡한 DB 로직의 분리
+    ```java
+    // 좋은 예: 단순 CRUD는 ORM 사용
+    @Service
+    public class EmployeeService {
+        // 간단한 CRUD - ORM 사용
+        public Employee createEmployee(Employee employee) {
+            return employeeRepository.save(employee);
+        }
+
+        // 복잡한 로직 - Stored Procedure 사용
+        public void processBatchSalaryUpdate() {
+            entityManager.createNativeQuery("CALL update_department_salaries")
+                        .executeUpdate();
+        }
+
+        // 복잡한 집계 - Native Query 사용
+        public List<DepartmentStats> getDepartmentStats() {
+            return entityManager.createNativeQuery("""
+                SELECT d.name, 
+                    COUNT(e.id) as emp_count,
+                    AVG(e.salary) as avg_salary,
+                    SUM(e.salary) as total_salary
+                FROM departments d
+                LEFT JOIN employees e ON d.id = e.department_id
+                GROUP BY d.name
+                HAVING COUNT(e.id) > 0
+                """, "DepartmentStatsMapping")
+                .getResultList();
+        }
+    }
+    ```
+
+2. 엔티티 설계 최적화
+    ```java
+    // 나쁜 예: 무분별한 양방향 매핑
+    @Entity
+    public class Department {
+        @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
+        private List<Employee> employees;
+    }
+
+    @Entity
+    public class Employee {
+        @ManyToOne(fetch = FetchType.LAZY)
+        private Department department;
+        
+        @ManyToMany
+        private List<Project> projects;
+    }
+
+    // 좋은 예: 필요한 관계만 정의하고 적절한 Fetch 전략 사용
+    @Entity
+    public class Department {
+        @OneToMany(mappedBy = "department")
+        @BatchSize(size = 100)  // N+1 문제 방지
+        private Set<Employee> employees;  // List 대신 Set 사용
+    }
+
+    @Entity
+    public class Employee {
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "department_id")
+        private Department department;
+    }
+    ```
+
+3. 트랜잭션 관리
+    ```java
+    // 트랜잭션 전파 설정
+    @Transactional(propagation = Propagation.REQUIRED)
+    public class EmployeeService {
+        
+        @Transactional(readOnly = true)  // 읽기 전용 트랜잭션
+        public Employee findById(Long id) {
+            return repository.findById(id);
+        }
+
+        @Transactional(rollbackFor = CustomException.class)  // 특정 예외에서만 롤백
+        public void updateEmployee(Employee emp) {
+            // 업데이트 로직
+        }
+
+        // 중첩 트랜잭션 처리
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void processCriticalOperation() {
+            // 별도 트랜잭션으로 처리
+        }
+    }
+    ```
+
+4. DB 스키마 변경 관리
+    ```python
+    # Alembic 마이그레이션 예시
+    """revision_001.py"""
+    def upgrade():
+        # 안전한 스키마 변경
+        op.add_column('employees', sa.Column('email', sa.String(255)))
+        op.execute("""
+            UPDATE employees 
+            SET email = CONCAT(LOWER(name), '@company.com')
+        """)
+        op.alter_column('employees', 'email', nullable=False)
+
+    def downgrade():
+        op.drop_column('employees', 'email')
+    ```
+
+5. 성능 모니터링
+    ```java
+    // 성능 모니터링 설정
+    @Configuration
+    public class JpaConfig {
+        @Bean
+        public DataSource dataSource() {
+            HikariConfig config = new HikariConfig();
+            config.setMaximumPoolSize(10);
+            config.setMinimumIdle(5);
+            config.setConnectionTimeout(30000);
+            return new HikariDataSource(config);
+        }
+    }
+
+    // 쿼리 로깅 및 성능 측정
+    @Aspect
+    @Component
+    public class QueryPerformanceMonitor {
+        @Around("execution(* org.hibernate.Session.*(..))")
+        public Object measureQueryPerformance(ProceedingJoinPoint pjp) throws Throwable {
+            long start = System.currentTimeMillis();
+            Object result = pjp.proceed();
+            long executionTime = System.currentTimeMillis() - start;
+            
+            if (executionTime > 1000) {  // 1초 이상 걸리는 쿼리 로깅
+                log.warn("Slow query detected: {} ms", executionTime);
+            }
+            
+            return result;
+        }
+    }
+    ```
+
+* 주요 체크리스트:
+    1. 단순/복잡 로직 분리
+        - 단순 CRUD -> ORM
+        - 복잡한 로직 -> Stored Procedure/Native Query
+
+    2. 엔티티 설계 최적화
+        - 양방향 매핑 최소화
+        - 적절한 Fetch 전략 선택
+        - Batch Size 설정으로 N+1 문제 해결
+
+    3. 트랜잭션 관리
+        - 적절한 트랜잭션 경계 설정
+        - 전파 속성 이해
+        - 롤백 전략 수립
+
+    4. 스키마 변경 관리
+        - 마이그레이션 도구 활용
+        - 변경 이력 관리
+        - 롤백 계획 수립
+
+    5. 성능 모니터링
+        - 쿼리 로깅
+        - 실행 계획 분석
+        - 캐시 히트율 모니터링
+        - Connection Pool 관리
+
+* 이러한 모범 사례와 주의사항을 준수하면 ORM을 효과적으로 활용할 수 있습니다.
