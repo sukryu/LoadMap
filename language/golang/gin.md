@@ -4476,3 +4476,1306 @@
             return report, nil
         }
         ```
+
+## API 문서화
+
+1. Swagger/OpenAPI 설정
+    1. 기본 Swagger 설정
+        ```go
+        // docs/swagger.go
+        package docs
+
+        import (
+            "github.com/swaggo/swag"
+        )
+
+        // @title My API
+        // @version 1.0
+        // @description This is a sample server for using swagger with Gin framework.
+        // @termsOfService http://swagger.io/terms/
+
+        // @contact.name API Support
+        // @contact.url http://www.swagger.io/support
+        // @contact.email support@swagger.io
+
+        // @license.name Apache 2.0
+        // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+        // @host localhost:8080
+        // @BasePath /api/v1
+        // @schemes http https
+        func SwaggerInfo() {
+        }
+        ```
+
+    2. Swagger 라우터 설정
+        ```go
+        // internal/router/swagger.go
+        import (
+            "github.com/gin-gonic/gin"
+            swaggerFiles "github.com/swaggo/files"
+            ginSwagger "github.com/swaggo/gin-swagger"
+            "myapp/docs"
+        )
+
+        func SetupSwagger(r *gin.Engine) {
+            // 프로그래매틱하게 swagger 정보 설정
+            docs.SwaggerInfo.Title = "My API"
+            docs.SwaggerInfo.Description = "API Documentation"
+            docs.SwaggerInfo.Version = "1.0"
+            docs.SwaggerInfo.Host = "localhost:8080"
+            docs.SwaggerInfo.BasePath = "/api/v1"
+            docs.SwaggerInfo.Schemes = []string{"http", "https"}
+
+            // Swagger 엔드포인트 설정
+            r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+        }
+        ```
+
+2. API 엔드포인터 문서화
+    1. 사용자 관련 API
+        ```go
+        // internal/handlers/user_handler.go
+
+        // @Summary Get user by ID
+        // @Description Get user information by user ID
+        // @Tags users
+        // @Accept json
+        // @Produce json
+        // @Param id path int true "User ID"
+        // @Success 200 {object} models.User
+        // @Failure 400 {object} ErrorResponse
+        // @Failure 404 {object} ErrorResponse
+        // @Router /users/{id} [get]
+        func (h *UserHandler) GetUser(c *gin.Context) {
+            // 구현...
+        }
+
+        // @Summary Create new user
+        // @Description Create a new user with the provided information
+        // @Tags users
+        // @Accept json
+        // @Produce json
+        // @Param user body CreateUserRequest true "User information"
+        // @Success 201 {object} models.User
+        // @Failure 400 {object} ErrorResponse
+        // @Router /users [post]
+        func (h *UserHandler) CreateUser(c *gin.Context) {
+            // 구현...
+        }
+
+        // 요청/응답 모델 정의
+        type CreateUserRequest struct {
+            Username string `json:"username" binding:"required" example:"johndoe"`
+            Email    string `json:"email" binding:"required,email" example:"john@example.com"`
+            Password string `json:"password" binding:"required" example:"secretpass123"`
+        }
+
+        type ErrorResponse struct {
+            Code    int    `json:"code" example:"400"`
+            Message string `json:"message" example:"Bad Request"`
+        }
+        ```
+
+    2. 인증 관련 API
+        ```go
+        // internal/handlers/auth_handler.go
+
+        // @Summary User login
+        // @Description Login with username and password
+        // @Tags auth
+        // @Accept json
+        // @Produce json
+        // @Param credentials body LoginRequest true "Login credentials"
+        // @Success 200 {object} LoginResponse
+        // @Failure 401 {object} ErrorResponse
+        // @Router /auth/login [post]
+        func (h *AuthHandler) Login(c *gin.Context) {
+            // 구현...
+        }
+
+        // @Summary Refresh token
+        // @Description Refresh access token using refresh token
+        // @Tags auth
+        // @Accept json
+        // @Produce json
+        // @Security ApiKeyAuth
+        // @Param refresh_token body RefreshTokenRequest true "Refresh token"
+        // @Success 200 {object} TokenResponse
+        // @Failure 401 {object} ErrorResponse
+        // @Router /auth/refresh [post]
+        func (h *AuthHandler) RefreshToken(c *gin.Context) {
+            // 구현...
+        }
+        ```
+
+3. 보안 스키마 설정
+    1. API 보안 설정
+        ```go
+        // docs/security.go
+
+        // @SecurityDefinitions.apikey ApiKeyAuth
+        // @in header
+        // @name Authorization
+
+        // @SecurityDefinitions.oauth2.password OAuth2Password
+        // @tokenUrl /auth/token
+        // @scope.write Grants write access
+        // @scope.admin Grants admin access
+
+        // 보안이 필요한 엔드포인트 예시
+        // @Summary Get protected resource
+        // @Security ApiKeyAuth
+        // @Security OAuth2Password
+        // @Tags protected
+        // @Accept json
+        // @Produce json
+        // @Success 200 {object} ProtectedResponse
+        // @Failure 401 {object} ErrorResponse
+        // @Router /protected [get]
+        func getProtectedResource(c *gin.Context) {
+            // 구현...
+        }
+        ```
+
+4. 모델 문서화
+    1. 데이터 모델 정의
+        ```go
+        // internal/models/user.go
+
+        // swagger:model User
+        type User struct {
+            // 사용자 ID
+            // required: true
+            // example: 1
+            ID uint `json:"id"`
+
+            // 사용자 이름
+            // required: true
+            // min length: 3
+            // max length: 50
+            // example: johndoe
+            Username string `json:"username"`
+
+            // 이메일 주소
+            // required: true
+            // format: email
+            // example: john@example.com
+            Email string `json:"email"`
+
+            // 생성 시간
+            // required: true
+            // format: date-time
+            // example: 2024-01-09T15:04:05Z
+            CreatedAt time.Time `json:"created_at"`
+        }
+
+        // swagger:model Post
+        type Post struct {
+            // 게시글 ID
+            // required: true
+            // example: 1
+            ID uint `json:"id"`
+
+            // 제목
+            // required: true
+            // min length: 1
+            // max length: 200
+            // example: My First Post
+            Title string `json:"title"`
+
+            // 내용
+            // required: true
+            // example: This is the content of my first post.
+            Content string `json:"content"`
+
+            // 작성자 ID
+            // required: true
+            // example: 1
+            UserID uint `json:"user_id"`
+
+            // 작성 시간
+            // required: true
+            // format: date-time
+            CreatedAt time.Time `json:"created_at"`
+        }
+        ```
+
+5. API 버저닝 문서화
+    1. 버전별 API 문서
+        ```go
+        // docs/v1/api.go
+
+        // @title My API V1
+        // @version 1.0
+        // @description API version 1
+        // @BasePath /api/v1
+
+        // docs/v2/api.go
+
+        // @title My API V2
+        // @version 2.0
+        // @description API version 2 with new features
+        // @BasePath /api/v2
+
+        // 버전별 라우터 설정
+        func SetupVersionedSwagger(r *gin.Engine) {
+            // V1 문서
+            r.GET("/docs/v1/*any", ginSwagger.WrapHandler(swaggerFiles.Handler,
+                ginSwagger.URL("/swagger/v1/doc.json"),
+            ))
+
+            // V2 문서
+            r.GET("/docs/v2/*any", ginSwagger.WrapHandler(swaggerFiles.Handler,
+                ginSwagger.URL("/swagger/v2/doc.json"),
+            ))
+        }
+        ```
+
+6. 예제 및 테스트 데이터
+    1. API 예제 포함
+        ```go
+        // @Summary Create new post
+        // @Description Create a new blog post
+        // @Tags posts
+        // @Accept json
+        // @Produce json
+        // @Param post body CreatePostRequest true "Post information"
+        // @Success 201 {object} PostResponse
+        // @Failure 400 {object} ErrorResponse
+        // @Example {json} Request-Example:
+        //     {
+        //         "title": "My First Post",
+        //         "content": "This is the content of my first post",
+        //         "tags": ["tech", "golang"]
+        //     }
+        // @Example {json} Success-Response:
+        //     {
+        //         "id": 1,
+        //         "title": "My First Post",
+        //         "content": "This is the content of my first post",
+        //         "author": {
+        //             "id": 1,
+        //             "username": "johndoe"
+        //         },
+        //         "created_at": "2024-01-09T15:04:05Z"
+        //     }
+        // @Router /posts [post]
+        ```
+
+7. 문서 생성 자동화
+    1. 문서 생성 스크립트
+        ```bash
+        #!/bin/bash
+        # scripts/generate_docs.sh
+
+        # Swagger 문서 생성
+        swag init -g cmd/server/main.go --output docs
+
+        # 버전별 문서 생성
+        swag init -g internal/router/v1/router.go --output docs/v1
+        swag init -g internal/router/v2/router.go --output docs/v2
+
+        # HTML 문서 생성
+        spectacle --target-dir docs/html docs/swagger.json
+        ```
+
+    2. CI/CD 파이프라인 통합
+        ```yaml
+        # .github/workflows/docs.yml
+        name: Generate API Documentation
+
+        on:
+        push:
+            branches: [main]
+            paths:
+            - 'internal/**/*.go'
+            - 'cmd/**/*.go'
+            - 'docs/**/*'
+
+        jobs:
+        generate-docs:
+            runs-on: ubuntu-latest
+            steps:
+            - uses: actions/checkout@v2
+            
+            - name: Set up Go
+                uses: actions/setup-go@v2
+                with:
+                go-version: ^1.19
+                
+            - name: Install swag
+                run: go install github.com/swaggo/swag/cmd/swag@latest
+                
+            - name: Generate Swagger docs
+                run: ./scripts/generate_docs.sh
+                
+            - name: Deploy to Github Pages
+                uses: peaceiris/actions-gh-pages@v3
+                with:
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                publish_dir: ./docs/html
+        ```
+
+8. 문서 커스터마이징
+    1. 커스텀 템플릿
+        ```go
+        // docs/custom/template.go
+        var customTemplate = template.Must(template.New("swagger_info").Parse(`{
+            "swagger": "2.0",
+            "info": {
+                "title": "{{.Title}}",
+                "description": "{{.Description}}",
+                "version": "{{.Version}}",
+                "contact": {
+                    "name": "{{.ContactName}}",
+                    "email": "{{.ContactEmail}}"
+                },
+                "license": {
+                    "name": "{{.LicenseName}}",
+                    "url": "{{.LicenseURL}}"
+                }
+            },
+            "host": "{{.Host}}",
+            "basePath": "{{.BasePath}}",
+            "schemes": {{.Schemes}},
+            "securityDefinitions": {
+                "ApiKeyAuth": {
+                    "type": "apiKey",
+                    "name": "Authorization",
+                    "in": "header"
+                }
+            }
+        }`))
+
+        func init() {
+            swag.Register(swag.Name, &swag.Spec{
+                InfoInstanceName: "swagger_info",
+                SwaggerTemplate: customTemplate,
+            })
+        }
+        ```
+
+    2. 커스텀 UI 설정
+        ```go
+        // internal/router/swagger_ui.go
+        func SetupCustomSwaggerUI(r *gin.Engine) {
+            config := &ginSwagger.Config{
+                URL: "http://localhost:8080/swagger/doc.json",
+                DeepLinking: true,
+                DocExpansion: "none",
+                Layout: "BaseLayout",
+                ValidatorUrl: "",
+                PersistAuthorization: true,
+                Plugins: []string{
+                    "TopBarPlugin",
+                    "SidebarPlugin",
+                },
+                Presets: []string{
+                    "apis",
+                    "modals",
+                },
+            }
+
+            r.GET("/api-docs/*any", ginSwagger.CustomWrapHandler(config, swaggerFiles.Handler))
+        }
+        ```
+
+## 테스트
+
+1. 단위 테스트
+    1. 핸들러 테스트
+        ```go
+        // internal/handlers/user_handler_test.go
+        package handlers
+
+        import (
+            "bytes"
+            "encoding/json"
+            "net/http"
+            "net/http/httptest"
+            "testing"
+
+            "github.com/gin-gonic/gin"
+            "github.com/stretchr/testify/assert"
+            "github.com/stretchr/testify/mock"
+        )
+
+        type MockUserService struct {
+            mock.Mock
+        }
+
+        func (m *MockUserService) GetUser(id uint) (*models.User, error) {
+            args := m.Called(id)
+            if args.Get(0) == nil {
+                return nil, args.Error(1)
+            }
+            return args.Get(0).(*models.User), args.Error(1)
+        }
+
+        func TestGetUser(t *testing.T) {
+            // 테스트 케이스 정의
+            tests := []struct {
+                name       string
+                userID     string
+                mockUser   *models.User
+                mockError  error
+                wantStatus int
+                wantUser   *models.User
+            }{
+                {
+                    name:   "유효한 사용자 ID",
+                    userID: "1",
+                    mockUser: &models.User{
+                        ID:       1,
+                        Username: "testuser",
+                        Email:    "test@example.com",
+                    },
+                    mockError:  nil,
+                    wantStatus: http.StatusOK,
+                    wantUser: &models.User{
+                        ID:       1,
+                        Username: "testuser",
+                        Email:    "test@example.com",
+                    },
+                },
+                {
+                    name:       "존재하지 않는 사용자",
+                    userID:     "999",
+                    mockUser:   nil,
+                    mockError:  errors.New("user not found"),
+                    wantStatus: http.StatusNotFound,
+                    wantUser:   nil,
+                },
+            }
+
+            for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                    // Mock 서비스 설정
+                    mockService := new(MockUserService)
+                    mockService.On("GetUser", uint(1)).Return(tt.mockUser, tt.mockError)
+
+                    // 핸들러 및 라우터 설정
+                    gin.SetMode(gin.TestMode)
+                    router := gin.New()
+                    handler := NewUserHandler(mockService)
+                    router.GET("/users/:id", handler.GetUser)
+
+                    // 테스트 요청 생성
+                    req := httptest.NewRequest("GET", "/users/"+tt.userID, nil)
+                    resp := httptest.NewRecorder()
+
+                    // 요청 처리
+                    router.ServeHTTP(resp, req)
+
+                    // 응답 검증
+                    assert.Equal(t, tt.wantStatus, resp.Code)
+
+                    if tt.wantUser != nil {
+                        var gotUser models.User
+                        err := json.Unmarshal(resp.Body.Bytes(), &gotUser)
+                        assert.NoError(t, err)
+                        assert.Equal(t, tt.wantUser, &gotUser)
+                    }
+                })
+            }
+        }
+        ```
+
+    2. 서비스 테스트
+        ```go
+        // internal/services/user_service_test.go
+        package services
+
+        import (
+            "testing"
+            "github.com/stretchr/testify/assert"
+            "github.com/stretchr/testify/mock"
+        )
+
+        type MockUserRepository struct {
+            mock.Mock
+        }
+
+        func (m *MockUserRepository) FindByID(id uint) (*models.User, error) {
+            args := m.Called(id)
+            return args.Get(0).(*models.User), args.Error(1)
+        }
+
+        func TestUserService_GetUserByID(t *testing.T) {
+            // Mock 리포지토리 설정
+            mockRepo := new(MockUserRepository)
+            service := NewUserService(mockRepo)
+
+            // 테스트 데이터 설정
+            user := &models.User{
+                ID:       1,
+                Username: "testuser",
+                Email:    "test@example.com",
+            }
+
+            // Mock 동작 정의
+            mockRepo.On("FindByID", uint(1)).Return(user, nil)
+
+            // 테스트 실행
+            result, err := service.GetUserByID(1)
+
+            // 결과 검증
+            assert.NoError(t, err)
+            assert.Equal(t, user, result)
+            mockRepo.AssertExpectations(t)
+        }
+
+        func TestUserService_CreateUser(t *testing.T) {
+            mockRepo := new(MockUserRepository)
+            service := NewUserService(mockRepo)
+
+            input := &CreateUserInput{
+                Username: "newuser",
+                Email:    "new@example.com",
+                Password: "password123",
+            }
+
+            mockRepo.On("Create", mock.AnythingOfType("*models.User")).Return(nil)
+
+            result, err := service.CreateUser(input)
+
+            assert.NoError(t, err)
+            assert.NotNil(t, result)
+            assert.Equal(t, input.Username, result.Username)
+            assert.Equal(t, input.Email, result.Email)
+        }
+        ```
+
+2. 통합 테스트
+    1. 데이터베이스 통합 테스트
+        ```go
+        // tests/integration/db_test.go
+        package integration
+
+        import (
+            "testing"
+            "github.com/stretchr/testify/suite"
+            "gorm.io/gorm"
+        )
+
+        type DBTestSuite struct {
+            suite.Suite
+            db *gorm.DB
+        }
+
+        func (s *DBTestSuite) SetupSuite() {
+            // 테스트 데이터베이스 연결 설정
+            db, err := setupTestDB()
+            s.Require().NoError(err)
+            s.db = db
+        }
+
+        func (s *DBTestSuite) TearDownSuite() {
+            // 테스트 데이터베이스 정리
+            sql, err := s.db.DB()
+            s.Require().NoError(err)
+            sql.Close()
+        }
+
+        func (s *DBTestSuite) SetupTest() {
+            // 각 테스트 전에 테이블 초기화
+            s.db.Migrator().DropTable(&models.User{}, &models.Post{})
+            s.db.AutoMigrate(&models.User{}, &models.Post{})
+        }
+
+        func TestDBSuite(t *testing.T) {
+            suite.Run(t, new(DBTestSuite))
+        }
+
+        func (s *DBTestSuite) TestCreateUser() {
+            user := &models.User{
+                Username: "testuser",
+                Email:    "test@example.com",
+            }
+
+            result := s.db.Create(user)
+            s.Require().NoError(result.Error)
+            s.NotZero(user.ID)
+
+            // 생성된 사용자 조회
+            var found models.User
+            result = s.db.First(&found, user.ID)
+            s.Require().NoError(result.Error)
+            s.Equal(user.Username, found.Username)
+        }
+        ```
+
+    2. API 통합 테스트
+        ```go
+        // tests/integration/api_test.go
+        package integration
+
+        import (
+            "encoding/json"
+            "net/http"
+            "net/http/httptest"
+            "testing"
+
+            "github.com/stretchr/testify/suite"
+        )
+
+        type APITestSuite struct {
+            suite.Suite
+            app    *gin.Engine
+            server *httptest.Server
+            client *http.Client
+        }
+
+        func (s *APITestSuite) SetupSuite() {
+            // API 서버 설정
+            s.app = setupTestServer()
+            s.server = httptest.NewServer(s.app)
+            s.client = s.server.Client()
+        }
+
+        func (s *APITestSuite) TearDownSuite() {
+            s.server.Close()
+        }
+
+        func TestAPISuite(t *testing.T) {
+            suite.Run(t, new(APITestSuite))
+        }
+
+        func (s *APITestSuite) TestUserAPI() {
+            // 사용자 생성 테스트
+            createUser := map[string]interface{}{
+                "username": "testuser",
+                "email":    "test@example.com",
+                "password": "password123",
+            }
+
+            resp, err := s.makeRequest("POST", "/api/users", createUser)
+            s.Require().NoError(err)
+            s.Equal(http.StatusCreated, resp.StatusCode)
+
+            var user models.User
+            s.Require().NoError(json.NewDecoder(resp.Body).Decode(&user))
+            s.NotZero(user.ID)
+            s.Equal(createUser["username"], user.Username)
+
+            // 사용자 조회 테스트
+            resp, err = s.makeRequest("GET", "/api/users/"+strconv.Itoa(int(user.ID)), nil)
+            s.Require().NoError(err)
+            s.Equal(http.StatusOK, resp.StatusCode)
+        }
+
+        func (s *APITestSuite) makeRequest(method, path string, body interface{}) (*http.Response, error) {
+            var reqBody io.Reader
+            if body != nil {
+                jsonBody, err := json.Marshal(body)
+                s.Require().NoError(err)
+                reqBody = bytes.NewBuffer(jsonBody)
+            }
+
+            req, err := http.NewRequest(method, s.server.URL+path, reqBody)
+            s.Require().NoError(err)
+
+            if body != nil {
+                req.Header.Set("Content-Type", "application/json")
+            }
+
+            return s.client.Do(req)
+        }
+        ```
+
+3. 성능 테스트
+    1. 벤치마크 테스트
+        ```go
+        // tests/benchmark/handlers_test.go
+        package benchmark
+
+        import (
+            "net/http"
+            "net/http/httptest"
+            "testing"
+        )
+
+        func BenchmarkGetUser(b *testing.B) {
+            // 벤치마크 설정
+            router := setupRouter()
+            w := httptest.NewRecorder()
+            req, _ := http.NewRequest("GET", "/api/users/1", nil)
+
+            // 벤치마크 실행
+            b.ResetTimer()
+            for i := 0; i < b.N; i++ {
+                router.ServeHTTP(w, req)
+            }
+        }
+
+        func BenchmarkUserList(b *testing.B) {
+            router := setupRouter()
+            
+            b.Run("10_users", func(b *testing.B) {
+                benchmarkUserList(b, router, 10)
+            })
+            
+            b.Run("100_users", func(b *testing.B) {
+                benchmarkUserList(b, router, 100)
+            })
+            
+            b.Run("1000_users", func(b *testing.B) {
+                benchmarkUserList(b, router, 1000)
+            })
+        }
+
+        func benchmarkUserList(b *testing.B, router *gin.Engine, count int) {
+            // 테스트 데이터 준비
+            setupTestData(count)
+            
+            w := httptest.NewRecorder()
+            req, _ := http.NewRequest("GET", "/api/users", nil)
+            
+            b.ResetTimer()
+            for i := 0; i < b.N; i++ {
+                router.ServeHTTP(w, req)
+            }
+        }
+        ```
+
+    2. 부하 테스트
+        ```go
+        // tests/load/api_test.go
+        package load
+
+        import (
+            "fmt"
+            "net/http"
+            "sync"
+            "testing"
+            "time"
+        )
+
+        func TestConcurrentUsers(t *testing.T) {
+            if testing.Short() {
+                t.Skip("스킵: 부하 테스트")
+            }
+
+            tests := []struct {
+                name         string
+                concurrency  int
+                requests    int
+                expectedAvg time.Duration
+            }{
+                {
+                    name:        "10_concurrent_users",
+                    concurrency: 10,
+                    requests:    100,
+                    expectedAvg: 100 * time.Millisecond,
+                },
+                {
+                    name:        "50_concurrent_users",
+                    concurrency: 50,
+                    requests:    100,
+                    expectedAvg: 200 * time.Millisecond,
+                },
+            }
+
+            for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                    results := make(chan time.Duration, tt.concurrency*tt.requests)
+                    var wg sync.WaitGroup
+
+                    // 동시 요청 실행
+                    for i := 0; i < tt.concurrency; i++ {
+                        wg.Add(1)
+                        go func() {
+                            defer wg.Done()
+                            for j := 0; j < tt.requests; j++ {
+                                start := time.Now()
+                                resp, err := http.Get("http://localhost:8080/api/users")
+                                if err != nil {
+                                    t.Error(err)
+                                    return
+                                }
+                                resp.Body.Close()
+                                results <- time.Since(start)
+                            }
+                        }()
+                    }
+
+                    wg.Wait()
+                    close(results)
+
+                    // 결과 분석
+                    var total time.Duration
+                    var count int
+                    for dur := range results {
+                        total += dur
+                        count++
+                    }
+
+                    avg := total / time.Duration(count)
+                    if avg > tt.expectedAvg {
+                        t.Errorf("평균 응답 시간이 너무 김: got %v, want < %v", avg, tt.expectedAvg)
+                    }
+                })
+            }
+        }
+        ```
+
+4. 모의 객체
+    1. 서비스 모의 객체
+        ```go
+        // internal/mocks/user_service_mock.go
+        package mocks
+
+        type MockUserService struct {
+        mock.Mock
+        }
+
+        func (m *MockUserService) GetUser(id uint) (*models.User, error) {
+        args := m.Called(id)
+        if args.Get(0) == nil {
+            return nil, args.Error(1)
+        }
+        return args.Get(0).(*models.User), args.Error(1)
+        }
+
+        func (m *MockUserService) CreateUser(input *CreateUserInput) (*models.User, error) {
+        args := m.Called(input)
+        if args.Get(0) == nil {
+            return nil, args.Error(1)
+        }
+        return args.Get(0).(*models.User), args.Error(1)
+        }
+
+        // 저장소 모의 객체
+        type MockUserRepository struct {
+        mock.Mock
+        }
+
+        func (m *MockUserRepository) FindByID(id uint) (*models.User, error) {
+        args := m.Called(id)
+        if args.Get(0) == nil {
+            return nil, args.Error(1)
+        }
+        return args.Get(0).(*models.User), args.Error(1)
+        }
+
+        func (m *MockUserRepository) Create(user *models.User) error {
+        args := m.Called(user)
+        return args.Error(0)
+        }
+
+        func (m *MockUserRepository) Update(user *models.User) error {
+        args := m.Called(user)
+        return args.Error(0)
+        }
+
+        func (m *MockUserRepository) Delete(id uint) error {
+        args := m.Called(id)
+        return args.Error(0)
+        }
+
+        // 캐시 모의 객체
+        type MockCache struct {
+        mock.Mock
+        }
+
+        func (m *MockCache) Get(key string) (interface{}, error) {
+        args := m.Called(key)
+        return args.Get(0), args.Error(1)
+        }
+
+        func (m *MockCache) Set(key string, value interface{}, expiration time.Duration) error {
+        args := m.Called(key, value, expiration)
+        return args.Error(0)
+        }
+
+        func (m *MockCache) Delete(key string) error {
+        args := m.Called(key)
+        return args.Error(0)
+        }
+
+        // 외부 서비스 모의 객체
+        type MockExternalService struct {
+        mock.Mock
+        }
+
+        func (m *MockExternalService) Request(method, url string, body interface{}) (*http.Response, error) {
+        args := m.Called(method, url, body)
+        return args.Get(0).(*http.Response), args.Error(1)
+        }
+        ```
+
+5. 테스트 헬퍼 및 유틸리티
+    ```go
+    // tests/helpers/test_helpers.go
+    package helpers
+
+    import (
+        "encoding/json"
+        "net/http"
+        "net/http/httptest"
+        "testing"
+    )
+
+    // HTTP 테스트 헬퍼
+    func ExecuteRequest(r http.Handler, req *http.Request) *httptest.ResponseRecorder {
+        rr := httptest.NewRecorder()
+        r.ServeHTTP(rr, req)
+        return rr
+    }
+
+    // JSON 응답 검증 헬퍼
+    func CheckResponseCode(t *testing.T, expected, actual int) {
+        if expected != actual {
+            t.Errorf("Expected response code %d. Got %d\n", expected, actual)
+        }
+    }
+
+    // JSON 변환 헬퍼
+    func ParseResponse(response *httptest.ResponseRecorder) (map[string]interface{}, error) {
+        var parsed map[string]interface{}
+        err := json.NewDecoder(response.Body).Decode(&parsed)
+        return parsed, err
+    }
+
+    // 데이터베이스 테스트 헬퍼
+    type TestDB struct {
+        DB *gorm.DB
+    }
+
+    func NewTestDB() (*TestDB, error) {
+        db, err := setupTestDatabase()
+        if err != nil {
+            return nil, err
+        }
+        return &TestDB{DB: db}, nil
+    }
+
+    func (tdb *TestDB) Clear() error {
+        tables := []interface{}{&models.User{}, &models.Post{}}
+        for _, table := range tables {
+            err := tdb.DB.Where("1 = 1").Delete(table).Error
+            if err != nil {
+                return err
+            }
+        }
+        return nil
+    }
+
+    // 인증 테스트 헬퍼
+    func GenerateTestToken(userID uint) string {
+        claims := jwt.MapClaims{
+            "user_id": userID,
+            "exp":     time.Now().Add(time.Hour * 24).Unix(),
+        }
+        token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+        tokenString, _ := token.SignedString([]byte("test_secret"))
+        return tokenString
+    }
+    ```
+
+6. 테스트 커버리지 분석
+    ```go
+    // scripts/coverage.go
+    package main
+
+    import (
+        "encoding/json"
+        "fmt"
+        "os/exec"
+    )
+
+    type Coverage struct {
+        Packages []PackageCoverage `json:"packages"`
+        Total    float64           `json:"total"`
+    }
+
+    type PackageCoverage struct {
+        Name     string  `json:"name"`
+        Coverage float64 `json:"coverage"`
+    }
+
+    func main() {
+        // 테스트 실행 및 커버리지 생성
+        cmd := exec.Command("go", "test", "./...", "-coverprofile=coverage.out")
+        if err := cmd.Run(); err != nil {
+            fmt.Printf("테스트 실행 실패: %v\n", err)
+            return
+        }
+
+        // HTML 보고서 생성
+        cmd = exec.Command("go", "tool", "cover", "-html=coverage.out", "-o", "coverage.html")
+        if err := cmd.Run(); err != nil {
+            fmt.Printf("HTML 보고서 생성 실패: %v\n", err)
+            return
+        }
+
+        // 커버리지 분석
+        analyzeCoverage("coverage.out")
+    }
+
+    func analyzeCoverage(filename string) {
+        cmd := exec.Command("go", "tool", "cover", "-func=coverage.out")
+        output, err := cmd.Output()
+        if err != nil {
+            fmt.Printf("커버리지 분석 실패: %v\n", err)
+            return
+        }
+        fmt.Printf("Coverage Analysis:\n%s\n", string(output))
+    }
+    ```
+
+7. CI/CD 통합
+    ```yaml
+    # .github/workflows/test.yml
+    name: Tests
+
+    on: [push, pull_request]
+
+    jobs:
+    test:
+        runs-on: ubuntu-latest
+        
+        steps:
+        - uses: actions/checkout@v2
+
+        - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+            go-version: ^1.19
+
+        - name: Install dependencies
+        run: go mod download
+
+        - name: Run tests with coverage
+        run: |
+            go test ./... -coverprofile=coverage.out -covermode=atomic
+            go tool cover -func=coverage.out
+
+        - name: Upload coverage report
+        uses: codecov/codecov-action@v2
+        with:
+            file: ./coverage.out
+            flags: unittests
+    ```
+
+8. 테스트 시나리오 자동화
+    1. 테스트 시나리오 정의
+        ```go
+        // tests/scenarios/user_scenarios_test.go
+        package scenarios
+
+        import (
+            "testing"
+            "github.com/stretchr/testify/suite"
+        )
+
+        type UserScenarioSuite struct {
+            suite.Suite
+            app *gin.Engine
+        }
+
+        func (s *UserScenarioSuite) SetupSuite() {
+            s.app = setupTestApp()
+        }
+
+        func (s *UserScenarioSuite) TestUserLifecycle() {
+            // 1. 사용자 등록
+            user := s.createUser()
+            s.NotEmpty(user.ID)
+
+            // 2. 로그인
+            token := s.loginUser(user)
+            s.NotEmpty(token)
+
+            // 3. 프로필 업데이트
+            s.updateUserProfile(user.ID, token)
+
+            // 4. 게시물 작성
+            post := s.createPost(user.ID, token)
+            s.NotEmpty(post.ID)
+
+            // 5. 게시물 조회
+            s.verifyPost(post.ID)
+
+            // 6. 사용자 삭제
+            s.deleteUser(user.ID, token)
+        }
+
+        func (s *UserScenarioSuite) createUser() *models.User {
+            payload := map[string]interface{}{
+                "username": "testuser",
+                "email":    "test@example.com",
+                "password": "password123",
+            }
+
+            response := s.makeRequest("POST", "/api/users", payload, "")
+            s.Equal(http.StatusCreated, response.Code)
+
+            var user models.User
+            s.Require().NoError(json.NewDecoder(response.Body).Decode(&user))
+            return &user
+        }
+
+        func (s *UserScenarioSuite) loginUser(user *models.User) string {
+            payload := map[string]interface{}{
+                "email":    user.Email,
+                "password": "password123",
+            }
+
+            response := s.makeRequest("POST", "/api/auth/login", payload, "")
+            s.Equal(http.StatusOK, response.Code)
+
+            var result map[string]string
+            s.Require().NoError(json.NewDecoder(response.Body).Decode(&result))
+            return result["token"]
+        }
+
+        func (s *UserScenarioSuite) updateUserProfile(userID uint, token string) {
+            payload := map[string]interface{}{
+                "bio": "Updated bio",
+            }
+
+            response := s.makeRequest("PUT", fmt.Sprintf("/api/users/%d/profile", userID), payload, token)
+            s.Equal(http.StatusOK, response.Code)
+        }
+
+        func (s *UserScenarioSuite) createPost(userID uint, token string) *models.Post {
+            payload := map[string]interface{}{
+                "title":   "Test Post",
+                "content": "This is a test post",
+            }
+
+            response := s.makeRequest("POST", "/api/posts", payload, token)
+            s.Equal(http.StatusCreated, response.Code)
+
+            var post models.Post
+            s.Require().NoError(json.NewDecoder(response.Body).Decode(&post))
+            return &post
+        }
+
+        func (s *UserScenarioSuite) verifyPost(postID uint) {
+            response := s.makeRequest("GET", fmt.Sprintf("/api/posts/%d", postID), nil, "")
+            s.Equal(http.StatusOK, response.Code)
+
+            var post models.Post
+            s.Require().NoError(json.NewDecoder(response.Body).Decode(&post))
+            s.Equal(postID, post.ID)
+        }
+
+        func (s *UserScenarioSuite) deleteUser(userID uint, token string) {
+            response := s.makeRequest("DELETE", fmt.Sprintf("/api/users/%d", userID), nil, token)
+            s.Equal(http.StatusOK, response.Code)
+        }
+
+        func (s *UserScenarioSuite) makeRequest(method, path string, body interface{}, token string) *httptest.ResponseRecorder {
+            var reqBody io.Reader
+            if body != nil {
+                jsonBody, err := json.Marshal(body)
+                s.Require().NoError(err)
+                reqBody = bytes.NewBuffer(jsonBody)
+            }
+
+            req := httptest.NewRequest(method, path, reqBody)
+            if token != "" {
+                req.Header.Set("Authorization", "Bearer "+token)
+            }
+            if body != nil {
+                req.Header.Set("Content-Type", "application/json")
+            }
+
+            w := httptest.NewRecorder()
+            s.app.ServeHTTP(w, req)
+            return w
+        }
+        ```
+
+9. 테스트 문서화
+    1. 테스트 문서 자동 생성
+        ```go
+        // tests/docs/test_docs.go
+        package docs
+
+        import (
+            "fmt"
+            "go/ast"
+            "go/parser"
+            "go/token"
+            "os"
+            "path/filepath"
+            "strings"
+        )
+
+        type TestDoc struct {
+            Package     string
+            TestName    string
+            Description string
+            Cases       []TestCase
+        }
+
+        type TestCase struct {
+            Name        string
+            Description string
+            Setup       string
+            Assertions  []string
+        }
+
+        func GenerateTestDocs(dir string) ([]TestDoc, error) {
+            var docs []TestDoc
+            err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+                if err != nil {
+                    return err
+                }
+
+                if !strings.HasSuffix(info.Name(), "_test.go") {
+                    return nil
+                }
+
+                doc, err := parseTestFile(path)
+                if err != nil {
+                    return err
+                }
+                docs = append(docs, doc)
+                return nil
+            })
+
+            return docs, err
+        }
+
+        func parseTestFile(filePath string) (TestDoc, error) {
+            fset := token.NewFileSet()
+            node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+            if err != nil {
+                return TestDoc{}, err
+            }
+
+            doc := TestDoc{
+                Package: node.Name.Name,
+            }
+
+            ast.Inspect(node, func(n ast.Node) bool {
+                fn, ok := n.(*ast.FuncDecl)
+                if !ok || !strings.HasPrefix(fn.Name.Name, "Test") {
+                    return true
+                }
+
+                testCase := parseTestCase(fn)
+                doc.Cases = append(doc.Cases, testCase)
+                return true
+            })
+
+            return doc, nil
+        }
+
+        func parseTestCase(fn *ast.FuncDecl) TestCase {
+            testCase := TestCase{
+                Name: fn.Name.Name,
+            }
+
+            if fn.Doc != nil {
+                testCase.Description = fn.Doc.Text()
+            }
+
+            return testCase
+        }
+        ```
