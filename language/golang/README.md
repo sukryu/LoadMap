@@ -20,6 +20,7 @@
     - 완전한 MVC 프레임워크는 아니며, 필요한 기능은 플러그인 형태로 추가해야 함
 
 [Gin](gin.md)
+[Gin 확장](go-extends.md)
 
 ### Echo
 

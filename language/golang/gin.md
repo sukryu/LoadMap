@@ -5779,3 +5779,1466 @@
             return testCase
         }
         ```
+
+## 모니터링과 로깅
+
+1. 로깅 설정
+    1. Zap Logger 설정
+        ```go
+        // pkg/logger/zap.go
+        package logger
+
+        import (
+            "os"
+            "time"
+
+            "go.uber.org/zap"
+            "go.uber.org/zap/zapcore"
+        )
+
+        type Logger struct {
+            *zap.Logger
+        }
+
+        func NewLogger(env string) (*Logger, error) {
+            var config zap.Config
+
+            if env == "production" {
+                config = zap.NewProductionConfig()
+                config.EncoderConfig.TimeKey = "timestamp"
+                config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+            } else {
+                config = zap.NewDevelopmentConfig()
+                config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+            }
+
+            // 로그 파일 설정
+            logFile, err := os.OpenFile(
+                "app.log",
+                os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+                0644,
+            )
+            if err != nil {
+                return nil, err
+            }
+
+            // 콘솔과 파일 모두에 로깅
+            core := zapcore.NewTee(
+                zapcore.NewCore(
+                    zapcore.NewJSONEncoder(config.EncoderConfig),
+                    zapcore.AddSync(logFile),
+                    config.Level,
+                ),
+                zapcore.NewCore(
+                    zapcore.NewConsoleEncoder(config.EncoderConfig),
+                    zapcore.AddSync(os.Stdout),
+                    config.Level,
+                ),
+            )
+
+            logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))
+
+            return &Logger{logger}, nil
+        }
+
+        // 로깅 미들웨어
+        func LoggerMiddleware(logger *Logger) gin.HandlerFunc {
+            return func(c *gin.Context) {
+                start := time.Now()
+                path := c.Request.URL.Path
+                query := c.Request.URL.RawQuery
+
+                c.Next()
+
+                logger.Info("request completed",
+                    zap.String("path", path),
+                    zap.String("query", query),
+                    zap.String("ip", c.ClientIP()),
+                    zap.String("method", c.Request.Method),
+                    zap.Int("status", c.Writer.Status()),
+                    zap.Duration("latency", time.Since(start)),
+                    zap.Int("size", c.Writer.Size()),
+                    zap.String("user-agent", c.Request.UserAgent()),
+                )
+            }
+        }
+        ```
+
+    2. 로그 로테이션
+        ```go
+        // pkg/logger/rotation.go
+        package logger
+
+        import (
+            "github.com/natefinch/lumberjack"
+            "go.uber.org/zap/zapcore"
+        )
+
+        func getLogWriter() zapcore.WriteSyncer {
+            lumberJackLogger := &lumberjack.Logger{
+                Filename:   "app.log",
+                MaxSize:    10,    // 메가바이트
+                MaxBackups: 5,     // 유지할 이전 로그 파일 수
+                MaxAge:    30,     // 일
+                Compress:  true,   // 로그 파일 압축
+            }
+            return zapcore.AddSync(lumberJackLogger)
+        }
+
+        func getEncoder() zapcore.Encoder {
+            encoderConfig := zap.NewProductionEncoderConfig()
+            encoderConfig.TimeKey = "timestamp"
+            encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+            encoderConfig.StacktraceKey = ""
+            return zapcore.NewJSONEncoder(encoderConfig)
+        }
+        ```
+
+2. 프로메테우스 메트릭스
+    1. 메트릭스 설정
+        ```go
+        // pkg/metrics/prometheus.go
+        package metrics
+
+        import (
+            "github.com/prometheus/client_golang/prometheus"
+            "github.com/prometheus/client_golang/prometheus/promauto"
+        )
+
+        var (
+            RequestsTotal = promauto.NewCounterVec(
+                prometheus.CounterOpts{
+                    Name: "http_requests_total",
+                    Help: "Total number of HTTP requests",
+                },
+                []string{"method", "path", "status"},
+            )
+
+            RequestDuration = promauto.NewHistogramVec(
+                prometheus.HistogramOpts{
+                    Name:    "http_request_duration_seconds",
+                    Help:    "HTTP request latencies in seconds",
+                    Buckets: prometheus.DefBuckets,
+                },
+                []string{"method", "path"},
+            )
+
+            ResponseSize = promauto.NewHistogramVec(
+                prometheus.HistogramOpts{
+                    Name:    "http_response_size_bytes",
+                    Help:    "HTTP response sizes in bytes",
+                    Buckets: prometheus.ExponentialBuckets(100, 10, 8),
+                },
+                []string{"method", "path"},
+            )
+
+            ActiveRequests = promauto.NewGauge(prometheus.GaugeOpts{
+                Name: "http_active_requests",
+                Help: "Number of active HTTP requests",
+            })
+
+            DatabaseConnections = promauto.NewGauge(prometheus.GaugeOpts{
+                Name: "database_connections",
+                Help: "Number of active database connections",
+            })
+        )
+
+        // 메트릭스 미들웨어
+        func MetricsMiddleware() gin.HandlerFunc {
+            return func(c *gin.Context) {
+                start := time.Now()
+                path := c.FullPath()
+                
+                ActiveRequests.Inc()
+                defer ActiveRequests.Dec()
+
+                c.Next()
+
+                status := strconv.Itoa(c.Writer.Status())
+                duration := time.Since(start).Seconds()
+
+                RequestsTotal.WithLabelValues(c.Request.Method, path, status).Inc()
+                RequestDuration.WithLabelValues(c.Request.Method, path).Observe(duration)
+                ResponseSize.WithLabelValues(c.Request.Method, path).Observe(float64(c.Writer.Size()))
+            }
+        }
+        ```
+
+3. Grafana 대시보드
+    1. 대시보드 설정
+        ```json
+        {
+            "annotations": {
+                "list": []
+            },
+            "editable": true,
+            "gnetId": null,
+            "graphTooltip": 0,
+            "id": 1,
+            "links": [],
+            "panels": [
+                {
+                "alert": {
+                    "conditions": [
+                    {
+                        "evaluator": {
+                        "params": [
+                            5
+                        ],
+                        "type": "gt"
+                        },
+                        "operator": {
+                        "type": "and"
+                        },
+                        "query": {
+                        "params": [
+                            "A",
+                            "5m",
+                            "now"
+                        ]
+                        },
+                        "reducer": {
+                        "params": [],
+                        "type": "avg"
+                        },
+                        "type": "query"
+                    }
+                    ],
+                    "executionErrorState": "alerting",
+                    "frequency": "60s",
+                    "handler": 1,
+                    "name": "Request Rate",
+                    "noDataState": "no_data",
+                    "notifications": []
+                },
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": "Prometheus",
+                "fill": 1,
+                "gridPos": {
+                    "h": 9,
+                    "w": 12,
+                    "x": 0,
+                    "y": 0
+                },
+                "id": 2,
+                "legend": {
+                    "avg": false,
+                    "current": false,
+                    "max": false,
+                    "min": false,
+                    "show": true,
+                    "total": false,
+                    "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "percentage": false,
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                    {
+                    "expr": "rate(http_requests_total[5m])",
+                    "refId": "A"
+                    }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "Request Rate",
+                "tooltip": {
+                    "shared": true,
+                    "sort": 0,
+                    "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                    "buckets": null,
+                    "mode": "time",
+                    "name": null,
+                    "show": true,
+                    "values": []
+                },
+                "yaxes": [
+                    {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                    },
+                    {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                    }
+                ],
+                "yaxis": {
+                    "align": false,
+                    "alignLevel": null
+                }
+                }
+            ],
+            "schemaVersion": 22,
+            "style": "dark",
+            "tags": [],
+            "templating": {
+                "list": []
+            },
+            "time": {
+                "from": "now-6h",
+                "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "",
+            "title": "API Monitoring",
+            "uid": "api_monitoring",
+            "version": 1
+        }
+        ```
+
+4. 트레이싱
+    1. Jaeger 트레이싱 설정
+        ```go
+        // pkg/tracing/jaeger.go
+        package tracing
+
+        import (
+            "io"
+            "github.com/opentracing/opentracing-go"
+            "github.com/uber/jaeger-client-go"
+            "github.com/uber/jaeger-client-go/config"
+        )
+
+        func InitTracer(serviceName string) (opentracing.Tracer, io.Closer) {
+            cfg := &config.Configuration{
+                ServiceName: serviceName,
+                Sampler: &config.SamplerConfig{
+                    Type:  jaeger.SamplerTypeConst,
+                    Param: 1,
+                },
+                Reporter: &config.ReporterConfig{
+                    LogSpans: true,
+                },
+            }
+            tracer, closer, err := cfg.NewTracer(config.Logger(jaeger.StdLogger))
+            if err != nil {
+                panic(err)
+            }
+            return tracer, closer
+        }
+
+        // 트레이싱 미들웨어
+        func TracingMiddleware(tracer opentracing.Tracer) gin.HandlerFunc {
+            return func(c *gin.Context) {
+                spCtx, _ := tracer.Extract(
+                    opentracing.HTTPHeaders,
+                    opentracing.HTTPHeadersCarrier(c.Request.Header),
+                )
+
+                sp := tracer.StartSpan(
+                    c.Request.URL.Path,
+                    opentracing.ChildOf(spCtx),
+                )
+                defer sp.Finish()
+
+                // 컨텍스트에 span 추가
+                c.Set("span", sp)
+
+                c.Next()
+
+                // span에 응답 정보 추가
+                sp.SetTag("http.status_code", c.Writer.Status())
+                sp.SetTag("http.method", c.Request.Method)
+                sp.SetTag("http.url", c.Request.URL.Path)
+            }
+        }
+        ```
+
+5. 알림 설정
+    1. 알림 관리자
+        ```go
+        // pkg/alerts/manager.go
+        package alerts
+
+        import (
+            "bytes"
+            "encoding/json"
+            "net/http"
+        )
+
+        type AlertManager struct {
+            slackWebhook  string
+            emailConfig   EmailConfig
+            alertChannels []AlertChannel
+        }
+
+        type AlertChannel interface {
+            Send(alert Alert) error
+        }
+
+        type Alert struct {
+            Level     string                 `json:"level"`
+            Message   string                 `json:"message"`
+            Details   map[string]interface{} `json:"details"`
+            Timestamp string                 `json:"timestamp"`
+        }
+
+        func NewAlertManager(slackWebhook string, emailConfig EmailConfig) *AlertManager {
+            return &AlertManager{
+                slackWebhook:  slackWebhook,
+                emailConfig:   emailConfig,
+                alertChannels: make([]AlertChannel, 0),
+            }
+        }
+
+        func (am *AlertManager) AddChannel(channel AlertChannel) {
+            am.alertChannels = append(am.alertChannels, channel)
+        }
+
+        // Slack 알림
+        type SlackAlert struct {
+            webhook string
+        }
+
+        func (sa *SlackAlert) Send(alert Alert) error {
+            payload := map[string]interface{}{
+                "text": fmt.Sprintf("[%s] %s", alert.Level, alert.Message),
+                "attachments": []map[string]interface{}{
+                    {
+                        "fields": formatAlertDetails(alert.Details),
+                        "color":  getAlertColor(alert.Level),
+                    },
+                },
+            }
+
+            jsonData, err := json.Marshal(payload)
+            if err != nil {
+                return err
+            }
+
+            resp, err := http.Post(sa.webhook, "application/json", bytes.NewBuffer(jsonData))
+            if err != nil {
+                return err
+            }
+            defer resp.Body.Close()
+
+            return nil
+        }
+
+        // 이메일 알림
+        type EmailAlert struct {
+            config EmailConfig
+        }
+
+        func (ea *EmailAlert) Send(alert Alert) error {
+            subject := fmt.Sprintf("[%s] Alert: %s", alert.Level, alert.Message)
+            body := formatEmailBody(alert)
+            
+            return sendEmail(ea.config, subject, body)
+        }
+
+        func formatEmailBody(alert Alert) string {
+            var buf bytes.Buffer
+            buf.WriteString(fmt.Sprintf("Alert Level: %s\n", alert.Level))
+            buf.WriteString(fmt.Sprintf("Message: %s\n", alert.Message))
+            buf.WriteString("\nDetails:\n")
+            
+            for k, v := range alert.Details {
+                buf.WriteString(fmt.Sprintf("%s: %v\n", k, v))
+            }
+            
+            return buf.String()
+        }
+        ```
+
+6. 헬스체크
+    1. 헬스체크 엔드포인트
+        ```go
+        // internal/handlers/health.go
+        package handlers
+
+        type HealthChecker interface {
+            Check() error
+            Name() string
+        }
+
+        type HealthService struct {
+            checkers []HealthChecker
+        }
+
+        func NewHealthService(checkers ...HealthChecker) *HealthService {
+            return &HealthService{checkers: checkers}
+        }
+
+        func (h *HealthService) CheckHealth(c *gin.Context) {
+            details := make(map[string]interface{})
+            status := "healthy"
+
+            for _, checker := range h.checkers {
+                if err := checker.Check(); err != nil {
+                    details[checker.Name()] = map[string]string{
+                        "status":  "unhealthy",
+                        "message": err.Error(),
+                    }
+                    status = "unhealthy"
+                } else {
+                    details[checker.Name()] = map[string]string{
+                        "status": "healthy",
+                    }
+                }
+            }
+
+            health := HealthCheck{
+                Status:  status,
+                Details: details,
+            }
+
+            c.JSON(http.StatusOK, health)
+        }
+
+        // 데이터베이스 헬스체커
+        type DBHealthChecker struct {
+            db *gorm.DB
+        }
+
+        func (d *DBHealthChecker) Name() string {
+            return "database"
+        }
+
+        func (d *DBHealthChecker) Check() error {
+            sqlDB, err := d.db.DB()
+            if err != nil {
+                return err
+            }
+            return sqlDB.Ping()
+        }
+
+        // Redis 헬스체커
+        type RedisHealthChecker struct {
+            client *redis.Client
+        }
+
+        func (r *RedisHealthChecker) Name() string {
+            return "redis"
+        }
+
+        func (r *RedisHealthChecker) Check() error {
+            return r.client.Ping(context.Background()).Err()
+        }
+
+        // 외부 서비스 헬스체커
+        type ServiceHealthChecker struct {
+            name string
+            url  string
+        }
+
+        func (s *ServiceHealthChecker) Name() string {
+            return s.name
+        }
+
+        func (s *ServiceHealthChecker) Check() error {
+            resp, err := http.Get(s.url)
+            if err != nil {
+                return err
+            }
+            defer resp.Body.Close()
+
+            if resp.StatusCode != http.StatusOK {
+                return fmt.Errorf("service returned status: %d", resp.StatusCode)
+            }
+            return nil
+        }
+        ```
+
+7. 메트릭스 수집기
+    ```go
+    // pkg/metrics/collector.go
+    package metrics
+
+    type MetricsCollector struct {
+        metrics map[string]prometheus.Collector
+    }
+
+    func NewMetricsCollector() *MetricsCollector {
+        return &MetricsCollector{
+            metrics: make(map[string]prometheus.Collector),
+        }
+    }
+
+    // 시스템 메트릭스
+    func (mc *MetricsCollector) RegisterSystemMetrics() {
+        mc.metrics["memory_usage"] = prometheus.NewGauge(prometheus.GaugeOpts{
+            Name: "system_memory_usage_bytes",
+            Help: "Current memory usage in bytes",
+        })
+
+        mc.metrics["cpu_usage"] = prometheus.NewGauge(prometheus.GaugeOpts{
+            Name: "system_cpu_usage_percent",
+            Help: "Current CPU usage in percentage",
+        })
+
+        mc.metrics["goroutines"] = prometheus.NewGauge(prometheus.GaugeOpts{
+            Name: "system_goroutines_count",
+            Help: "Number of running goroutines",
+        })
+
+        // 모든 메트릭스 등록
+        for _, metric := range mc.metrics {
+            prometheus.MustRegister(metric)
+        }
+    }
+
+    // 비즈니스 메트릭스
+    func (mc *MetricsCollector) RegisterBusinessMetrics() {
+        mc.metrics["active_users"] = prometheus.NewGauge(prometheus.GaugeOpts{
+            Name: "business_active_users",
+            Help: "Number of active users",
+        })
+
+        mc.metrics["daily_transactions"] = prometheus.NewCounter(prometheus.CounterOpts{
+            Name: "business_daily_transactions_total",
+            Help: "Total number of daily transactions",
+        })
+
+        mc.metrics["order_value"] = prometheus.NewHistogram(prometheus.HistogramOpts{
+            Name:    "business_order_value_dollars",
+            Help:    "Distribution of order values",
+            Buckets: []float64{10, 50, 100, 500, 1000, 5000},
+        })
+
+        // 모든 메트릭스 등록
+        for _, metric := range mc.metrics {
+            prometheus.MustRegister(metric)
+        }
+    }
+
+    // 메트릭스 업데이트
+    func (mc *MetricsCollector) UpdateMetrics() {
+        go func() {
+            for {
+                // 시스템 메트릭스 업데이트
+                mc.updateSystemMetrics()
+                // 비즈니스 메트릭스 업데이트
+                mc.updateBusinessMetrics()
+                
+                time.Sleep(time.Second * 15)
+            }
+        }()
+    }
+
+    func (mc *MetricsCollector) updateSystemMetrics() {
+        // 메모리 사용량 업데이트
+        var mem runtime.MemStats
+        runtime.ReadMemStats(&mem)
+        mc.metrics["memory_usage"].(prometheus.Gauge).Set(float64(mem.Alloc))
+
+        // 고루틴 수 업데이트
+        mc.metrics["goroutines"].(prometheus.Gauge).Set(float64(runtime.NumGoroutine()))
+
+        // CPU 사용량 업데이트 (예시)
+        // 실제 구현에서는 OS 특정 방식으로 CPU 사용량을 얻어야 함
+    }
+
+    func (mc *MetricsCollector) updateBusinessMetrics() {
+        // 비즈니스 메트릭스 업데이트 로직 구현
+        // 실제 구현에서는 데이터베이스나 캐시에서 데이터를 조회해야 함
+    }
+    ```
+
+8. 로깅 및 모니터링 통합
+    1. 통합 모니터링 설정
+        ```go
+        // pkg/monitoring/setup.go
+        package monitoring
+
+        import (
+            "context"
+            "time"
+        )
+
+        type MonitoringService struct {
+            logger     *Logger
+            metrics    *MetricsCollector
+            tracer     *Tracer
+            alerts     *AlertManager
+            health     *HealthService
+            ctx        context.Context
+            cancelFunc context.CancelFunc
+        }
+
+        func NewMonitoringService(config MonitoringConfig) (*MonitoringService, error) {
+            ctx, cancel := context.WithCancel(context.Background())
+            
+            service := &MonitoringService{
+                ctx:        ctx,
+                cancelFunc: cancel,
+            }
+            
+            // 로거 초기화
+            logger, err := NewLogger(config.LogConfig)
+            if err != nil {
+                return nil, err
+            }
+            service.logger = logger
+            
+            // 메트릭스 초기화
+            service.metrics = NewMetricsCollector()
+            service.metrics.RegisterSystemMetrics()
+            service.metrics.RegisterBusinessMetrics()
+            
+            // 트레이서 초기화
+            tracer, err := NewTracer(config.TracingConfig)
+            if err != nil {
+                return nil, err
+            }
+            service.tracer = tracer
+            
+            // 알림 관리자 초기화
+            service.alerts = NewAlertManager(config.AlertConfig)
+            
+            // 헬스 체크 초기화
+            service.health = NewHealthService(config.HealthCheckers...)
+            
+            return service, nil
+        }
+
+        // 통합 미들웨어
+        func (ms *MonitoringService) Middleware() gin.HandlerFunc {
+            return func(c *gin.Context) {
+                start := time.Now()
+                path := c.Request.URL.Path
+                
+                // 트레이싱 시작
+                span := ms.tracer.StartSpan(path)
+                defer span.Finish()
+                
+                // 컨텍스트에 span 추가
+                c.Set("span", span)
+                
+                // 메트릭스 수집 시작
+                ms.metrics.RequestStarted(path)
+                
+                // 다음 핸들러 실행
+                c.Next()
+                
+                // 요청 완료 후 메트릭스 업데이트
+                duration := time.Since(start)
+                status := c.Writer.Status()
+                
+                ms.metrics.RequestCompleted(path, status, duration)
+                
+                // 로깅
+                ms.logger.Info("request completed",
+                    "path", path,
+                    "method", c.Request.Method,
+                    "status", status,
+                    "duration", duration,
+                    "ip", c.ClientIP(),
+                )
+                
+                // 에러 발생 시 알림
+                if status >= 500 {
+                    ms.alerts.Send(Alert{
+                        Level:   "error",
+                        Message: "Server error occurred",
+                        Details: map[string]interface{}{
+                            "path":   path,
+                            "status": status,
+                            "error":  c.Errors.String(),
+                        },
+                    })
+                }
+            }
+        }
+
+        // 지표 수집 주기 설정
+        func (ms *MonitoringService) StartMetricsCollection() {
+            go func() {
+                ticker := time.NewTicker(15 * time.Second)
+                defer ticker.Stop()
+                
+                for {
+                    select {
+                    case <-ticker.C:
+                        ms.metrics.UpdateSystemMetrics()
+                        ms.metrics.UpdateBusinessMetrics()
+                    case <-ms.ctx.Done():
+                        return
+                    }
+                }
+            }()
+        }
+
+        // 정리
+        func (ms *MonitoringService) Cleanup() {
+            ms.cancelFunc()
+            ms.tracer.Close()
+            ms.logger.Sync()
+        }
+        ```
+
+    2. 설정 구조체
+        ```go
+        // pkg/monitoring/config.go
+        type MonitoringConfig struct {
+            LogConfig     LogConfig
+            TracingConfig TracingConfig
+            AlertConfig   AlertConfig
+            HealthCheckers []HealthChecker
+            MetricsConfig MetricsConfig
+        }
+
+        type LogConfig struct {
+            Level      string
+            OutputPath string
+            Encoding   string
+        }
+
+        type TracingConfig struct {
+            ServiceName  string
+            AgentHost    string
+            AgentPort    string
+            SampleRate   float64
+        }
+
+        type AlertConfig struct {
+            SlackWebhook   string
+            EmailSettings  EmailSettings
+            AlertLevels    map[string]AlertLevel
+        }
+
+        type MetricsConfig struct {
+            PrometheusPort     int
+            CollectionInterval time.Duration
+            CustomMetrics      []MetricDefinition
+        }
+
+        type MetricDefinition struct {
+            Name       string
+            Help       string
+            Type       string
+            Labels     []string
+        }
+        ```
+
+    3. Docker Compose 통합 설정
+        ```yml
+        # docker-compose.monitoring.yml
+        version: '3.8'
+
+        services:
+        prometheus:
+            image: prom/prometheus:latest
+            volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml
+            ports:
+            - "9090:9090"
+            networks:
+            - monitoring
+
+        grafana:
+            image: grafana/grafana:latest
+            depends_on:
+            - prometheus
+            ports:
+            - "3000:3000"
+            volumes:
+            - grafana_data:/var/lib/grafana
+            - ./grafana/provisioning:/etc/grafana/provisioning
+            networks:
+            - monitoring
+
+        jaeger:
+            image: jaegertracing/all-in-one:latest
+            ports:
+            - "5775:5775/udp"
+            - "6831:6831/udp"
+            - "6832:6832/udp"
+            - "5778:5778"
+            - "16686:16686"
+            - "14250:14250"
+            - "14268:14268"
+            - "14269:14269"
+            networks:
+            - monitoring
+
+        alertmanager:
+            image: prom/alertmanager:latest
+            ports:
+            - "9093:9093"
+            volumes:
+            - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+            networks:
+            - monitoring
+
+        networks:
+            monitoring:
+                driver: bridge
+
+        volumes:
+            grafana_data:
+        ```
+
+    4. Prometheus 설정
+        ```yml
+        # prometheus.yml
+        global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+
+        alerting:
+            alertmanagers:
+                - static_configs:
+                    - targets:
+                        - alertmanager:9093
+
+        rule_files:
+        - 'rules/*.yml'
+
+        scrape_configs:
+        - job_name: 'app'
+            static_configs:
+            - targets: ['app:8080']
+
+        - job_name: 'prometheus'
+            static_configs:
+            - targets: ['localhost:9090']
+        ```
+
+## 배포
+
+1. Docker 설정
+    1. Dockerfile
+        ```dockerfile
+        # Build stage
+        FROM golang:1.19-alpine AS builder
+
+        WORKDIR /app
+
+        # 의존성 다운로드
+        COPY go.mod go.sum ./
+        RUN go mod download
+
+        # 소스 코드 복사 및 빌드
+        COPY . .
+        RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/server
+
+        # Final stage
+        FROM alpine:latest
+
+        # 필요한 CA certificates 설치
+        RUN apk --no-cache add ca-certificates
+
+        WORKDIR /root/
+
+        # 빌드된 바이너리 복사
+        COPY --from=builder /app/main .
+        COPY --from=builder /app/configs ./configs
+
+        # 환경 변수 설정
+        ENV GIN_MODE=release
+        ENV PORT=8080
+
+        # 포트 노출
+        EXPOSE ${PORT}
+
+        # 애플리케이션 실행
+        CMD ["./main"]
+        ```
+
+    2. Docker Compose
+        ```yaml
+        # docker-compose.yml
+        version: '3.8'
+
+        services:
+            app:
+                build: 
+                context: .
+                dockerfile: Dockerfile
+                ports:
+                - "${PORT}:8080"
+                environment:
+                - DB_HOST=postgres
+                - DB_USER=${DB_USER}
+                - DB_PASSWORD=${DB_PASSWORD}
+                - DB_NAME=${DB_NAME}
+                - REDIS_HOST=redis
+                - REDIS_PASSWORD=${REDIS_PASSWORD}
+                depends_on:
+                - postgres
+                - redis
+                networks:
+                - app-network
+                volumes:
+                - app-data:/data
+                healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+
+            postgres:
+                image: postgres:13-alpine
+                environment:
+                - POSTGRES_USER=${DB_USER}
+                - POSTGRES_PASSWORD=${DB_PASSWORD}
+                - POSTGRES_DB=${DB_NAME}
+                volumes:
+                - postgres-data:/var/lib/postgresql/data
+                networks:
+                - app-network
+                healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+            redis:
+                image: redis:6-alpine
+                command: redis-server --requirepass ${REDIS_PASSWORD}
+                volumes:
+                - redis-data:/data
+                networks:
+                - app-network
+                healthcheck:
+                test: ["CMD", "redis-cli", "ping"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+        volumes:
+            app-data:
+            postgres-data:
+            redis-data:
+
+        networks:
+            app-network:
+                driver: bridge
+        ```
+
+2. Kubernetes 배포
+    1. Deployment 설정
+        ```yaml
+        # k8s/deployment.yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+            name: myapp
+            labels:
+                app: myapp
+        spec:
+            replicas: 3
+            selector:
+                matchLabels:
+                app: myapp
+            template:
+                metadata:
+                labels:
+                    app: myapp
+            spec:
+            containers:
+            - name: myapp
+                image: myapp:latest
+                ports:
+                - containerPort: 8080
+                env:
+                - name: DB_HOST
+                valueFrom:
+                    configMapKeyRef:
+                    name: myapp-config
+                    key: db_host
+                - name: DB_USER
+                valueFrom:
+                    secretKeyRef:
+                    name: myapp-secrets
+                    key: db_user
+                - name: DB_PASSWORD
+                valueFrom:
+                    secretKeyRef:
+                    name: myapp-secrets
+                    key: db_password
+                resources:
+                requests:
+                    cpu: "100m"
+                    memory: "128Mi"
+                limits:
+                    cpu: "500m"
+                    memory: "512Mi"
+                readinessProbe:
+                httpGet:
+                    path: /health
+                    port: 8080
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                livenessProbe:
+                httpGet:
+                    path: /health
+                    port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 20
+        ```
+
+    2. Sevice 설정
+        ```yaml
+        # k8s/service.yaml
+        apiVersion: v1
+        kind: Service
+        metadata:
+            name: myapp-service
+        spec:
+            selector:
+                app: myapp
+            ports:
+                - protocol: TCP
+                port: 80
+                targetPort: 8080
+            type: LoadBalancer
+        ```
+
+    3. ConfigMap과 Secret
+        ```yaml
+        # k8s/configmap.yaml
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+            name: myapp-config
+        data:
+            db_host: "postgres-service"
+            redis_host: "redis-service"
+            app_env: "production"
+
+        ---
+        # k8s/secret.yaml
+        apiVersion: v1
+        kind: Secret
+        metadata:
+            name: myapp-secrets
+        type: Opaque
+        data:
+            db_user: BASE64_ENCODED_USER
+            db_password: BASE64_ENCODED_PASSWORD
+            redis_password: BASE64_ENCODED_REDIS_PASSWORD
+        ```
+
+    4. Ingress 설정
+        ```yaml
+        # k8s/ingress.yaml
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        metadata:
+            name: myapp-ingress
+            annotations:
+                kubernetes.io/ingress.class: "nginx"
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        spec:
+            tls:
+            - hosts:
+                - myapp.example.com
+                secretName: myapp-tls
+            rules:
+            - host: myapp.example.com
+                http:
+                paths:
+                - path: /
+                    pathType: Prefix
+                    backend:
+                    service:
+                        name: myapp-service
+                        port:
+                        number: 80
+        ```
+
+3. CI/CD 파이프라인
+    1. Github Actions
+        ```yaml
+        # .github/workflows/ci.yml
+        name: CI/CD Pipeline
+
+        on:
+        push:
+            branches: [main]
+        pull_request:
+            branches: [main]
+
+        jobs:
+        test:
+            runs-on: ubuntu-latest
+            steps:
+            - uses: actions/checkout@v2
+
+            - name: Set up Go
+            uses: actions/setup-go@v2
+            with:
+                go-version: ^1.19
+
+            - name: Run tests
+            run: |
+                go test -v ./...
+                go test -coverprofile=coverage.out ./...
+
+            - name: Upload coverage report
+            uses: codecov/codecov-action@v2
+            with:
+                file: ./coverage.out
+
+        build:
+            needs: test
+            runs-on: ubuntu-latest
+            if: github.ref == 'refs/heads/main'
+            steps:
+            - uses: actions/checkout@v2
+
+            - name: Login to Docker Hub
+            uses: docker/login-action@v1
+            with:
+                username: ${{ secrets.DOCKER_HUB_USERNAME }}
+                password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+            - name: Build and push Docker image
+            uses: docker/build-push-action@v2
+            with:
+                push: true
+                tags: user/myapp:latest,user/myapp:${{ github.sha }}
+
+        deploy:
+            needs: build
+            runs-on: ubuntu-latest
+            if: github.ref == 'refs/heads/main'
+            steps:
+            - uses: actions/checkout@v2
+            
+            - name: Install kubectl
+            uses: azure/setup-kubectl@v1
+            
+            - name: Set Kubernetes context
+            uses: azure/k8s-set-context@v1
+            with:
+                kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+            
+            - name: Deploy to Kubernetes
+            run: |
+                kubectl apply -f k8s/
+                kubectl rollout restart deployment myapp
+        ```
+
+4. 스케일링 설정
+    * HorizontalPodAutoscaler
+        ```yaml
+        # k8s/hpa.yaml
+        apiVersion: autoscaling/v2
+        kind: HorizontalPodAutoscaler
+        metadata:
+            name: myapp-hpa
+        spec:
+            scaleTargetRef:
+                apiVersion: apps/v1
+                kind: Deployment
+                name: myapp
+            minReplicas: 3
+            maxReplicas: 10
+            metrics:
+            - type: Resource
+                resource:
+                name: cpu
+                target:
+                    type: Utilization
+                    averageUtilization: 70
+            - type: Resource
+                resource:
+                name: memory
+                target:
+                    type: Utilization
+                    averageUtilization: 80
+        behavior:
+            scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+            - type: Percent
+                value: 100
+                periodSeconds: 15
+            scaleDown:
+            stabilizationWindowSeconds: 300
+            policies:
+            - type: Percent
+                value: 100
+                periodSeconds: 15
+        ```
+
+    2. PodDisruptionBudget
+        ```yaml
+        # k8s/pdb.yaml
+        apiVersion: policy/v1
+        kind: PodDisruptionBudget
+        metadata:
+            name: myapp-pdb
+        spec:
+            minAvailable: 2
+            selector:
+                matchLabels:
+                app: myapp
+        ```
+
+5. 배포 스크립트
+    1. 배포 자동화 스크립트
+        ```bash
+        #!/bin/bash
+        # scripts/deploy.sh
+
+        # 환경 변수 로드
+        set -a
+        source .env
+        set +a
+
+        # 버전 태그 생성
+        VERSION=$(date +%Y%m%d-%H%M%S)
+        echo "Deploying version: $VERSION"
+
+        # Docker 이미지 빌드 및 푸시
+        docker build -t $DOCKER_REGISTRY/$APP_NAME:$VERSION .
+        docker push $DOCKER_REGISTRY/$APP_NAME:$VERSION
+
+        # Kubernetes 설정 업데이트
+        kubectl set image deployment/$APP_NAME $APP_NAME=$DOCKER_REGISTRY/$APP_NAME:$VERSION
+
+        # 배포 상태 확인
+        kubectl rollout status deployment/$APP_NAME
+
+        # 이전 버전으로 롤백 함수
+        rollback() {
+            echo "Rolling back to previous version..."
+            kubectl rollout undo deployment/$APP_NAME
+            exit 1
+        }
+
+        # 헬스체크
+        sleep 30
+        if ! curl -s http://$APP_HOST/health | grep -q "ok"; then
+            echo "Health check failed. Rolling back..."
+            rollback
+        fi
+
+        echo "Deployment successful!"
+        ```
+
+    2. 백업 스크립트
+        ```bash
+        #!/bin/bash
+        # scripts/backup.sh
+
+        # 환경 변수 로드
+        source .env
+
+        # 백업 디렉토리 생성
+        BACKUP_DIR="backups/$(date +%Y%m%d)"
+        mkdir -p $BACKUP_DIR
+
+        # 데이터베이스 백업
+        pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME > $BACKUP_DIR/database.sql
+
+        # 설정 파일 백업
+        cp configs/* $BACKUP_DIR/
+
+        # 백업 압축
+        tar -czf $BACKUP_DIR.tar.gz $BACKUP_DIR
+
+        # S3에 업로드
+        aws s3 cp $BACKUP_DIR.tar.gz s3://$BACKUP_BUCKET/
+
+        # 오래된 백업 정리
+        find backups/ -type f -name "*.tar.gz" -mtime +30 -exec rm {} \;
+        ```
+
+6. 모니터링 및 알람 설정
+    1. Prometheus Rules
+        ```yaml
+        # k8s/prometheus-rules.yaml
+        apiVersion: monitoring.coreos.com/v1
+        kind: PrometheusRule
+        metadata:
+            name: myapp-alert-rules
+            labels:
+                app: myapp
+        spec:
+            groups:
+            - name: myapp.rules
+                rules:
+                - alert: HighErrorRate
+                expr: |
+                    rate(http_requests_total{status=~"5.."}[5m])
+                    /
+                    rate(http_requests_total[5m])
+                    > 0.1
+                for: 5m
+                labels:
+                    severity: critical
+                annotations:
+                    summary: High HTTP error rate
+                    description: Error rate is above 10% for 5 minutes
+
+                - alert: HighLatency
+                expr: |
+                    histogram_quantile(0.95,
+                    rate(http_request_duration_seconds_bucket[5m]))
+                    > 2
+                for: 5m
+                labels:
+                    severity: warning
+                annotations:
+                    summary: High latency
+                    description: 95th percentile latency is above 2 seconds
+        ```
+
+    2. AlertManager 설정
+        ```yaml
+        # k8s/alertmanager-config.yaml
+        apiVersion: v1
+        kind: Secret
+        metadata:
+            name: alertmanager-config
+        type: Opaque
+        stringData:
+            alertmanager.yaml: |
+                global:
+                slack_api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+
+                route:
+                    group_by: ['alertname']
+                    group_wait: 30s
+                    group_interval: 5m
+                    repeat_interval: 4h
+                    receiver: 'slack-notifications'
+                    routes:
+                    - match:
+                        severity: critical
+                        receiver: 'slack-critical'
+
+                receivers:
+                - name: 'slack-notifications'
+                slack_configs:
+                    - channel: '#alerts'
+                    title: '{{ .GroupLabels.alertname }}'
+                    text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+
+                - name: 'slack-critical'
+                    slack_configs:
+                    - channel: '#alerts-critical'
+                    title: '🚨 {{ .GroupLabels.alertname }}'
+                    text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+        ```
+
+
