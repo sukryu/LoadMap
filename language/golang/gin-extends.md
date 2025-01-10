@@ -1,4 +1,4 @@
-# Go 확장 기능
+# Gin 확장 기능
 
 1. WebSocket 구현
     1. WebSocket 핸들러
@@ -2084,3 +2084,204 @@
     ```
 
 18. 데이터 스트리밍
+    ```go
+    // internal/streaming/stream.go
+    package streaming
+
+    import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "io"
+    "time"
+    )
+
+    type StreamHandler struct {
+    bufferSize int
+    timeout    time.Duration
+    }
+
+    func NewStreamHandler(bufferSize int, timeout time.Duration) *StreamHandler {
+    return &StreamHandler{
+        bufferSize: bufferSize,
+        timeout:    timeout,
+    }
+    }
+
+    // 서버 전송 이벤트(SSE) 구현
+    func (h *StreamHandler) SSEHandler(c *gin.Context, events <-chan interface{}) {
+    // SSE 헤더 설정
+    c.Header("Content-Type", "text/event-stream")
+    c.Header("Cache-Control", "no-cache")
+    c.Header("Connection", "keep-alive")
+    c.Header("Transfer-Encoding", "chunked")
+
+    // 클라이언트 연결이 끊어졌는지 감지
+    clientGone := c.Writer.CloseNotify()
+
+    // 이벤트 스트리밍
+    for {
+        select {
+        case <-clientGone:
+            return
+        case event := <-events:
+            // 이벤트 데이터 직렬화
+            data, err := json.Marshal(event)
+            if err != nil {
+                continue
+            }
+
+            // SSE 형식으로 데이터 전송
+            fmt.Fprintf(c.Writer, "data: %s\n\n", data)
+            c.Writer.Flush()
+        }
+    }
+    }
+
+    // 대용량 파일 스트리밍
+    type FileStreamer struct {
+    chunkSize int
+    }
+
+    func NewFileStreamer(chunkSize int) *FileStreamer {
+    return &FileStreamer{
+        chunkSize: chunkSize,
+    }
+    }
+
+    func (fs *FileStreamer) StreamFile(c *gin.Context, file io.Reader) error {
+    buffer := make([]byte, fs.chunkSize)
+
+    c.Header("Transfer-Encoding", "chunked")
+
+    for {
+        n, err := file.Read(buffer)
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+            return err
+        }
+
+        // 청크 전송
+        if _, err := c.Writer.Write(buffer[:n]); err != nil {
+            return err
+        }
+        c.Writer.Flush()
+    }
+
+    return nil
+    }
+
+    // 실시간 데이터 스트리밍
+    type DataStream struct {
+    subscribers map[string][]chan interface{}
+    mutex       sync.RWMutex
+    }
+
+    func NewDataStream() *DataStream {
+    return &DataStream{
+        subscribers: make(map[string][]chan interface{}),
+    }
+    }
+
+    func (ds *DataStream) Subscribe(topic string) chan interface{} {
+    ds.mutex.Lock()
+    defer ds.mutex.Unlock()
+
+    ch := make(chan interface{}, 100)
+    ds.subscribers[topic] = append(ds.subscribers[topic], ch)
+    return ch
+    }
+
+    func (ds *DataStream) Unsubscribe(topic string, ch chan interface{}) {
+    ds.mutex.Lock()
+    defer ds.mutex.Unlock()
+
+    if subs, exists := ds.subscribers[topic]; exists {
+        for i, sub := range subs {
+            if sub == ch {
+                ds.subscribers[topic] = append(subs[:i], subs[i+1:]...)
+                close(ch)
+                break
+            }
+        }
+    }
+    }
+
+    func (ds *DataStream) Publish(topic string, data interface{}) {
+    ds.mutex.RLock()
+    defer ds.mutex.RUnlock()
+
+    if subs, exists := ds.subscribers[topic]; exists {
+        for _, ch := range subs {
+            select {
+            case ch <- data:
+            default:
+                // 채널이 가득 찬 경우 처리
+            }
+        }
+    }
+    }
+
+    // gRPC 스트리밍 서비스 예시
+    type StreamService struct {
+    dataStream *DataStream
+    }
+
+    func (s *StreamService) StreamData(req *StreamRequest, stream pb.DataService_StreamDataServer) error {
+    ch := s.dataStream.Subscribe(req.Topic)
+    defer s.dataStream.Unsubscribe(req.Topic, ch)
+
+    for {
+        select {
+        case data := <-ch:
+            if err := stream.Send(&pb.DataResponse{
+                Data: data.([]byte),
+            }); err != nil {
+                return err
+            }
+        case <-stream.Context().Done():
+            return nil
+        }
+    }
+    }
+
+    // WebSocket 스트리밍
+    type WebSocketStreamer struct {
+    upgrader websocket.Upgrader
+    }
+
+    func NewWebSocketStreamer() *WebSocketStreamer {
+    return &WebSocketStreamer{
+        upgrader: websocket.Upgrader{
+            ReadBufferSize:  1024,
+            WriteBufferSize: 1024,
+            CheckOrigin: func(r *http.Request) bool {
+                return true // 실제 환경에서는 적절한 검증 필요
+            },
+        },
+    }
+    }
+
+    func (ws *WebSocketStreamer) HandleWebSocket(c *gin.Context) {
+    conn, err := ws.upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
+        return
+    }
+    defer conn.Close()
+
+    // 메시지 처리 루프
+    for {
+        messageType, p, err := conn.ReadMessage()
+        if err != nil {
+            return
+        }
+
+        // 메시지 처리 및 응답
+        if err := conn.WriteMessage(messageType, p); err != nil {
+            return
+        }
+    }
+    }
+    ```
