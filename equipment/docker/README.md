@@ -1365,3 +1365,909 @@
     1. Docker Desktop은 VM을 통해 동작하므로 성능 오버헤드가 있음
     2. Linux에서는 네이티브 성능을 얻을 수 있으나 세부 설정이 필요
     3. 환경에 따른 최적화 전략을 적절히 선택해야 함
+
+## Container Security & DevSecOps
+
+1. 이미지 취약점 관리
+    1. Trivy를 이용한 이미지 스캐닝
+        ```bash
+        # 기본 스캔
+        trivy image nginx:latest
+
+        # 심각도 필터링
+        trivy image --severity HIGH,CRITICAL nginx:latest
+
+        # JSON 출력 (CI/CD 통합용)
+        trivy image -f json -o results.json nginx:latest
+        ```
+
+    2. CI/CD 파이프라인 통합
+        ```yaml
+        # GitHub Actions 예시
+        name: Container Security Scan
+        on: [push]
+
+        jobs:
+            security_scan:
+                runs-on: ubuntu-latest
+                steps:
+                - uses: actions/checkout@v2
+                
+                - name: Build image
+                    run: docker build -t myapp:${{ github.sha }} .
+                
+                - name: Run Trivy vulnerability scanner
+                    uses: aquasecurity/trivy-action@master
+                    with:
+                    image-ref: myapp:${{ github.sha }}
+                    format: 'table'
+                    exit-code: '1'
+                    ignore-unfixed: true
+                    severity: 'CRITICAL,HIGH'
+        ```
+
+2. 민감정보 관리
+    1. Docker Secrets
+        ```bash
+        # 시크릿 생성
+        echo "my_secret_password" | docker secret create db_password -
+
+        # 서비스에서 시크릿 사용
+        docker service create \
+            --name db \
+            --secret db_password \
+            --secret source=db_password,target=/run/secrets/password \
+            mysql:8.0
+        ```
+
+    2. HashiCorp Vault 통합
+        ```yaml
+        # docker-compose.yml
+        services:
+        app:
+            image: myapp
+            environment:
+            - VAULT_ADDR=http://vault:8200
+            volumes:
+            - type: bind
+                source: ./vault-agent.hcl
+                target: /vault/config/agent.hcl
+        ```
+        ```hcl
+        # vault-agent.hcl
+        auto_auth {
+            method "approle" {
+                config = {
+                role_id_file_path = "/vault/config/role-id"
+                secret_id_file_path = "/vault/config/secret-id"
+                }
+            }
+        }
+        ```
+
+3. 런타임 보안 강화
+    1. 보안 옵션 설정
+        ```yaml
+        # docker-compose.yml with security options
+        services:
+            webapp:
+                image: myapp
+                security_opt:
+                - no-new-privileges:true
+                - seccomp:custom-seccomp.json
+                read_only: true
+                tmpfs:
+                - /tmp
+                - /var/run
+                cap_drop:
+                - ALL
+                cap_add:
+                - NET_BIND_SERVICE
+        ```
+
+    2. AppArmor 프로필 적용
+        ```bash
+        # AppArmor 프로필 로드
+        apparmor_parser -r -W custom-profile
+
+        # 컨테이너에 프로필 적용
+        docker run --security-opt apparmor=custom-profile nginx
+        ```
+
+    3. Falco를 이용한 런타임 모니터링
+        ```yaml
+        # falco.yaml
+        rules:
+            - rule: Terminal shell in container
+                desc: A shell was spawned by a container
+                condition: container.id != host and proc.name = bash
+                output: Shell in container (user=%user.name container=%container.name)
+                priority: WARNING
+        ```
+
+4. 컨테이너 보안 베스트 프랙티스
+    1. 이미지 생성 시 
+        ```dockerfile
+        # 보안 강화 Dockerfile
+        FROM alpine:3.14
+
+        # 시스템 업데이트 및 취약점 패치
+        RUN apk update && apk upgrade
+
+        # 전용 사용자 생성
+        RUN adduser -D appuser
+
+        # 필요한 디렉토리 권한 설정
+        WORKDIR /app
+        COPY --chown=appuser:appuser . .
+
+        # 비root 사용자로 전환
+        USER appuser
+
+        # 실행 명령
+        CMD ["./app"]
+        ```
+
+    2. 컨테이너 실행 시
+        ```bash
+        # 리소스 제한
+        docker run -d \
+            --cpus=".5" \
+            --memory="512m" \
+            --pids-limit=100 \
+            --security-opt="no-new-privileges:true" \
+            nginx
+        ```
+
+5. Key Takeaways
+    1. 이미지 취약점 스캔은 CI/CD 파이프라인의 필수 요소
+    2. 민감정보는 반드시 외부 시크릿 관리 도구를 통해 관리
+    3. 런타임 보안은 여러 계층(컨테이너, 호스트, 네트워크)에서 구현 필요
+
+## 특수 워크로드 컨테이너화
+
+1. GPU 워크로드 구성
+    1. NVIDIA Container Toolkit 설정
+        ```bash
+        # NVIDIA Container Toolkit 설치
+        distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+            && curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - \
+            && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+            sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+        sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+        ```
+
+    2. Docker 설정
+        ```json
+        // /etc/docker/daemon.json
+        {
+            "default-runtime": "nvidia",
+            "runtimes": {
+                "nvidia": {
+                    "path": "nvidia-container-runtime",
+                    "runtimeArgs": []
+                }
+            }
+        }
+        ```
+
+    3. GPU 활용 예시
+        ```dockerfile
+        # GPU 기반 딥러닝 환경
+        FROM nvidia/cuda:11.6.2-base-ubuntu20.04
+
+        RUN apt-get update && apt-get install -y \
+            python3 \
+            python3-pip \
+            && rm -rf /var/lib/apt/lists/*
+
+        RUN pip3 install torch torchvision torchaudio
+
+        WORKDIR /app
+        COPY . .
+
+        CMD ["python3", "train.py"]
+        ```
+        ```yaml
+        # docker-compose.yml
+        version: "3.8"
+        services:
+            ml-training:
+                build: .
+                deploy:
+                resources:
+                    reservations:
+                    devices:
+                        - driver: nvidia
+                        count: 1
+                        capabilities: [gpu]
+        ```
+
+2. 특수 하드웨어 액세스
+    1. USB 디바이스 연결
+        ```bash
+        # USB 디바이스 목록 확인
+        lsusb
+
+        # 특정 USB 디바이스 마운트
+        docker run --device=/dev/ttyUSB0:/dev/ttyUSB0 \
+            -v /dev/bus/usb:/dev/bus/usb \
+            --privileged \
+            my-iot-app
+        ```
+
+    2. 네트워크 카드 직접 접근
+        ```yaml
+        # docker-compose.yml
+        services:
+            network-app:
+                image: network-tools
+                network_mode: host
+                cap_add:
+                - NET_ADMIN
+                - NET_RAW
+                devices:
+                - /dev/net/tun:/dev/net/tun
+        ```
+
+3. 특수 워크로드 모니터링
+    1. GPU 모니터링
+        ```bash
+        # NVIDIA-SMI 통합
+        docker run --gpus all \
+            -v /usr/bin/nvidia-smi:/usr/bin/nvidia-smi \
+            my-gpu-app nvidia-smi
+        ```
+
+    2. Prometheus + Grafana 설정
+        ```yaml
+        # docker-compose.monitoring.yml
+        services:
+            prometheus:
+                image: prom/prometheus
+                volumes:
+                - ./prometheus.yml:/etc/prometheus/prometheus.yml
+                ports:
+                - "9090:9090"
+
+            grafana:
+                image: grafana/grafana
+                ports:
+                - "3000:3000"
+                environment:
+                - GF_SECURITY_ADMIN_PASSWORD=secret
+                volumes:
+                - grafana-data:/var/lib/grafana
+
+            dcgm-exporter:
+                image: nvidia/dcgm-exporter
+                runtime: nvidia
+                ports:
+                - "9400:9400"
+
+        volumes:
+            grafana-data:
+        ```
+        ```yaml
+        # prometheus.yml
+        global:
+            scrape_interval: 15s
+
+        scrape_configs:
+            - job_name: 'gpu_metrics'
+                static_configs:
+                - targets: ['dcgm-exporter:9400']
+        ```
+
+    3. 리소스 사용량 알림 설정
+        ```yaml
+        # alertmanager.yml
+        route:
+            group_by: ['instance']
+            group_wait: 30s
+            group_interval: 5m
+            repeat_interval: 1h
+            receiver: 'slack'
+
+        receivers:
+            - name: 'slack'
+                slack_configs:
+                - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+                    channel: '#monitoring'
+        ```
+
+4. Key Takeaways
+    1. GPU 워크로드는 NVIDIA Container Toolkit 설정이 필수
+    2. 특수 하드웨어 접근 시 보안 고려사항 확인 필요
+    3. 모니터링은 Prometheus + Grafana + DCGM-Exporter 조합이 표준
+
+## 대체 컨테이너 런타임
+
+1. OCI호환 런타임 소개
+    1. Podman 아키텍처
+        ```bash
+        # Podman 설치
+        # Ubuntu/Debian
+        sudo apt-get install -y podman
+
+        # RHEL/CentOS
+        sudo dnf install -y podman
+
+        # 기본 사용법
+        podman run nginx  # Docker와 유사한 명령어
+        podman pod create # Pod 생성 (K8s 스타일)
+        ```
+
+    2. Podman vs Docker 비교
+        ```bash
+        # Docker
+        docker run -d nginx
+
+        # Podman (루트리스 컨테이너)
+        podman run --userns=keep-id -d nginx
+
+        # 시스템 서비스 없이 실행
+        podman run --network=host nginx
+        ```
+
+2. containerd 상세
+    1. containerd 설정
+        ```yaml
+        # /etc/containerd/config.toml
+        version = 2
+        [plugins]
+            [plugins."io.containerd.grpc.v1.cri"]
+                [plugins."io.containerd.grpc.v1.cri".containerd]
+                default_runtime_name = "runc"
+                [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+                    runtime_type = "io.containerd.runc.v2"
+        ```
+
+    2. nerdctl 사용
+        ```bash
+        # nerdctl 설치
+        wget https://github.com/containerd/nerdctl/releases/download/v0.22.2/nerdctl-0.22.2-linux-amd64.tar.gz
+        sudo tar Cxzvf /usr/local/bin nerdctl-0.22.2-linux-amd64.tar.gz
+
+        # 컨테이너 관리
+        nerdctl run -d nginx
+        nerdctl compose up
+        ```
+
+3. CRI-O 설정
+    1. 기본 설정
+        ```bash
+        # CRI-O 설치
+        OS=xUbuntu_20.04
+        VERSION=1.23
+
+        echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /"| sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+        curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key add -
+        sudo apt-get update
+        sudo apt-get install cri-o cri-o-runc
+        ```
+
+    2. CRI-O 설정 파일
+        ```toml
+        # /etc/crio/crio.conf
+        [crio]
+        root = "/var/lib/containers/storage"
+        runroot = "/var/run/containers/storage"
+        storage_driver = "overlay"
+
+        [crio.runtime]
+        default_runtime = "runc"
+        ```
+
+4. 마이그레이션 전략
+    1. Docker -> Podman
+        ```bash
+        # 1. 이미지 마이그레이션
+        docker save myapp > myapp.tar
+        podman load < myapp.tar
+
+        # 2. 컨테이너 설정 변환
+        # docker-compose.yml을 podman-compose.yml로 변환
+        podman-compose up
+
+        # 3. 시스템 서비스 마이그레이션
+        podman generate systemd --name myapp > /etc/systemd/system/myapp.service
+        systemctl enable --now myapp
+        ```
+
+    2. Docker -> containerd
+        ```bash
+        # 1. Docker 중지
+        systemctl stop docker
+
+        # 2. containerd 설정
+        cat > /etc/containerd/config.toml <<EOF
+        version = 2
+        [plugins."io.containerd.grpc.v1.cri"]
+        sandbox_image = "k8s.gcr.io/pause:3.6"
+        EOF
+
+        # 3. 서비스 시작
+        systemctl restart containerd
+        ```
+
+5. Key Takeaways
+    1. 각 런타임은 고유한 장단점 보유
+        - Podman: 데몬리스, 루트리스 실행
+        - containerd: 쿠버네티스 통합
+        - CRI-O: 쿠버네티스 최적화
+
+    2. 마이그레이션은 단계적으로 진행
+        - 이미지 -> 컨테이너 -> 설정 -> 서비스 순
+
+    3. 호환성 고려 필수
+        - OCI 표준 준수 확인
+        - 기존 도구/스크립트 검증
+
+## 엔터프라이즈 확장 기능
+
+1. 고가용성 구성
+    1. Docker Swarm HA 설정
+        ```bash
+        # 매니저 노드 초기화
+        docker swarm init --advertise-addr <MANAGER-IP>
+
+        # 매니저 노드 추가 (3개 이상 권장)
+        docker swarm join-token manager
+        docker swarm join \
+        --token <MANAGER-TOKEN> \
+        --advertise-addr <MANAGER2-IP> \
+        <MANAGER1-IP>:2377
+
+        # 상태 확인
+        docker node ls
+        ```
+
+    2. 백업 및 복구 전략
+        ```bash
+        # Swarm 상태 백업
+        tar zcf backup.tar.gz \
+        /var/lib/docker/swarm \
+        /var/lib/docker/network \
+        /var/lib/docker/volumes
+
+        # 자동 백업 스크립트
+        cat > /etc/cron.daily/docker-backup <<EOF
+        #!/bin/bash
+        BACKUP_DIR="/backup/docker"
+        DATE=$(date +%Y%m%d)
+        mkdir -p $BACKUP_DIR
+        tar zcf $BACKUP_DIR/docker-$DATE.tar.gz \
+        /var/lib/docker/swarm \
+        /var/lib/docker/network \
+        /var/lib/docker/volumes
+        find $BACKUP_DIR -type f -mtime +7 -delete
+        EOF
+        ```
+
+    3. 장애 복구 자동화
+        ```yaml
+        # docker-compose.yml with failover
+        version: "3.8"
+        services:
+            webapp:
+                image: nginx
+                deploy:
+                replicas: 3
+                placement:
+                    constraints:
+                    - node.role == worker
+                restart_policy:
+                    condition: any
+                    delay: 5s
+                    max_attempts: 3
+                    window: 120s
+                update_config:
+                    parallelism: 1
+                    delay: 10s
+                    order: start-first
+        ```
+
+2. 고급 모니터링 구성
+    1. Prometheus 상세 설정
+        ```yaml
+        # prometheus.yml
+        global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+
+        rule_files:
+        - "alert.rules"
+
+        alerting:
+            alertmanagers:
+                - static_configs:
+                    - targets: ['alertmanager:9093']
+
+        scrape_configs:
+            - job_name: 'docker'
+                static_configs:
+                - targets: ['localhost:9323']
+
+            - job_name: 'node-exporter'
+                static_configs:
+                - targets: ['node-exporter:9100']
+
+            - job_name: 'cadvisor'
+                static_configs:
+                - targets: ['cadvisor:8080']
+        ```
+
+    2. 로그 수집 및 분석
+        ```yaml
+        # EFK 스택 구성
+        services:
+            elasticsearch:
+                image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+                environment:
+                - node.name=elasticsearch
+                - discovery.type=single-node
+                - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+                volumes:
+                - elasticsearch_data:/usr/share/elasticsearch/data
+
+            fluent-bit:
+                image: fluent/fluent-bit
+                volumes:
+                - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+                - /var/lib/docker/containers:/var/lib/docker/containers:ro
+
+            kibana:
+                image: docker.elastic.co/kibana/kibana:7.9.3
+                environment:
+                - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+                ports:
+                - "5601:5601"
+        ```
+
+3. 성능 최적화
+    1. 스토리지 최적화
+        ```json
+        // /etc/docker/daemon.json
+        {
+            "storage-driver": "overlay2",
+            "storage-opts": [
+                "overlay2.override_kernel_check=true"
+            ],
+            "data-root": "/data/docker",
+            "log-driver": "json-file",
+            "log-opts": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        }
+        ```
+
+    2. 네트워크 성능 향상
+        ```bash
+        # MTU 최적화
+        docker network create \
+            --driver=overlay \
+            --opt com.docker.network.driver.mtu=9000 \
+            my_network
+
+        # TCP 튜닝
+        cat >> /etc/sysctl.conf <<EOF
+        net.ipv4.tcp_tw_reuse=1
+        net.ipv4.ip_local_port_range=1024 65000
+        net.core.somaxconn=65535
+        EOF
+        sysctl -p
+        ```
+
+4. Key Takeaways
+    1. HA 구성은 최소 3개의 매니저 노드 필요
+    2. 자동화된 백업/복구 전략 필수
+    3. 모니터링은 멀티 레이어(인프라, 컨테이너, 애플리케이션)로 구성
+
+## 클라우드 네이티브 통합
+
+1. 클라우드 서비스 연동
+    1. AWS ECS 통합
+        ```yaml
+        # task-definition.json
+        {
+            "family": "webapp",
+            "containerDefinitions": [
+                {
+                "name": "web",
+                "image": "nginx:latest",
+                "memory": 512,
+                "cpu": 256,
+                "portMappings": [
+                    {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                    }
+                ],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                    "awslogs-group": "/ecs/webapp",
+                    "awslogs-region": "us-east-1"
+                    }
+                }
+                }
+            ]
+        }
+        ```
+
+    2. Azure Container Instances
+        ```bash
+        # Azure CLI를 통한 컨테이너 배포
+        az container create \
+            --resource-group myResourceGroup \
+            --name myapp \
+            --image myregistry.azurecr.io/myapp:latest \
+            --dns-name-label myapp \
+            --ports 80 \
+            --cpu 1 \
+            --memory 1.5
+
+        # 컨테이너 그룹 설정
+        az container create \
+            --resource-group myResourceGroup \
+            --name myapp-group \
+            --file container-group.yaml
+        ```
+
+    3. GCP Clound Run
+        ```yaml
+        # service.yaml
+        apiVersion: serving.knative.dev/v1
+        kind: Service
+        metadata:
+            name: myapp
+        spec:
+            template:
+                spec:
+                containers:
+                    - image: gcr.io/myproject/myapp:latest
+                    resources:
+                        limits:
+                        memory: "256Mi"
+                        cpu: "1000m"
+                    ports:
+                        - containerPort: 8080
+        ```
+
+2. 서비스메시 통합
+    1. Istio 설정
+        ```yaml
+        # application.yaml
+        apiVersion: networking.istio.io/v1alpha3
+        kind: VirtualService
+        metadata:
+            name: myapp-routes
+        spec:
+            hosts:
+                - myapp.example.com
+            gateways:
+                - myapp-gateway
+            http:
+                - match:
+                    - uri:
+                        prefix: /api
+                route:
+                    - destination:
+                        host: myapp-service
+                        subset: v1
+                    weight: 90
+                    - destination:
+                        host: myapp-service
+                        subset: v2
+                    weight: 10
+        ```
+
+    2. 트래픽 관리
+        ```yaml
+        # destination-rule.yaml
+        apiVersion: networking.istio.io/v1alpha3
+        kind: DestinationRule
+        metadata:
+            name: myapp
+        spec:
+            host: myapp-service
+            trafficPolicy:
+                loadBalancer:
+                simple: ROUND_ROBIN
+                connectionPool:
+                tcp:
+                    maxConnections: 100
+                http:
+                    http1MaxPendingRequests: 1
+                    maxRequestsPerConnection: 10
+            subsets:
+                - name: v1
+                labels:
+                    version: v1
+                - name: v2
+                labels:
+                    version: v2
+        ```
+
+3. 멀티클라우드 전략
+    1. Docker Context 활용
+        ```bash
+        # AWS Context 생성
+        docker context create ecs myapp-ecs
+        docker context use myapp-ecs
+
+        # Azure Context 생성
+        docker context create aci myapp-aci
+        docker context use myapp-aci
+
+        # Context 전환을 통한 배포
+        docker compose up  # 현재 Context에 배포
+        ```
+
+    2. 멀티클라우드 로드밸런싱
+        ```yaml
+        # global-lb.yaml
+        apiVersion: v1
+        kind: Service
+        metadata:
+            name: global-lb
+            annotations:
+                service.beta.kubernetes.io/aws-load-balancer-type: nlb
+                service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+        spec:
+            type: LoadBalancer
+            ports:
+                - port: 80
+                targetPort: 8080
+            selector:
+                app: myapp
+        ```
+
+4. Key Takeaways
+    1. 클라우드 제공자별 특화 기능 활용이 중요
+    2. 서비스메시를 통한 트래픽 제어는 마이크로서비스의 필수 요소
+    3. 멀티클라우드 전략은 복잡성과 이점을 잘 저울질해야 함
+
+## 컨테이너 네트워크 고급 구성
+
+1. SDN(Software-Defined Networking) 통합
+    1. Calico 네트워크 정책
+        ```yaml
+        # calico-policy.yaml
+        apiVersion: projectcalico.org/v3
+        kind: NetworkPolicy
+        metadata:
+            name: restrict-traffic
+        spec:
+            selector: app == 'frontend'
+            types:
+                - Ingress
+                - Egress
+            ingress:
+                - action: Allow
+                protocol: TCP
+                source:
+                    selector: role == 'external-lb'
+                destination:
+                    ports:
+                    - 80
+                    - 443
+        ```
+
+    2. Cilium과 eBPE 설정
+        ```bash
+        # Cilium 설치
+        helm repo add cilium https://helm.cilium.io/
+        helm install cilium cilium/cilium \
+            --namespace kube-system \
+            --set ebpf.enabled=true
+        ```
+        ```yaml
+        # cilium-network-policy.yaml
+        apiVersion: "cilium.io/v2"
+        kind: CiliumNetworkPolicy
+        metadata:
+            name: "secure-frontend"
+        spec:
+            endpointSelector:
+                matchLabels:
+                app: frontend
+            ingress:
+                - fromEndpoints:
+                    - matchLabels:
+                        app: api-gateway
+                toPorts:
+                    - ports:
+                    - port: "80"
+                        protocol: TCP
+        ```
+
+2. 서비스 디스커버리
+    1. Consul 통합
+        ```yaml
+        # docker-compose.consul.yml
+        version: '3.8'
+        services:
+            consul-server:
+                image: hashicorp/consul:latest
+                command: agent -server -bootstrap-expect=1
+                volumes:
+                - consul-data:/consul/data
+                ports:
+                - "8500:8500"
+                - "8600:8600/udp"
+
+            app:
+                image: myapp
+                environment:
+                - CONSUL_HTTP_ADDR=consul-server:8500
+                depends_on:
+                - consul-server
+
+        volumes:
+            consul-data:
+        ```
+        ```hcl
+        # consul-config.hcl
+        service {
+            name = "myapp"
+            port = 8080
+            
+            check {
+                id = "myapp-health"
+                http = "http://localhost:8080/health"
+                interval = "10s"
+                timeout = "1s"
+            }
+
+            connect {
+                sidecar_service {}
+            }
+        }
+        ```
+
+    2. DNS 기반 서비스 디스커버리
+        ```yaml
+        # CoreDNS 설정
+        .:53 {
+            errors
+            health
+            kubernetes cluster.local in-addr.arpa ip6.arpa {
+                pods insecure
+                fallthrough in-addr.arpa ip6.arpa
+            }
+            forward . /etc/resolv.conf
+            cache 30
+            loop
+            reload
+            loadbalance
+        }
+        ```
+
+    3. 동적 프록시 구성
+        ```yaml
+        # traefik.yaml
+        providers:
+            docker:
+                endpoint: "unix:///var/run/docker.sock"
+                exposedByDefault: false
+                network: web
+
+        entryPoints:
+            web:
+                address: ":80"
+            websecure:
+                address: ":443"
+
+        certificatesResolvers:
+            myresolver:
+                acme:
+                email: admin@example.com
+                storage: acme.json
+                httpChallenge:
+                    entryPoint: web
+        ```
