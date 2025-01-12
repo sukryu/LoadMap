@@ -160,7 +160,7 @@
     - 실제 구현 시: TCP/IP 모델 사용
     - 두 모델의 장점을 상호보완적으로 활용
 
-<img src="https://raonctf.com/static/essential/images/network/network_layer_02.jpg">
+<img src="https://velog.velcdn.com/images/xgro/post/a6003bf5-647d-4f87-b363-98d020306f4a/image.png">
 
 # 데이터 캡슐화 과정(Encapsulation)
 
