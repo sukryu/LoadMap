@@ -27,12 +27,16 @@ OSI 모델부터 TCP/IP, IP 주소 체계, TCP/UDP 동작, 그리고 HTTP/HTTPS 
     - 요청/응답 구조, 메서드(GET/POST 등), 상태 코드, 쿠키
     - TLS/SSL 동작 방식, HTTPS 보안, 인증서 개념(서명·체인)
 
+5. `05_dns.md`
+    - 
+
 ## 학습 순서 (Recommanded Reading Order)
 
 1. OSI & TCP/IP -> 네트워크 계층화 개념을 먼저 이해
 2. IP 주소 & ARP/ICMP -> 패킷이 실제로 어떤 경로를 통해 전달되는지 익히기
 3. TCP/UDP -> 연결 지향 vs 비연결형 프로토콜의 차이와 내부 동작 구조 파악
 4. HTTP/HTTPS -> 웹 통신의 기본 프로토콜 및 보안(암호화) 기초
+5. dns
 
 ## 문서 특징 (Key Points)
 
