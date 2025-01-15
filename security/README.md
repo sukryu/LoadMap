@@ -1,129 +1,151 @@
-# 백엔드 + 클라우드 엔지니어 관점에서의 보안
+# 보안(Security) 디렉토리
 
-1. 백엔드/클라우드 엔지니어에게 필요한 보안 핵심
-    1. 웹 애플리케이션 보안 (OWASP Top 10)
-        * 주요 취약점:
-            - SQL Injection, XSS, CSRF, 인젝션(Injection) 전반, 취약한 인증/세션 관리, 민감 정보 노출 등
+현대 **백엔드 + 클라우드 엔지니어**가 알아야 할 **핵심 보안 주제**들을 모아 놓은 디렉토리입니다.  
+**웹 애플리케이션(Backend) 보안**, **클라우드 인프라(Cloud) 보안**, **쿠버네티스(Kubernetes) 보안**처럼 영역별로 문서를 분리하여, 체계적으로 학습하고 참고할 수 있게 구성했습니다.
 
-        * 실무 예시:
-            - 데이터베이스 접근 시 PreparedStatement(파라미터 바인딩) 사용
-            - 템플릿 렌더링 시 XSS 방지(escaping) 처리
-            - 쿠키 설정 시 `HttpOnly`, `Secure` 옵션, CSRF 토큰 적용
+---
 
+## 디렉토리 구성 (Files & Folders)
 
-    2. API 인증/인가
-        * 인증(Authentication)
-            - 세션 기반 인증 / 토큰 기반 인증(JWT, OAuth2)
-            - 주의할 점: 토큰 저장 위치(쿠키 vs 로컬 스토리지), 토큰 탈취 위험, 토큰 만료 처리
+```plaintext
+security/
+├── README.md                                # 보안 디렉토리 전체 개요
+├── backend/
+│   ├── 01_web_app_owasp.md                 # 웹 애플리케이션 보안(OWASP Top 10 등)
+│   ├── 02_api_auth.md                      # API 인증/인가(JWT, OAuth2, RBAC 등)
+│   ├── 03_server_hardening.md              # 서버/시스템 하드닝(SSH, OS권한, 로깅 등)
+│   └── README.md                           # backend/ 폴더 개요
+├── cloud/
+│   ├── 01_iam.md                           # 클라우드 IAM(AWS/GCP/Azure Role/Policy)
+│   ├── 02_network_security.md              # VPC/서브넷/보안 그룹/NAT, DDoS, CloudFirewall
+│   ├── 03_waf_ddos.md                      # WAF 설정, Rate Limiting, DDoS 방어
+│   └── README.md                           # cloud/ 폴더 개요
+└── kubernetes/
+    ├── 01_container_security.md            # Docker 컨테이너 보안(이미지 스캐닝, non-root 등)
+    ├── 02_k8s_cluster_security.md          # K8s RBAC, NetworkPolicy, PodSecurity, ETCD암호화
+    ├── 03_service_mesh_security.md         # Istio/Linkerd mTLS, 사이드카 보안, 정책
+    └── README.md                           # kubernetes/ 폴더 개요
+```
+- `README.md`(루트): `security/` 최상위 문서로, 전체 보안 문서의 개요/학습 순서 안내
+- `backend/`: 웹/애플리케이션(API) 레벨의 보안, 서버 하드닝 관련 자료
+- `cloud/`: 클라우드 인프라(IAM, 네트워크 설계, WAF/DDoS) 보안
+- `kubernetes/`: Docker/K8s 컨테이너 보안, 클러스터/RBAC, Service Mesh 보안
 
-        * 인가(Autorization)
-            - RBAC(Role-Based Access Control), ABAC(Attribute-Based Access Control) 등
-            - API Gateway 혹은 백엔드 레벨에서 사용자 권한 검증 로직
+### 1) `backend/`
+- **01_web_app_owasp.md**  
+  - **OWASP Top 10**을 중심으로 한 웹 취약점(Injection, XSS, CSRF, 인증/세션 관리, 민감 정보 노출 등)
+  - 예시 코드(PreparedStatement, escaping)와 실무 방지 기법
 
-        * 실무 팁:
-            - 만료 시간이 짧은 Access Token + 갱신용 Refresh Token 조합 사용
-            - JWT 서명(HS256, RS256) 시 비밀키/개인키 안전 관리
+- **02_api_auth.md**  
+  - **API 인증/인가**(JWT, OAuth2, Refresh Token 전략)
+  - RBAC/ABAC 설계, 권한 검증(백엔드 레벨/게이트웨이 레벨)
+  - 실무 팁: 만료·갱신, 비밀키 관리
 
-    3. 서버/시스템 보안
-        * 서버 구성 시 주의사항
-            - 운영체제(리눅스) 사용자/권한 분리: `root` 최소 사용, 일반 계정 + `sudo` 구성
-            - SSH 접근 보안: 비밀번호 인증 지양, SSH 키 인증, Fail2ban 등으로 브루트포스 차단
-            - 패키지 업데이트/보안 패치 주기적 적용
+- **03_server_hardening.md**  
+  - **서버/시스템 보안**: OS 권한, SSH 설정, Fail2ban/OS 업데이트
+  - 환경변수/설정 파일에 민감정보 넣지 않기, Vault 연동
+  - 로깅/모니터링(접속 로그, 에러 로그 등)
 
-        * 환경변수/설정 파일 보안
-            - `.env`나 설정 파일에 평문 비밀번호/API Key 노출 금지
-            - 비밀 관리 솔루션(AWS Secrets Manager, HashiCorp Vault) 도입 고려
+### 2) `cloud/`
+- **01_iam.md**  
+  - **클라우드 IAM**(AWS, GCP, Azure)
+  - 최소 권한 원칙, 역할(Role)/정책(Policy) 설계
+  - 자격 증명(Access Key), OIDC, MFA
 
-        * 로깅/모니터링
-            - 액세스 로그(이상 HTTP 요청, 에러 발생 내역) 주기적 분석
-            - OS 보안 로그(로그인 시도, sudo 사용 이력) 모니터링
-            - 자동 알림(Alert) 설정: 과도한 로그인 실패, 디스크/CPU/메모리 급격한 사용 증가 등
+- **02_network_security.md**  
+  - **VPC 설계**(퍼블릭/프라이빗 Subnet, NAT/Bastion)
+  - **보안 그룹/NACL**, 인터넷 게이트웨이/엔드포인트
+  - DDoS 방어(Shield, Cloud Armor), Firewall
 
-2. 클라우드 인프라 보안
-    1. 클라우드 IAM(Identity And Access Management)
-        * AWS IAM, GCP IAM
-            - 사용자/역할(Role)/정책(Policy) 개념
-            - 최소 권한 원칙(Principle of Least Privilege): 필요한 권한만 부여
-            - 자격 증명(Access Key, Secret Key)은 절대 코드 저장소에 노출 금지
+- **03_waf_ddos.md**  
+  - Cloud WAF 설정(AWS WAF, GCP Cloud Armor 등)
+  - Rate limiting, SQLi/XSS 필터링
+  - DDoS 방어 솔루션(Shield Advanced, Cloudflare, Arbor)
 
-        * 예시:
-            - AWS에서 특정 S3 버킷에만 읽기 권한이 필요한 EC2 인스턴스 -> Instance Role 할당 + 정밀한 Policy 설정
-            - Github Action나 Jenkins 연동 시, OIDC (OpenID Connect)나 임시 자격 증명 사용
+### 3) `kubernetes/`
+- **01_container_security.md**  
+  - **Docker 보안**(이미지 스캐닝, non-root, read-only filesystem)
+  - Secrets 관리(AWS Secrets Manager, Vault), CI/CD에서 이미지 검사
 
-    2. 네트워크 설계와 보안
-        * VPC(가상 사설망), 서브넷 분리
-            - 퍼플릭 서브넷(인터넷에 직접 노출) vs 프라이빗 서브넷(DB나 내부 서비스) 분리
-            - NAT 게이트웨이, Bastion Host를 통해 외부 접근 통제
+- **02_k8s_cluster_security.md**  
+  - **Kubernetes RBAC**, PodSecurity/Admission, ETCD 암호화
+  - 네트워크 정책(NetworkPolicy)으로 Pod 간 통신 제한
+  - kubelet 인증, audit logs 등
 
-        * 보안 그룹 / 방화벽
-            - 최소한의 인/아웃바운드 트래픽만 허용
-            - SSH, RDP, DB 포트 등 외부 노출 최소화, 특정 IP만 접근 가능하도록 제한
+- **03_service_mesh_security.md**  
+  - **Istio/Linkerd**: mTLS, 트래픽 라우팅, 사이드카 보안
+  - 인증/인가(Policy, PeerAuthentication), Observability
+  - 분산 트레이싱, 로그, 성능 모니터링
 
-        * Cloud WAF / DDoS 방어
-            - AWS WAF, CloudFront, GCP Cloud Armor 등으로 웹 레이어 보호
-            - DDoS 감지/방어 솔루션(AWS Shield 등) 고려
+---
 
-    3. 클라우드 서비스별 보안 모범 사례
-        - AWS S3: 버킷 공개 설정 주의, Public ACL 사용 지양, 버킷 정책으로 접근 제어, 서버사이드 암호화 활성화
-        - AWS RDS: VPC 내에서만 접근되도록 설정, SSL/TLS 연결 사용, DB 계정 분리(읽기/쓰기/관리)
-        - AWS EC2: Key Pair 관리 철저, 해당 키(.pem) 권한 설정, EC2 Metadata 노출 위험 방지
-        - GCP: GKE나 Compute Engine에서도 마찬가지로 IAM Roles, VPC Service Control, Secret Manager, Cloud Armor 활용
+## 학습 & 활용 팁
 
-3. 쿠버네티스 보안
-    1. Docker 보안
-        * 컨테이너 이미지 취약점 스캐닝
-            - Snyk, Trivy, Clair 등 툴 사용
-            - 베이스 이미지로 Alpine, Distroless 등 경량 이미지 사용 -> 공격 표면 축소
+1. **백엔드 보안**(`backend/`)  
+   - 먼저 웹 앱 안전성(OWASP Top 10)과 API 인증/인가, 서버 하드닝을 숙지  
+   - 웹 서버/애플리케이션 레벨의 취약점 및 방어 기법을 탄탄히
 
-        * 최소 권한 실행
-            - Dockerfile에서 `USER` 지시자를 통해 non-root 실행
-            - `CAP_DROP`, `read-only` 루트 파일 시스템, AppArmor/SELinux 프로필 설정
+2. **클라우드 보안**(`cloud/`)  
+   - IAM(Identity & Access Management)로 시작해, **네트워크 설계(VPC, 보안 그룹)**, WAF/DDoS 방어 등을 순차적으로  
+   - 실제 AWS/GCP/Azure 콘솔 또는 Terraform 등 IaC를 통해 실습하면 효과 극대화
 
-        * Secrets 관리
-            - Docker 환경변수에 민감정보 직접 넣지 말고, Vault나 AWS Secrets Manager 등 연동
+3. **쿠버네티스 보안**(`kubernetes/`)  
+   - Docker 컨테이너 보안을 먼저 챙기고, K8s 클러스터 보안(RBAC, NetworkPolicy, PodSecurity) → Service Mesh 보안(mTLS, Policy)로 확장  
+   - 마이크로서비스 환경에서 **각 Pod/Service**가 안전하게 통신하도록 설계
 
-    2. Kubernetes 클러스터 보안
-        * RBAC(Role-Based Access Control)
-            - K8s 리소스 접근을 역할/권한 바인딩으로 제한
-            - 불필요한 ClusterAdmin 권한 사용 지양
+4. **우선순위**  
+   - "웹/API 보안을 빨리 알고 싶다"면 `backend/` 먼저,  
+   - "클라우드 네트워크"나 "AWS VPC 보안"이 급하면 `cloud/` 폴더부터,  
+   - "쿠버네티스 환경" 위주면 `kubernetes/` 문서로 바로 가도 무방
 
-        * 네트워크 정책(Kubernetes NetworkPolicy)
-            - Pod 간 통신 규칙 정의, "Pod A는 Pod B에만 접근 가능, 나머지는 차단" 등 미세 설정
-            - CNI 플러그인(Calico, Weave 등)과 연계해 마이크로세그멘테이션 실현
+5. **실무 적용**  
+   - 각 문서에 포함된 **코드 예시**, **CLI 명령어**, **Terraform 설정**, **YAML 스니펫** 등을 실제 프로젝트에 응용  
+   - 팀 내 보안 가이드라인을 세울 때 레퍼런스로 활용 가능
 
-        * PodSecurity / Admission
-            - Pod가 root 권한 사용 금지, 특정 레이블 필수화, 불륨 마운트 제한 등 정책 적용
-            - Pod Security Admission(PSA) 또는 Getekeeper(OPA) 등을 이용한 정책 엔진
+---
 
-        * ETCD 암호화
-            - ETCD 안에 모든 클러스터 상태 정보(Pod spec, Secret 등) 저장 -> at-rest 암호화 설정
-            - ETCD 접근 통제(보안 그룹, 방화벽)도 필수
+## 독자 대상 (Who Is This For?)
 
-3. CI/CD 및 DevSecOps
-    1. 코드/이미지 취약점 스캐닝
-        * SAST(Static Application Security Testing)
-            - SonarQube, Checkmarx 등으로 정적 분석, SQL Injection 등 코드 레벨 취약점 검사
-        
-        * Dependency Scanning
-            - npm, pip, Maven 등 의존성 라이브러리의 CVE 체크
-            - Github Dependbot, Snyk 등을 CI 파이프라인에 연동
+- **백엔드 개발자**: 웹/REST API 보안, 인증/인가, 서버 하드닝에 관심 있는 분  
+- **클라우드 엔지니어/DevOps**: AWS/GCP/Azure 보안, VPC 설계, IAM, DDoS 방어에 집중  
+- **쿠버네티스 사용자**: 컨테이너/클러스터/Service Mesh 보안 심화  
+- **팀/조직 보안 담당자**: 전체 인프라(백엔드+클라우드+K8s) 보안 정책 수립 시 참고
 
-        * Container 이미지 스캐닝
-            - 빌드 후 도커 이미지에 포함된 패키지의 취약점 여부를 자동 검사 (Trivy, Anchore 등)
+---
 
-    2. 인프라스트럭처 코드(IaC) 보안
-        * Terraform, CloudFormation 보안 검사
-            - tfsec, checkov, Terrascan 등으로 구성을 사전에 점검 (예: S3 공개 설정 여부, 불필요한 포트 오픈 등)
+## 발전 방향 (Future Extensions)
 
-        * 파이프라인 시크릿 관리
-            - CI 환경에서 환경변수/시크릿 안전 보관 (Github Actions의 Secret, Jenkins, Credentials 등)
-            - External Vault 연동 가능 고려
+1. **CI/CD & DevSecOps**  
+   - 소스코드/컨테이너 이미지 취약점 스캐닝(SAST, DAST)  
+   - IaC 보안(Terraform, CloudFormation) 점검, 보안 자동화
 
-    3. 배포 파이프라인 무결성
-        * 서명/검증
-            - 컨테이너 이미지 서명(Cosign, Notary V2) -> 배포 시 검증
-            - 파이프라인 자체가 중간에 변조되지 않도록, GitOps 방식(ArgoCD, Flux) + 암호화된 Git 리포지토리
+2. **Zero Trust/SASE**  
+   - 네트워크 경계가 사라진 환경에서의 아이덴티티 기반 접근  
+   - BeyondCorp 접근 제어 모델
 
-        * 릴리즈 권한과 승인
-            - 프로덕션 배포 전, 2인 승인 정책(Peer Review, Pull Request Review)
-            - 롤백(rollback) 시 자동화된 승인 절차차
+3. **대규모 엔터프라이즈 보안**  
+   - SOC(Security Operations Center), SIEM, IDS/IPS 운영  
+   - BGP/OSPF 라우팅 보안, IX 연결 시 DDoS 방어
+
+4. **암호화 & 키 관리**  
+   - Key Management Service(KMS), Vault, HSM(Hardware Security Module)  
+   - 데이터 암호화(At-rest, In-transit), SSL Cert 자동화
+
+---
+
+## 같이 보면 좋은 문서
+
+- **`basic/` 디렉토리**: TCP/IP, HTTP/HTTPS, DNS 등 기초 프로토콜 지식  
+- **`advanced/06_proxy.md`**: 역방향 프록시, 보안 필터링, SSL 오프로딩  
+- **`advanced/07_loadbalancing.md`**: 로드 밸런서(L4/L7) + WAF 등과 연계  
+- **RPC/gRPC 보안**: gRPC TLS/mTLS, Auth Interceptor
+
+---
+
+**좋은 학습 되세요!**  
+- 이 `security/` 디렉토리의 문서들은 **"백엔드/클라우드 보안"**을 체계적으로 정리하기 위한 것입니다.  
+- **초심자는 `backend/`**(웹 보안, API 인증)부터 살펴보고,  
+- **클라우드 인프라** 설계가 필요하면 `cloud/` 폴더,  
+- **쿠버네티스** 환경 보안을 다뤄야 한다면 `kubernetes/` 폴더 문서로 넘어가시면 됩니다.
+
+---
