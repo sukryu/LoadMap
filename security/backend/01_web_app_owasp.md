@@ -1064,8 +1064,1384 @@ public class DependencyHealthChecker {
 ```
 
 > 💡 **Best Practice**
-- 의존성 버전을 중앙에서 관리
+> 의존성 버전을 중앙에서 관리
 > 보안 업데이트는 최우선 순위로 처리
 > 주기적인 취약점 스캔 자동화
 > 업데이트 전 호환성 테스트 필수
 > 패치 적용 후 시스템 모니터링 강화
+
+### 3.7 Identification and Authentication Failures (A07:2021)
+
+인증 및 식별 실패는 사용자 인증 시스템의 취약점을 다룹니다. 이는 사용자 신원 확인과 인증 과정에서 발생할 수 있는 다양한 보안 문제를 포함합니다.
+
+#### 3.7.1 취약점 개요
+
+- **정의**: 사용자 인증과 세션 관리의 취약점으로 인한 보안 실패
+- **위험도**: 🔴 높음 (계정 탈취 직접적 위험)
+- **주요 취약점**:
+  - 약한 패스워드 허용
+  - 무차별 대입 공격 방어 부재
+  - 취약한 세션 관리
+  - 부적절한 인증 저장
+  - 안전하지 않은 패스워드 복구
+
+#### 3.7.2 취약한 구현 사례
+
+**사례 #1: 취약한 패스워드 검증**
+```java
+// ❌ 취약한 패스워드 정책
+public class WeakPasswordValidator {
+    public boolean isValid(String password) {
+        // 길이만 확인
+        return password.length() >= 8;
+    }
+}
+```
+
+**사례 #2: 부적절한 세션 관리**
+```javascript
+// ❌ 취약한 세션 처리
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    if (checkCredentials(username, password)) {
+        // 세션 ID를 예측 가능한 방식으로 생성
+        req.session.id = username + Date.now();
+        res.json({ success: true });
+    }
+});
+```
+
+#### 3.7.3 보안 구현 방법
+
+**1. 강력한 패스워드 정책**
+```java
+// ✅ 안전한 패스워드 검증기
+@Component
+public class PasswordValidator {
+    private static final String PASSWORD_PATTERN = 
+        "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{10,}$";
+    
+    public PasswordValidationResult validate(String password) {
+        List<String> violations = new ArrayList<>();
+        
+        if (!password.matches(PASSWORD_PATTERN)) {
+            if (!password.matches(".*[0-9].*"))
+                violations.add("숫자 포함 필요");
+            if (!password.matches(".*[a-z].*"))
+                violations.add("소문자 포함 필요");
+            if (!password.matches(".*[A-Z].*"))
+                violations.add("대문자 포함 필요");
+            if (!password.matches(".*[@#$%^&+=].*"))
+                violations.add("특수문자 포함 필요");
+            if (password.length() < 10)
+                violations.add("최소 10자 이상 필요");
+        }
+        
+        return new PasswordValidationResult(violations.isEmpty(), violations);
+    }
+}
+```
+
+**2. 브루트포스 방지**
+```java
+// ✅ 로그인 시도 제한
+@Service
+public class LoginAttemptService {
+    private final LoadingCache<String, Integer> attemptsCache;
+    
+    public LoginAttemptService() {
+        attemptsCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.DAYS)
+            .build(new CacheLoader<>() {
+                @Override
+                public Integer load(String key) {
+                    return 0;
+                }
+            });
+    }
+    
+    public void loginSucceeded(String key) {
+        attemptsCache.invalidate(key);
+    }
+    
+    public void loginFailed(String key) {
+        int attempts = attemptsCache.getUnchecked(key);
+        attemptsCache.put(key, attempts + 1);
+    }
+    
+    public boolean isBlocked(String key) {
+        return attemptsCache.getUnchecked(key) >= 5;
+    }
+}
+```
+
+**3. 안전한 세션 관리**
+```java
+// ✅ 보안 세션 설정
+@Configuration
+public class SessionConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .invalidSessionUrl("/login")
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(true)
+                .expiredUrl("/login?expired")
+            .and()
+                .sessionFixation()
+                .newSession()
+            .and()
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+    }
+}
+```
+
+#### 3.7.4 인증 보안 체크리스트
+- [ ] 강력한 패스워드 정책 사용
+- [ ] 다중 인증(MFA) 지원
+- [ ] 계정 잠금 정책 구현
+- [ ] 안전한 패스워드 저장(bcrypt/Argon2)
+- [ ] 세션 타임아웃 설정
+- [ ] 동시 세션 제어
+- [ ] 안전한 패스워드 복구 프로세스
+- [ ] HTTPS 통신 강제
+
+#### 3.7.5 실무 구현 예시
+
+**1. MFA 구현**
+```java
+// ✅ 2단계 인증 서비스
+@Service
+public class TwoFactorAuthService {
+    private final TOTPService totpService;
+    private final UserService userService;
+    
+    public boolean verifyCode(String username, String code) {
+        User user = userService.getUser(username);
+        String secretKey = user.getTotpSecretKey();
+        
+        return totpService.verifyCode(secretKey, code, 30);
+    }
+    
+    public String generateSecretKey() {
+        return Base32.random();
+    }
+    
+    public String getQRBarcodeURL(String username, String secretKey) {
+        return String.format(
+            "otpauth://totp/%s?secret=%s&issuer=YourApp",
+            username, secretKey
+        );
+    }
+}
+```
+
+**2. 패스워드 복구**
+```java
+// ✅ 안전한 패스워드 리셋
+@Service
+public class PasswordResetService {
+    private final TokenService tokenService;
+    private final EmailService emailService;
+    
+    public void initiateReset(String email) {
+        String token = tokenService.generateSecureToken();
+        DateTime expiry = DateTime.now().plusHours(1);
+        
+        // 토큰 저장
+        saveResetToken(email, token, expiry);
+        
+        // 이메일 발송
+        String resetLink = generateResetLink(token);
+        emailService.sendPasswordReset(email, resetLink);
+    }
+    
+    public void confirmReset(String token, String newPassword) {
+        validateToken(token);
+        updatePassword(token, newPassword);
+        invalidateToken(token);
+    }
+}
+```
+
+> 💡 **Best Practice**
+> 모든 인증 실패는 로깅
+> 일반적인 오류 메시지 사용
+> 인증 정보는 항상 암호화 전송
+> 세션 ID는 URL에 노출 금지
+> 중요 작업은 재인증 요구
+
+### 3.8 Software and Data Integrity Failures (A08:2021)
+
+소프트웨어와 데이터 무결성 실패는 코드와 인프라가 악의적인 업데이트, 중요 데이터의 수정, 또는 손상에 취약한 경우를 의미합니다. CI/CD 파이프라인과 데이터 흐름에서의 무결성 검증 부재가 주요 원인입니다.
+
+#### 3.8.1 취약점 개요
+
+- **정의**: 소프트웨어 업데이트, 중요 데이터, 설정의 무결성 검증 실패
+- **위험도**: 🟠 중간 (무결성 손상으로 인한 보안 위험)
+- **주요 위험**:
+  - 검증되지 않은 의존성 사용
+  - 안전하지 않은 CI/CD 파이프라인
+  - 자동 업데이트 무결성 미검증
+  - 중요 데이터 변조 가능성
+
+#### 3.8.2 취약한 구현 사례
+
+**사례 #1: 검증 없는 업데이트**
+```java
+// ❌ 취약한 구현: 무결성 검증 없는 설정 업데이트
+public class ConfigurationManager {
+    public void updateConfig(String jsonConfig) {
+        // 서명 검증 없이 설정 직접 적용
+        Configuration config = objectMapper.readValue(jsonConfig, Configuration.class);
+        applyConfiguration(config);
+    }
+}
+```
+
+**사례 #2: 안전하지 않은 직렬화**
+```javascript
+// ❌ 취약한 구현: 검증 없는 데이터 역직렬화
+app.post('/api/data', (req, res) => {
+    const data = JSON.parse(req.body.data);
+    // 데이터 무결성 검증 없이 처리
+    processData(data);
+});
+```
+
+#### 3.8.3 보안 구현 방법
+
+**1. 서명 기반 무결성 검증**
+```java
+// ✅ 서명을 통한 설정 무결성 검증
+@Service
+public class SecureConfigurationManager {
+    private final KeyStore keyStore;
+    
+    public void updateConfig(String jsonConfig, String signature) {
+        if (!verifySignature(jsonConfig, signature)) {
+            throw new SecurityException("Invalid configuration signature");
+        }
+        
+        Configuration config = objectMapper.readValue(jsonConfig, Configuration.class);
+        validateConfiguration(config);  // 추가 유효성 검사
+        applyConfiguration(config);
+    }
+    
+    private boolean verifySignature(String data, String signature) {
+        Signature sig = Signature.getInstance("SHA256withRSA");
+        sig.initVerify(keyStore.getCertificate("config-cert").getPublicKey());
+        sig.update(data.getBytes());
+        return sig.verify(Base64.getDecoder().decode(signature));
+    }
+}
+```
+
+**2. 안전한 데이터 직렬화**
+```java
+// ✅ 안전한 직렬화/역직렬화
+@Component
+public class SecureDataSerializer {
+    private final ObjectMapper objectMapper;
+    private final SignatureService signatureService;
+    
+    public String serialize(Object data) {
+        String json = objectMapper.writeValueAsString(data);
+        String signature = signatureService.sign(json);
+        
+        return new SignedData(json, signature);
+    }
+    
+    public <T> T deserialize(SignedData signedData, Class<T> type) {
+        if (!signatureService.verify(signedData.getData(), signedData.getSignature())) {
+            throw new SecurityException("Data integrity check failed");
+        }
+        
+        return objectMapper.readValue(signedData.getData(), type);
+    }
+}
+```
+
+**3. CI/CD 파이프라인 보안**
+```yaml
+# ✅ GitHub Actions 무결성 검증
+name: Build and Verify
+on: [push]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Verify Dependencies
+        run: |
+          npm audit
+          npm ci
+      
+      - name: Check Dependencies
+        uses: actions/dependency-review-action@v2
+      
+      - name: Sign Artifacts
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
+          gpg --import private.key
+          gpg --sign dist/*
+```
+
+#### 3.8.4 무결성 검증 체크리스트
+- [ ] 모든 외부 데이터 소스 검증
+- [ ] 디지털 서명 구현
+- [ ] 의존성 체크섬 확인
+- [ ] CI/CD 파이프라인 보안 검증
+- [ ] 자동 업데이트 무결성 검사
+- [ ] 중요 데이터 변경 감사(Audit)
+- [ ] 서명키 안전한 관리
+
+#### 3.8.5 모니터링과 감사
+```java
+// ✅ 데이터 변경 감사 로깅
+@Aspect
+@Component
+public class DataIntegrityAudit {
+    private final AuditLogger auditLogger;
+    
+    @Around("@annotation(DataModification)")
+    public Object auditDataChange(ProceedingJoinPoint joinPoint) throws Throwable {
+        String user = SecurityContextHolder.getContext().getAuthentication().getName();
+        String operation = joinPoint.getSignature().getName();
+        Object[] args = joinPoint.getArgs();
+        
+        // 변경 전 상태 기록
+        auditLogger.logBefore(user, operation, args);
+        
+        Object result = joinPoint.proceed();
+        
+        // 변경 후 상태 기록
+        auditLogger.logAfter(user, operation, result);
+        
+        return result;
+    }
+}
+```
+
+> 💡 **Best Practice**
+> 중요 데이터는 항상 서명 검증
+> 신뢰할 수 있는 저장소만 사용
+> 모든 업데이트에 무결성 검증 적용
+> 변경 사항 감사 추적 유지
+> 키 관리 시스템 사용 (HSM/KMS)
+
+### 3.9 Security Logging and Monitoring Failures (A09:2021)
+
+보안 로깅과 모니터링의 실패는 보안 사고의 감지, 대응, 분석 능력을 저하시킵니다. 적절한 로깅과 모니터링이 없다면, 보안 침해가 발생해도 이를 탐지하지 못하거나 대응이 늦어질 수 있습니다.
+
+#### 3.9.1 취약점 개요
+
+- **정의**: 보안 관련 이벤트의 불충분한 로깅, 모니터링, 대응 체계
+- **위험도**: 🟠 중간 (사고 탐지/대응 지연 위험)
+- **주요 문제점**:
+  - 로그인 시도/실패 미기록
+  - 중요 트랜잭션 감사 부재
+  - 로그 저장/백업 미흡
+  - 실시간 알림 부재
+  - 이상 징후 탐지 실패
+
+#### 3.9.2 취약한 구현 사례
+
+**사례 #1: 부적절한 로깅**
+```java
+// ❌ 취약한 로깅: 중요 정보 누락
+public class LoginController {
+    public ResponseEntity<String> login(String username, String password) {
+        if (authService.authenticate(username, password)) {
+            // 성공 로그만 기록
+            logger.info("User logged in");
+            return ResponseEntity.ok("Login successful");
+        }
+        return ResponseEntity.status(401).body("Login failed");
+    }
+}
+```
+
+**사례 #2: 불충분한 예외 처리**
+```java
+// ❌ 취약한 예외 처리: 상세 정보 누락
+try {
+    processTransaction(data);
+} catch (Exception e) {
+    logger.error("Error occurred");
+}
+```
+
+#### 3.9.3 보안 로깅 구현
+
+**1. 구조화된 로깅**
+```java
+// ✅ 안전한 로깅 구현
+@Slf4j
+@Service
+public class SecurityAuditService {
+    public void logSecurityEvent(SecurityEvent event) {
+        SecurityAuditLog auditLog = SecurityAuditLog.builder()
+            .timestamp(LocalDateTime.now())
+            .eventType(event.getType())
+            .userId(event.getUserId())
+            .ipAddress(event.getIpAddress())
+            .userAgent(event.getUserAgent())
+            .action(event.getAction())
+            .status(event.getStatus())
+            .details(sanitizeLogData(event.getDetails()))
+            .build();
+            
+        log.info("Security Event: {}", auditLog);
+        securityLogRepository.save(auditLog);
+    }
+    
+    private String sanitizeLogData(String data) {
+        // 민감 정보 마스킹
+        return data.replaceAll("\\b\\d{16}\\b", "****-****-****-****")
+                  .replaceAll("\\b\\w+@\\w+\\.\\w+\\b", "****@****");
+    }
+}
+```
+
+**2. 로그인 모니터링**
+```java
+// ✅ 로그인 시도 모니터링
+@Component
+public class LoginAttemptMonitor {
+    private final SecurityAuditService auditService;
+    private final AlertService alertService;
+    
+    @EventListener
+    public void onAuthenticationFailure(AuthenticationFailureBadCredentialsEvent event) {
+        String username = event.getAuthentication().getName();
+        String ip = getCurrentRequest().getRemoteAddr();
+        
+        SecurityEvent failedLogin = SecurityEvent.builder()
+            .type(EventType.LOGIN_FAILURE)
+            .userId(username)
+            .ipAddress(ip)
+            .status("FAILED")
+            .build();
+            
+        auditService.logSecurityEvent(failedLogin);
+        
+        // 연속 실패 확인
+        if (isRepeatedFailure(username, ip)) {
+            alertService.sendAlert(
+                String.format("Multiple login failures detected for user %s from IP %s",
+                    username, ip)
+            );
+        }
+    }
+}
+```
+
+**3. 중요 트랜잭션 검사**
+```java
+// ✅ 트랜잭션 감사 로깅
+@Aspect
+@Component
+public class TransactionAuditAspect {
+    private final SecurityAuditService auditService;
+    
+    @Around("@annotation(AuditableTransaction)")
+    public Object auditTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
+        String methodName = joinPoint.getSignature().getName();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        SecurityEvent startEvent = SecurityEvent.builder()
+            .type(EventType.TRANSACTION_START)
+            .userId(auth.getName())
+            .action(methodName)
+            .build();
+            
+        auditService.logSecurityEvent(startEvent);
+        
+        try {
+            Object result = joinPoint.proceed();
+            
+            SecurityEvent successEvent = SecurityEvent.builder()
+                .type(EventType.TRANSACTION_SUCCESS)
+                .userId(auth.getName())
+                .action(methodName)
+                .build();
+                
+            auditService.logSecurityEvent(successEvent);
+            return result;
+            
+        } catch (Exception e) {
+            SecurityEvent failureEvent = SecurityEvent.builder()
+                .type(EventType.TRANSACTION_FAILURE)
+                .userId(auth.getName())
+                .action(methodName)
+                .details(e.getMessage())
+                .build();
+                
+            auditService.logSecurityEvent(failureEvent);
+            throw e;
+        }
+    }
+}
+```
+
+#### 3.9.4 모니터링 체크리스트
+- [ ] 모든 인증 시도(성공/실패) 로깅
+- [ ] 권한 변경 로깅
+- [ ] 중요 데이터 접근/수정 로깅
+- [ ] 보안 설정 변경 로깅
+- [ ] 이상 행위 탐지 규칙 설정
+- [ ] 로그 백업 및 보관 정책
+- [ ] 실시간 알림 체계
+
+#### 3.9.5 로그 관리 시스템 구성
+```java
+// ✅ ELK 스택 연동 예시
+@Configuration
+public class LoggingConfig {
+    @Bean
+    public LogstashTcpSocketAppender logstashAppender() {
+        LogstashTcpSocketAppender appender = new LogstashTcpSocketAppender();
+        appender.addDestination("logstash:5000");
+        
+        LogstashEncoder encoder = new LogstashEncoder();
+        encoder.setCustomFields("{\"app_name\":\"security-service\"}");
+        appender.setEncoder(encoder);
+        
+        return appender;
+    }
+}
+```
+
+> 💡 **Best Practice**
+> 로그에 민감 정보 포함 금지
+> 모든 보안 이벤트 시간 동기화
+> 로그 무결성 보장
+> 정기적인 로그 분석
+> 자동화된 알림 체계 구축
+> 로그 보관 기간 준수
+
+### 3.10 Server-Side Request Forgery (SSRF) (A10:2021)
+
+SSRF는 서버가 악의적인 사용자에 의해 의도하지 않은 내부 또는 외부 리소스에 요청을 보내도록 조작되는 취약점입니다. 이를 통해 공격자는 서버를 경유하여 내부 시스템에 접근하거나, 민감한 데이터를 유출할 수 있습니다.
+
+#### 3.10.1 취약점 개요
+
+- **정의**: 서버가 신뢰할 수 없는 URL로 요청을 보내도록 강제되는 취약점
+- **위험도**: 🔴 높음 (내부 시스템 접근 위험)
+- **주요 위험**:
+  - 내부 서비스 스캐닝
+  - 민감한 데이터 접근
+  - 서버 측 파일 읽기
+  - 내부 포트 스캔
+  - 클라우드 메타데이터 접근
+
+#### 3.10.2 취약한 구현 사례
+
+**사례 #1: 검증 없는 URL 요청**
+```java
+// ❌ 취약한 구현
+@RestController
+public class ImageController {
+    @GetMapping("/fetch-image")
+    public byte[] fetchImage(@RequestParam String url) {
+        // URL 검증 없이 직접 요청
+        return restTemplate.getForObject(url, byte[].class);
+    }
+}
+```
+
+**사례 #2: 내부 서비스 호출**
+```javascript
+// ❌ 취약한 구현
+app.get('/api/fetch-data', async (req, res) => {
+    const serviceUrl = req.query.url;
+    // 검증 없이 URL로 요청
+    const response = await fetch(serviceUrl);
+    const data = await response.json();
+    res.json(data);
+});
+```
+
+#### 3.10.3 보안 구현 방법
+
+**1. URL 검증**
+```java
+// ✅ URL 화이트리스트 검증
+@Service
+public class UrlValidationService {
+    private final Set<String> allowedHosts = Set.of(
+        "api.trusted-domain.com",
+        "cdn.trusted-domain.com"
+    );
+    
+    public void validateUrl(String urlString) {
+        URL url = new URL(urlString);
+        String host = url.getHost().toLowerCase();
+        
+        if (!allowedHosts.contains(host)) {
+            throw new SecurityException("URL host not allowed: " + host);
+        }
+        
+        if (isInternalHost(host)) {
+            throw new SecurityException("Internal hosts not allowed");
+        }
+    }
+    
+    private boolean isInternalHost(String host) {
+        return host.equals("localhost") ||
+               host.equals("127.0.0.1") ||
+               host.startsWith("192.168.") ||
+               host.startsWith("10.") ||
+               host.startsWith("172.16.");
+    }
+}
+```
+
+**2. 안전한 HTTP 클라이언트 구성**
+```java
+// ✅ 제한된 HTTP 클라이언트
+@Configuration
+public class RestTemplateConfig {
+    @Bean
+    public RestTemplate restrictedRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        
+        restTemplate.setRequestFactory(new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, 
+                                          String httpMethod) throws IOException {
+                super.prepareConnection(connection, httpMethod);
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setInstanceFollowRedirects(false);
+            }
+        });
+        
+        return restTemplate;
+    }
+}
+```
+
+**3. 프록시 사용**
+```java
+// ✅ 프록시를 통한 요청 제어
+@Service
+public class SecureHttpService {
+    private final ProxyConfig proxyConfig;
+    private final UrlValidationService urlValidator;
+    
+    public ResponseEntity<byte[]> fetchResource(String url) {
+        urlValidator.validateUrl(url);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Forwarded-For", "PROXY-IP");
+        
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        
+        return proxyConfig.getRestTemplate()
+            .exchange(url, HttpMethod.GET, entity, byte[].class);
+    }
+}
+```
+
+#### 3.10.4 방어 체크리스트
+- [ ] 모든 외부 URL 검증
+- [ ] 화이트리스트 기반 호스트 필터링
+- [ ] 내부 네트워크 접근 차단
+- [ ] DNS 해석 제한
+- [ ] 타임아웃 설정
+- [ ] 리다이렉트 제한
+- [ ] 응답 크기 제한
+
+#### 3.10.5 추가 보호 조치
+
+**1. 네트워크 분리**
+```java
+// ✅ 네트워크 격리를 위한 프록시 설정
+@Configuration
+public class NetworkSecurityConfig {
+    @Bean
+    public WebClient secureWebClient() {
+        HttpClient httpClient = HttpClient.create()
+            .proxy(proxy -> proxy
+                .type(ProxyProvider.Proxy.HTTP)
+                .host("secure-proxy")
+                .port(3128)
+            );
+            
+        return WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .filter(ExchangeFilterFunction.ofRequestProcessor(
+                clientRequest -> {
+                    // 추가 요청 검증
+                    return Mono.just(clientRequest);
+                }
+            ))
+            .build();
+    }
+}
+```
+
+> 💡 **Best Practice**
+> 화이트리스트 기반 URL 필터링 적용
+> 내부 네트워크 주소는 항상 차단
+> 모든 외부 요청은 프록시 경유
+> 클라우드 메타데이터 엔드포인트 차단
+> 응답 데이터 검증 필수
+
+## 4. 종합 방어 전략
+
+웹 애플리케이션의 전반적인 보안을 강화하기 위해서는 개별 취약점 대응을 넘어선 종합적인 접근이 필요합니다. 여기서는 체계적인 보안 전략과 실천 방안을 제시합니다.
+
+### 4.1 다층 방어 전략 (Defense in Depth)
+
+1. **입력 검증 계층**
+```java
+// ✅ 계층별 입력 검증
+@Component
+public class ValidationChain {
+    // 1. API 게이트웨이 레벨
+    @Bean 
+    public WebFilter requestValidationFilter() {
+        return (exchange, chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+            // 기본적인 요청 유효성 검사
+            validateBasicRequest(request);
+            return chain.filter(exchange);
+        };
+    }
+    
+    // 2. 컨트롤러 레벨
+    @Aspect
+    @Component
+    public class RequestValidationAspect {
+        @Before("@annotation(ValidateRequest)")
+        public void validateRequest(JoinPoint joinPoint) {
+            // 비즈니스 규칙 기반 검증
+            validateBusinessRules(joinPoint.getArgs());
+        }
+    }
+    
+    // 3. 서비스 레벨
+    public class SecurityService {
+        public void processRequest(Request request) {
+            // 세부 데이터 검증
+            validateDataIntegrity(request);
+            // 비즈니스 로직 수행
+        }
+    }
+}
+```
+
+### 4.2 DevSecOps 통합
+
+1. **보안 자동화 파이프라인**
+```yaml
+# ✅ GitHub Actions 보안 파이프라인
+name: Security Pipeline
+on: [push, pull_request]
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: SAST Analysis
+        uses: github/codeql-action/analyze@v2
+        
+      - name: Dependency Check
+        uses: dependency-check/Dependency-Check@main
+        
+      - name: Container Scan
+        uses: aquasecurity/trivy-action@master
+        
+      - name: Security Test
+        run: |
+          ./mvnw verify -Psecurity-tests
+```
+
+### 4.3 보안 모니터링 체계
+
+1. **통합 모니터링 시스템**
+```java
+@Service
+public class SecurityMonitoringService {
+    private final AlertService alertService;
+    private final MetricsService metricsService;
+    
+    @Scheduled(fixedRate = 5000)
+    public void monitorSecurityMetrics() {
+        // 1. 성능 메트릭
+        recordPerformanceMetrics();
+        
+        // 2. 보안 이벤트
+        monitorSecurityEvents();
+        
+        // 3. 리소스 사용
+        checkResourceUtilization();
+        
+        // 4. 이상 행위 탐지
+        detectAnomalies();
+    }
+    
+    private void detectAnomalies() {
+        List<SecurityEvent> events = securityEventRepository
+            .findRecentEvents(Duration.ofMinutes(5));
+            
+        if (isAnomalousPattern(events)) {
+            alertService.sendHighPriorityAlert(
+                "Potential security breach detected",
+                createAnomalyReport(events)
+            );
+        }
+    }
+}
+```
+
+### 4.4 인시던트 대응 체계
+```java
+@Service
+public class IncidentResponseService {
+    private final IncidentRepository incidentRepository;
+    private final NotificationService notificationService;
+    
+    public void handleSecurityIncident(SecurityIncident incident) {
+        // 1. 초기 대응
+        containIncident(incident);
+        
+        // 2. 영향 평가
+        ImpactAssessment assessment = assessImpact(incident);
+        
+        // 3. 대응 계획 수립
+        ResponsePlan plan = createResponsePlan(assessment);
+        
+        // 4. 실행 및 모니터링
+        executeResponsePlan(plan);
+        
+        // 5. 사후 분석
+        performPostIncidentAnalysis(incident);
+    }
+    
+    private void containIncident(SecurityIncident incident) {
+        switch (incident.getType()) {
+            case UNAUTHORIZED_ACCESS:
+                lockDownAffectedAccounts(incident);
+                break;
+            case DATA_BREACH:
+                isolateAffectedSystems(incident);
+                break;
+            case MALWARE:
+                quarantineInfectedSystems(incident);
+                break;
+        }
+    }
+}
+```
+
+### 4.5 보안 설정 표준화
+
+1. **환경별 보안 설정**
+```yaml
+# ✅ application-security.yml
+security:
+  common:
+    # 공통 보안 설정
+    session-timeout: 30m
+    password-policy:
+      min-length: 12
+      require-special-chars: true
+      
+  development:
+    # 개발 환경 설정
+    debug-mode: true
+    cors:
+      allowed-origins: "*"
+      
+  production:
+    # 운영 환경 설정
+    debug-mode: false
+    cors:
+      allowed-origins: 
+        - https://trusted-domain.com
+    rate-limit:
+      enabled: true
+      max-requests: 100
+      time-window: 60s
+```
+
+### 4.6 보안 교육 및 문서화
+
+1. **개발자 보안 가이드**
+```markdown
+# 보안 개발 가이드라인
+
+## 1. 코드 보안
+- SQL Injection 방지
+  - PreparedStatement 사용
+  - ORM 프레임워크 활용
+  
+## 2. 인증/인가
+- JWT 토큰 관리
+- 권한 검증 필수
+  
+## 3. 데이터 보안
+- 암호화 필수 항목
+- 키 관리 정책
+
+## 4. 배포 보안
+- 환경 설정 관리
+- 모니터링 설정
+```
+
+> 💡 **Best Practice**
+> 보안은 개발 초기 단계부터 고려
+> 자동화된 보안 테스트 구축
+> 정기적인 보안 검토 수행
+> 인시던트 대응 계획 수립
+> 지속적인 보안 교육 실시
+
+## 5. 실무 예시 & 케이스 스터디
+
+실제 발생할 수 있는 보안 사고 시나리오와 대응 방안을 살펴봅니다. 각 사례는 실제 상황을 바탕으로 재구성되었으며, 문제 해결을 위한 구체적인 방안을 제시합니다.
+
+### 5.1 SQL Injection 공격 사례
+
+#### 상황
+고객 정보를 조회하는 API에서 SQL Injection 취약점이 발견되었습니다.
+
+#### 취약한 코드
+```java
+// ❌ 문제의 코드
+@RestController
+public class CustomerController {
+    @GetMapping("/api/customers")
+    public List<Customer> searchCustomers(String searchTerm) {
+        // 취약한 쿼리 실행
+        String query = "SELECT * FROM customers WHERE name LIKE '%" + searchTerm + "%'";
+        return jdbcTemplate.query(query, customerMapper);
+    }
+}
+```
+
+#### 공격 시나리오
+```sql
+-- 악의적인 검색어 입력
+searchTerm = "%' UNION ALL SELECT username, password FROM users--"
+```
+
+#### 해결 방안
+```java
+// ✅ 개선된 코드
+@Repository
+public class CustomerRepository {
+    @Query("SELECT c FROM Customer c WHERE c.name LIKE :searchTerm")
+    List<Customer> searchCustomers(@Param("searchTerm") String searchTerm);
+}
+
+@Service
+@Transactional(readOnly = true)
+public class CustomerService {
+    public List<Customer> searchCustomers(String searchTerm) {
+        // 입력값 검증
+        if (!isValidSearchTerm(searchTerm)) {
+            throw new InvalidInputException("Invalid search term");
+        }
+        // 이스케이프 처리된 검색어로 조회
+        return customerRepository.searchCustomers("%" + searchTerm + "%");
+    }
+}
+```
+
+### 5.2 인증 우회 공격 대응
+
+#### 상황
+JWT 토큰 조작을 위한 권한 상승 시도가 탐지되었습니다.
+
+#### 취약한 구현
+```java
+// ❌ 문제의 코드
+@Service
+public class AuthService {
+    public boolean verifyToken(String token) {
+        try {
+            // 서명만 확인하고 추가 검증 없음
+            Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}
+```
+
+#### 해결 방안
+```java
+// ✅ 개선된 토큰 검증
+@Service
+public class SecureAuthService {
+    private final UserRepository userRepository;
+    private final TokenBlacklistService blacklistService;
+    
+    public TokenValidationResult verifyToken(String token) {
+        try {
+            // 1. 기본 JWT 검증
+            Claims claims = validateJwt(token);
+            
+            // 2. 토큰 블랙리스트 확인
+            if (blacklistService.isBlacklisted(token)) {
+                throw new InvalidTokenException("Token has been revoked");
+            }
+            
+            // 3. 사용자 존재 여부 확인
+            String userId = claims.getSubject();
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException());
+            
+            // 4. 토큰 만료 시간 확인
+            validateTokenExpiry(claims);
+            
+            // 5. 추가 보안 검증
+            validateTokenSecurityContext(claims, user);
+            
+            return new TokenValidationResult(true, user);
+            
+        } catch (Exception e) {
+            logSecurityEvent("Token validation failed", e);
+            return new TokenValidationResult(false, null);
+        }
+    }
+    
+    private void validateTokenSecurityContext(Claims claims, User user) {
+        // IP 주소 검증
+        String tokenIp = claims.get("ip", String.class);
+        String currentIp = getCurrentRequestIP();
+        if (!tokenIp.equals(currentIp)) {
+            throw new SecurityException("IP mismatch");
+        }
+        
+        // 사용자 상태 검증
+        if (!user.isActive()) {
+            throw new SecurityException("User account is not active");
+        }
+    }
+}
+```
+
+### 5.3 무차별 대입 공격(Brute Force) 방어
+
+#### 상황
+로그인 앤드포인트에 대한 대량의 무차별 대입 시도가 발생했습니다.
+
+#### 구현 방안
+```java
+// ✅ Rate Limiting과 계정 잠금 구현
+@Service
+@Slf4j
+public class LoginProtectionService {
+    private final LoadingCache<String, Integer> attemptCache;
+    private final LoadingCache<String, Boolean> blockCache;
+    
+    public LoginProtectionService() {
+        attemptCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build(new CacheLoader<>() {
+                @Override
+                public Integer load(String key) {
+                    return 0;
+                }
+            });
+            
+        blockCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(24, TimeUnit.HOURS)
+            .build(new CacheLoader<>() {
+                @Override
+                public Boolean load(String key) {
+                    return false;
+                }
+            });
+    }
+    
+    public void recordLoginAttempt(String username, String ip, boolean success) {
+        String cacheKey = username + ":" + ip;
+        
+        if (success) {
+            attemptCache.invalidate(cacheKey);
+            return;
+        }
+        
+        int attempts = attemptCache.getUnchecked(cacheKey) + 1;
+        attemptCache.put(cacheKey, attempts);
+        
+        if (attempts >= 5) {
+            blockCache.put(cacheKey, true);
+            log.warn("Account locked due to multiple failed attempts: {}", username);
+            notify("security@company.com", 
+                   "Brute force attempt detected", 
+                   String.format("Username: %s, IP: %s", username, ip));
+        }
+    }
+    
+    public boolean isBlocked(String username, String ip) {
+        return blockCache.getUnchecked(username + ":" + ip);
+    }
+}
+```
+
+### 5.4 민감 정보 노출 방지
+
+#### 상황
+에러 응답에 스택 트레이스가 포함되어 시스템 정보가 노출되었습니다.
+
+#### 해결 방안
+```java
+// ✅ 안전한 에러 처리
+@RestControllerAdvice
+public class SecureExceptionHandler {
+    private final ErrorResponseMapper errorMapper;
+    private final AuditLogger auditLogger;
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex, 
+                                                       WebRequest request) {
+        // 1. 상세 로그 기록 (내부용)
+        logException(ex, request);
+        
+        // 2. 일반화된 에러 응답 생성 (외부용)
+        ErrorResponse response = errorMapper.toResponse(ex);
+        
+        // 3. 심각한 오류 모니터링
+        if (isCriticalError(ex)) {
+            notifySecurityTeam(ex, request);
+        }
+        
+        return ResponseEntity
+            .status(response.getStatus())
+            .body(response);
+    }
+    
+    private void logException(Exception ex, WebRequest request) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication()?.getName() ?? "anonymous";
+        
+        auditLogger.logSecurityEvent(
+            SecurityEventBuilder.builder()
+                .type(SecurityEventType.ERROR)
+                .user(username)
+                .details(ex.getMessage())
+                .stackTrace(ex.getStackTrace())
+                .request(request)
+                .build()
+        );
+    }
+}
+```
+
+> 💡 **교훈**
+> 모든 입력값은 검증이 필수
+> 다층적 보안 통제 구현
+> 보안 이벤트 모니터링 중요
+> 인시던트 대응 계획 필요
+
+## 6. 요약 (Summary)
+
+이 문서에서 다룬 OWASP Top 10 기반의 웹 애플리케이션 보안 핵심 내용을 정리합니다.
+
+### 6.1 주요 보안 위험과 대응 방안
+
+1. **인증과 접근 제어** (A01, A07)
+   - 강력한 인증 메커니즘 구현 (MFA, 안전한 세션 관리)
+   - 세분화된 접근 제어와 권한 관리
+   - 토큰 기반 인증의 안전한 구현
+
+2. **데이터 보호** (A02, A03)
+   - 민감 데이터 암호화 (저장 및 전송 시)
+   - SQL Injection 등 주입 공격 방어
+   - 암호화 키의 안전한 관리
+
+3. **보안 설계와 구성** (A04, A05)
+   - 보안을 고려한 시스템 설계
+   - 안전한 기본 설정 적용
+   - 주기적인 보안 설정 검토
+
+### 6.2 핵심 보안 원칙
+
+1. **심층 방어 (Defense in Depth)**
+   ```plaintext
+   애플리케이션 → 프레임워크 → 서버 → 네트워크
+   각 계층별 보안 통제 구현
+   ```
+
+2. **최소 권한 원칙**
+  ```plaintext
+  필요한 최소한의 권한만 부여
+  장기적인 접근 권한 검토
+  ```
+
+3. **안전한 실패(Fail Secure)
+  ```plaintext
+  오류 발생 시 안전한 상태 유지
+  예외 상황의 보안 처리
+  ```
+
+### 6.3 실무 적용 시 주의사항
+
+1. **보안 통제 구현**
+  - 검증된 보안 라이브러리 사용
+  - 보안 설정의 환경별 분리
+  - 지속적인 모니터링과 감사
+
+2. **개발 프로세스**
+  - 보안 요구사항 명확화
+  - 코드 리뷰 시 보안 체크
+  - 자동화된 보안 테스트
+
+3. **인시던트 대응**
+  - 보안 사고 대응 계획 수립
+  - 로깅과 모니터링 강화
+  - 정기적인 보안 훈련
+
+### 6.4 향후 고려사항
+
+1. **신기술 도입 시 보안**
+  - 클라우드 네이티브 보안
+  - 컨테이너 보안
+  - API 보안
+
+2. **규제 준수**
+  - 개인정보 보호
+  - 산업별 보안 규제
+  - 국제 보안 표준
+
+3. **보안 문화**
+  - 개발자 보안 교육
+  - 보안 인식 제고
+  - DevSecOps 문화 장착
+
+> 💡 **핵심 메시지**
+> 보안은 전체 시스템 수명주기에서 지속적으로 고려되어야 함
+> 기술적 조치와 함께 프로세스, 사람의 측면도 중요
+> 보안은 단순한 기능이 아닌 품질 속성으로 인식 필요
+
+## 7. 참고 자료 (References)
+
+### 7.1 공식 문서 및 가이드라인
+
+1. **OWASP 프로젝트**
+   - [OWASP Top 10:2021](https://owasp.org/Top10)
+   - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org)
+   - [OWASP ASVS(Application Security Verification Standard)](https://owasp.org/www-project-application-security-verification-standard)
+
+2. **보안 프레임워크 문서**
+   - [Spring Security Reference](https://docs.spring.io/spring-security/reference/)
+   - [Django Security Guide](https://docs.djangoproject.com/en/stable/topics/security/)
+   - [Express.js Security Best Practices](https://expressjs.com/en/advanced/best-practice-security.html)
+
+3. **클라우드 보안 가이드**
+   - [AWS Security Best Practices](https://aws.amazon.com/architecture/security-identity-compliance)
+   - [Google Cloud Security Best Practices](https://cloud.google.com/docs/security)
+   - [Azure Security Best Practices](https://docs.microsoft.com/azure/security/fundamentals/)
+
+### 7.2 보안 도구 및 유틸리티
+
+1. **정적 분석 도구**
+   ```plaintext
+   - SonarQube: https://www.sonarqube.org
+   - SpotBugs: https://spotbugs.github.io
+   - CheckStyle: https://checkstyle.org
+   ```
+
+2. **동적 분석 도구**
+  ```plaintext
+  - OWASP ZAP: https://www.zaproxy.org
+  - Burp Suite: https://portswigger.net/burp
+  - Acunetix: https://www.acunetix.com
+  ```
+
+3. **의존성 검사 도구**
+  ```plaintext
+  - OWASP Dependency Check
+  - Snyk
+  - WhiteSource
+  ```
+
+### 7.3 추천 보안 서적
+
+1. **웹 보안 기초**
+  - "The Web Application Hacker's Handbook"
+  - "Web Security for Developers"
+  - "Real-World Bug Hunting"
+
+2. **보안 프로그래밍**
+  - "Iron-Clad Java: Building Secure Web Applications"
+  - "Secure By Design"
+  - "Security Patterns in Practice"
+
+3. **보안 아키텍처**
+  - "Security Engineering" by Ross Anderson
+  - "Building Secure and Reliable Systems"
+  - "Zero Trust Networks"
+
+### 7.4 온라인 학습 자료
+
+1. **보안 학습 플랫폼**
+  ```plaintext
+  - Portswigger Web Security Academy
+  - PentesterLab
+  - HackTheBox
+  ```
+
+2. **보안 컨퍼런스 자료**
+  ```plaintext
+  - DEF CON
+  - Black Hat
+  - AppSec Conference Series
+  ```
+
+3. **보안 커뮤니티**
+  ```plaintext
+  - Security StackExchange
+  - OWASP Slack Channel
+  - Reddit r/netsec
+  ```
+
+### 7.5 정기 구독 자료
+
+1. **보안 뉴스레터**
+  ```plaintext
+  - SANS NewsBites
+  - Krebs on Security
+  - The Hacker News
+  ```
+
+2. **보안 블로그**
+  ```plaintext
+  - Google Project Zero
+  - Schneier on Security
+  - Troy Hunt`s Blog
+  ```
+
+3. **취약점 데이터베이스**
+  ```plaintext
+  - National Vulnerability Database (NVD)
+  - CVE Details
+  - Exploit Database
+  ```
+
+> 💡 **자료 활용 팁**
+> 공식 문서를 우선적으로 참고
+> 실습 환경에서 충분히 테스트
+> 최신 보안 동향 주기적 확인
+> 커뮤니티 활동 참여로 지식 공유
