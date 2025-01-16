@@ -3,7 +3,7 @@
 현대 웹 애플리케이션에서 발생하는 **주요 보안 취약점**과 이에 대한 **방어 기법**을 정리한 문서입니다.  
 [OWASP(Open Web Application Security Project) Top 10](https://owasp.org/www-project-top-ten/)을 기반으로, 백엔드 개발자가 반드시 알아야 할 보안 지식을 다룹니다.
 
-> 최근 업데이트: 2024-01-16  
+> 최근 업데이트: 2025-01-16  
 > OWASP Top 10 (2021년 버전 기준)
 
 ---
