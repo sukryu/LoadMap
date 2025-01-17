@@ -17,7 +17,7 @@ BIOS/UEFI가 하드웨어를 초기화하고 부트로더를 통해 커널을 �
    - **ACPI**(Advanced Configuration and Power Interface)를 통해 OS가 전원 관리·하드웨어 설정 정보를 전달받는 구조  
    - S3/S4/S5 등 다양한 전원 상태(슬립·절전·완전 종료)와 ACPI 테이블
 
-3. **`bootloader_example/`**
+3. **`bootloader_example/`** (조금 나중에 작성 예정.)
    - **간단한 x86 부트로더** 소스코드 (어셈블리/Makefile)  
    - QEMU로 테스트하는 방법(커맨드, 디스크 이미지 생성 등)  
    - 직접 부트 섹터 코드를 작성해 보며, “부트로더 → 커널 점프” 과정을 체험

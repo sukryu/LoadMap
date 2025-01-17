@@ -287,3 +287,173 @@ ACPI는 두 가지 타입의 이벤트를 처리합니다:
   - 디바이스 상태 변경
   - 배터리 상태 변경
   - 도킹/언도킹 이벤트
+
+---
+
+## D. UEFI와 ACPI의 연계
+
+### 1. UEFI와 ACPI의 상호작용
+```mermaid
+sequenceDiagram
+    participant HW as Hardware
+    participant UEFI
+    participant OS as Operating System
+    participant ACPI
+    
+    UEFI->>HW: 하드웨어 초기화
+    UEFI->>ACPI: ACPI 테이블 로드
+    UEFI->>OS: 시스템 테이블 전달
+    OS->>ACPI: ACPI 테이블 접근
+    
+    loop 런타임 동작
+        OS->>ACPI: 전원 상태 변경 요청
+        ACPI->>HW: 하드웨어 상태 제어
+        HW-->>ACPI: 상태 변경 완료
+        ACPI-->>OS: 결과 통보
+    end
+```
+
+**주요 연계 포인트**
+
+1. **부팅 단계**
+  - UEFI가 ACPI 테이블을 메모리에 로드
+  - RSDP 위치를 OS에 전달
+  - 시스템 설정 정보 초기화
+
+2. **런타임 단계**
+  - OS가 ACPI 테이블 참조
+  - 전원 관리 기능 사용
+  - 하드웨어 설정 변경
+
+### 2. 시스템 초기화 과정에서의 역할
+```text
+UEFI 부팅 → ACPI 테이블 로드 → OS 커널 로드 → ACPI 드라이버 초기화 → 시스템 실행
+```
+
+**핵심 단계:**
+1. UEFI 펌웨어가 하드웨어 초기화
+2. ACPI 테이블 구조 생싱 및 채우기
+3. OS에 제어권 이전
+4. OS가 ACPI 인터페이스를 통해 하드웨어 제어
+
+### 3. 실제 사용 사례
+
+1. **절전 모드 전환**
+```text
+1. 사용자/시스템의 절전 모드 요청
+2. OS가 ACPI 인터페이스 호출
+3. ACPI가 하드웨어 상태 저장
+4. 시스템을 S3/S4 상태로 전환
+```
+
+2. **온도 관리**
+```text
+1. ACPI 센서가 온도 상승 감지
+2. GPE(General Purpose Event) 발생
+3. OS의 ACPI 드라이버가 이벤트 처리
+4. 팬 속도 조절 또는 CPU throttling
+```
+
+3. **장치 핫플러그**
+```text
+1. USB 장치 연결
+2. ACPI가 하드웨어 변경 감지
+3. OS에 이벤트 통보
+4. 장치 초기화 및 드라이버 로드
+```
+
+### 4. 보안 관련 연계
+
+**Secure Boot와 ACPI의 통합:**
+- UEFI Secure Boot가 ACPI 테이블 무결성 검증
+- 신뢰할 수 있는 ACPI 테이블만 사용
+- 악의적인 ACPI 코드 실행 방지
+
+---
+
+## E. 실습 및 결론
+
+### 1. UEFI Shell 실습
+
+**UEFI Shell 진입 방법:**
+1. 시스템 부팅 시 특정 키(보통 F2 또는 Del) 눌러 UEFI 설정 진입
+2. UEFI Shell 옵션 선택 (또는 QEMU에서 UEFI Shell 직접 부팅)
+
+**기본 UEFI Shell 명령어 실습:**
+```shell
+# 기본 시스템 정보 확인
+Shell> smbiosview    # SMBIOS 정보 표시
+Shell> acpiview      # ACPI 테이블 정보 표시
+Shell> memmap        # 메모리 맵 표시
+
+# 장치 및 파일시스템 탐색
+Shell> map -r        # 디바이스 매핑 새로고침
+Shell> ls fs0:       # EFI 파티션 내용 보기
+Shell> cd fs0:       # EFI 파티션으로 이동
+
+# 부팅 설정 관리
+Shell> bcfg boot dump          # 현재 부팅 설정 표시
+Shell> bootorder               # 부팅 순서 확인
+```
+
+### 2. QEMU에서 ACPI 디버깅
+
+**QEMU 환경 설정:**
+```bash
+# OVMF (UEFI 펌웨어) 설치
+sudo apt install ovmf          # Debian/Ubuntu
+sudo dnf install edk2-ovmf    # Fedora/RHEL
+
+# QEMU 실행 (ACPI 디버깅 활성화)
+qemu-system-x86_64 \
+  -drive if=pflash,format=raw,unit=0,file=/usr/share/ovmf/OVMF_CODE.fd,readonly=on \
+  -drive if=pflash,format=raw,unit=1,file=/usr/share/ovmf/OVMF_VARS.fd \
+  -accel kvm \
+  -serial stdio \
+  -machine q35,accel=kvm,dump-guest-core=off \
+  -global ICH9-LPC.acpi-pci-hotplug-with-bridge-support=on \
+  -monitor telnet:127.0.0.1:1234,server,nowait
+```
+
+**ACPI 테이블 분석:**
+```bash
+# Linux에서 ACPI 테이블 확인
+cat /sys/firmware/acpi/tables/DSDT > dsdt.dat
+iasl -d dsdt.dat               # DSDT 디컴파일
+
+# ACPI 이벤트 모니터링
+cat /sys/kernel/debug/acpi/event
+```
+
+### 3. UEFI 애플리케이션 개발 환경
+
+**EDK II 개발 환경 설정:**
+```bash
+# EDK II 소스 코드 다운로드
+git clone https://github.com/tianocore/edk2.git
+cd edk2
+
+# 빌드 환경 설정
+make -C BaseTools
+source edksetup.sh
+```
+
+### 4. 결론 및 요약
+
+UEFI와 ACPI는 현대 운영체제의 핵심 구성요소로, 다음과 같은 중요성을 가집니다:
+
+1. **표준화된 인터페이스**
+  - 하드웨어와 OS 사이의 일관된 통신 방법 제공
+  - 플랫폼 독립적인 개발 가능
+
+2. **확장성**
+  - 모듈식 설계로 새로운 기능 추가 용이
+  - 드라이버와 서비스의 동적 로딩 지원
+
+3. **전력 효율성**
+  - 세밀한 전원 관리 기능
+  - 다양한 절전 모드 지원
+
+4. 보안성
+  - Secure Boot를 통한 보안 부팅
+  - 신뢰할 수 있는 실행 환경 제공
