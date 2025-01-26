@@ -525,3 +525,363 @@ DELETE FROM users WHERE id = 1;
   - 쿼리 실행 계획 분석
   - 실제 성능 측정
   - 리소스 사용량 모니터링
+
+---
+
+## 5. 인덱스 설계 시 고려 사항
+
+효율적인 인덱스 설계는 데이터베이스 성능에 직접적인 영향을 미칩니다. 인덱스 설계 시 다양한 요소들을 종합적으로 고려해야 합니다.
+
+### 5.1 데이터 접근 패턴 분석
+
+#### 5.1.1 쿼리 패턴 분석
+```mermaid
+graph TD
+    A[쿼리 패턴 분석] --> B[자주 사용되는 WHERE 조건]
+    A --> C[정렬 필요한 컬럼]
+    A --> D[조인 조건]
+    B --> E[인덱스 후보]
+    C --> E
+    D --> E
+```
+
+1. **쿼리 유형 파악**
+  - SELECT 쿼리의 WHERE 절 분석
+  - JOIN 조건 검토
+  - ORDER BY, GROUP BY 사용 패턴
+
+```sql
+-- 자주 사용되는 쿼리 패턴 예시
+SELECT * FROM orders 
+WHERE status = 'PENDING' 
+  AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+ORDER BY created_at DESC;
+```
+
+2. **액세스 빈도**
+  - 각 컬럼별 사용 빈도 측정
+  - 읽기/쓰기 비율 분석
+  - 피크 타임 패턴 파악
+
+### 5.2 자주 사용되는 쿼리와 WHERE 조건
+
+#### 5.2.1 WHERE 절 분석
+
+1. **조건절 유형**
+```sql
+-- 동등 조건
+WHERE status = 'ACTIVE'
+
+-- 범위 조건
+WHERE created_at BETWEEN '2023-01-01' AND '2023-12-31'
+
+-- 복합 조건
+WHERE status = 'ACTIVE' AND category_id = 1
+```
+
+2. **최적의 인덱스 구성**
+- 선택도가 높은 컬럼 우선
+- 자주 사용되는 조합 고려
+- 범위 조건 위치 고려
+
+#### 5.2.2 쿼리 최적화 사례
+```sql
+-- 복합 인덱스 활용 예시
+CREATE INDEX idx_orders_status_date 
+ON orders(status, created_at);
+
+-- 최적화된 쿼리
+SELECT * FROM orders 
+WHERE status = 'PENDING'  -- 첫 번째 인덱스 컬럼
+  AND created_at >= '2023-01-01';  -- 두 번째 인덱스 컬럼
+```
+
+### 5.3 인덱스 과사용의 위험
+
+#### 5.3.1 과도한 인덱스의 문제점
+```mermaid
+graph TD
+    A[과도한 인덱스] --> B[저장 공간 증가]
+    A --> C[쓰기 성능 저하]
+    A --> D[유지보수 복잡성]
+    A --> E[인덱스 선택 혼란]
+```
+
+1. **성능 영향**
+  - 데이터 수정 작업 지연
+  - 백업/복구 시간 증가
+  - 메모리 사용량 증가
+
+2. **관리 부담**
+  - 인덱스 동기화 오버헤드
+  - 복잡한 유지보수
+  - 디스크 공간 낭비
+
+### 5.4 Selectivity(선택도)의 중요성
+
+#### 5.4.1 선택도 계산
+```sql
+-- 선택도 계산 쿼리
+SELECT COUNT(DISTINCT column_name) / COUNT(*) as selectivity
+FROM table_name;
+```
+| 선택도 | 적합성 | 예시 컬럼 |
+|-----------|---------------|-----------|
+| 높음 (> 0.8) | 매우 적합 | 주민등록번호, 이메일 |
+| 중간 (0.3 ~ 0.8) | 적합 | 나이, 지역코드 |
+| 낮음 (< 0.3) | 부적합 | 성별, 상태코드 |
+
+#### 5.4.2 선택도 기반 인덱스 설계
+
+1. **고선택도 컬럼**
+  - 단일 컬럼 인덱스 적합
+  - 검색 조건 첫 번째로 사용
+  - 빠른 결과 집합 축소
+
+2. **저선택도 컬럼**
+  - 복합 인덱스의 후순위
+  - 필터링 조건으로 활용
+  - 단독 인덱스는 피함
+
+### 5.5 인덱스 설계 체크리스트
+
+1. **기본 검토사항**
+  - [ ] 테이블의 크기와 증가 추세
+  - [ ] 데이터 분포도 분석
+  - [ ] 읽기/쓰기 비율 확인
+  - [ ] 동시성 요구사항 파악
+
+2. **쿼리 분석**
+  - [ ] 자주 사용되는 WHERE 조건 식별
+  - [ ] JOIN 조건 검토
+  - [ ] ORDER BY, GROUP BY 패턴 파악
+  - [ ] 실행 계획 분석
+
+3. **리소스 고려사항**
+  - [ ] 사용 가능한 메모리 양
+  - [ ] 디스크 공간 여유
+  - [ ] 백업/복구 요구사항
+  - [ ] 동시 사용자 수
+
+4. **유지보수 계획**
+  - [ ] 인덱스 재구성 주기
+  - [ ] 통계 정보 갱신 계획
+  - [ ] 모니터링 전략
+  - [ ] 성능 측정 방안
+
+---
+
+## 6. 인덱스와 실행 계획
+
+실행 계획(Execution Plan)은 데이터베이스가 쿼리를 처리하는 방법을 보여주는 로드맵입니다. 인덱스가 효과적으로 사용되고 있는지 확인하기 위해서는 실행 계획을 이해하고 분석할 수 있어야 합니다.
+
+### 6.1 실행 계획(Execution Plan) 분석 방법
+
+#### 6.1.1 EXPLAIN 명령어 사용
+```sql
+-- 기본 EXPLAIN 사용
+EXPLAIN SELECT * FROM users WHERE email = 'test@example.com';
+
+-- 실제 실행 정보를 포함한 분석
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
+```
+
+#### 6.1.2 주요 실행 계획 요소
+```mermaid
+graph TD
+    A[실행 계획 요소] --> B[접근 방식]
+    A --> C[비용 추정]
+    A --> D[인덱스 사용]
+    
+    B --> B1[Table Scan]
+    B --> B2[Index Scan]
+    B --> B3[Index Seek]
+    
+    C --> C1[Row 추정]
+    C --> C2[비용 계산]
+    
+    D --> D1[인덱스 선택]
+    D --> D2[스캔 범위]
+```
+
+1. **접근 방식**
+| 접근 방식 | 설명 | 상황 |
+|-----------|---------------|------|
+| Table Scan | 전체 테이블 검색 | 인덱스 없음/사용 불가 |
+| Index Scan | 인덱스 순차 검색 | 넓은 범위 검색 |
+| Index Seek | 인덱스 직접 접근 | 특정 값 검색 |
+
+2. **비용 정보**
+  - 예상 실행 시간
+  - 예상 리소스 사용량
+  - 예상 결과 행 수
+
+### 6.2 EXPLAIN과 EXPLAIN ANALYZE 활용
+
+#### 6.2.1 기본 EXPLAIN 출력 분석
+```sql
+EXPLAIN
+SELECT u.name, o.order_date
+FROM users u
+JOIN orders o ON u.id = o.user_id
+WHERE u.status = 'active'
+  AND o.order_date >= '2023-01-01';
+```
+
+**주요 확인 포인트:**
+- 사용된 인덱스
+- 테이블 조인 방식
+- 필터링 방법
+- 임시 테이블 사용 여부
+
+#### 6.2.2 EXPLAIN ANALYZE 상세 분석
+```sql
+EXPLAIN ANALYZE
+SELECT COUNT(*) 
+FROM products p
+JOIN categories c ON p.category_id = c.id
+WHERE p.price > 1000
+GROUP BY c.name;
+```
+
+**분석 항목:**
+
+1. **실제 실행 시간**
+  - 각 단계별 소요 시간
+  - 전체 쿼리 실행 시간
+  - 병목 구간 식별
+
+2. **메모리 사용량**
+  - 임시 테이블 크기
+  - 정렬 버퍼 사용량
+  - 메모리 사용 패턴
+
+3. **실제 처리된 행 수**
+  - 예상 대비 실제 처리량
+  - 데이터 필터링 효율
+  - 중간 결과 집합 크기
+
+### 6.3 인덱스를 활용하지 못하는 사례
+
+#### 6.3.1 인덱스 사용 불가 상황
+
+1. **함수 사용**
+```sql
+-- 인덱스를 사용할 수 없는 경우
+SELECT * FROM users WHERE UPPER(email) = 'TEST@EXAMPLE.COM';
+
+-- 인덱스를 사용할 수 있도록 수정
+SELECT * FROM users WHERE email = LOWER('TEST@EXAMPLE.COM');
+```
+
+2. **암시적 변환**
+```sql
+-- 인덱스를 사용할 수 없는 경우
+SELECT * FROM users WHERE id = '10';  -- id는 INTEGER
+
+-- 인덱스를 사용할 수 있도록 수정
+SELECT * FROM users WHERE id = 10;
+```
+
+3. **LIKE 연산자**
+```sql
+-- 인덱스를 사용할 수 없는 경우
+SELECT * FROM users WHERE name LIKE '%John%';
+
+-- 인덱스를 사용할 수 있는 경우
+SELECT * FROM users WHERE name LIKE 'John%';
+```
+
+#### 6.3.2 N+1 문제
+```mermaid
+graph TD
+    A[첫 번째 쿼리] --> B[결과 N개 반환]
+    B --> C[각 결과마다 추가 쿼리]
+    C --> D[총 N+1개 쿼리 실행]
+    D --> E[성능 저하]
+```
+
+**문제 예시:**
+```sql
+-- N+1 문제가 발생하는 경우
+SELECT * FROM orders;  -- 첫 번째 쿼리
+-- 각 주문에 대해
+SELECT * FROM order_items WHERE order_id = ?;  -- N개의 추가 쿼리
+
+-- 해결 방법: JOIN 사용
+SELECT o.*, oi.*
+FROM orders o
+LEFT JOIN order_items oi ON o.id = oi.order_id;
+```
+
+### 6.4 실행 계획 최적화 전략
+
+#### 6.4.1 인덱스 힌트 사용
+```sql
+-- MySQL의 인덱스 힌트
+SELECT /*+ INDEX(users idx_users_email) */ *
+FROM users
+WHERE email = 'test@example.com';
+
+-- PostgreSQL의 인덱스 스캔 강제
+SET enable_seqscan = off;
+SELECT * FROM users WHERE email = 'test@example.com';
+```
+
+#### 6.4.2 쿼리 재작성
+
+1. **서브쿼리 최적화**
+```sql
+-- 최적화 전
+SELECT * FROM orders 
+WHERE user_id IN (SELECT id FROM users WHERE status = 'active');
+
+-- 최적화 후
+SELECT o.* 
+FROM orders o
+JOIN users u ON o.user_id = u.id
+WHERE u.status = 'active';
+```
+
+2. **UNION 최적화**
+```sql
+-- 최적화 전
+SELECT * FROM orders WHERE status = 'pending'
+UNION
+SELECT * FROM orders WHERE status = 'processing';
+
+-- 최적화 후
+SELECT * FROM orders 
+WHERE status IN ('pending', 'processing');
+```
+
+#### 6.4.3 실행 계획 모니터링
+```sql
+-- 쿼리 실행 통계 수집
+CREATE EXTENSION pg_stat_statements;  -- PostgreSQL
+
+-- 실행 계획 캐시 확인
+SELECT * FROM pg_stat_statements 
+WHERE query LIKE '%users%'
+ORDER BY total_time DESC;
+```
+
+**주요 모니터링 지표:**
+
+1. **실행 시간**
+  - 평균 실행 시간
+  - 최대 실행 시간
+  - 시간 편차
+
+2. **리소스 사용**
+  - 디스크 읽기량
+  - 버퍼 히트율
+  - 임시 파일 사용량
+
+3. **실행 횟수**
+  - 전체 실행 횟수
+  - 캐시 히트율
+  - 시간대별 분포
+
+---
+
