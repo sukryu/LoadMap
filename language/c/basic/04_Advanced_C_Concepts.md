@@ -1,111 +1,99 @@
-# Advanced C Concepts
+# 04. Advanced C Concepts
 
-C 언어의 고급 개념은 프로그램의 성능을 최적화하고, 복잡한 문제를 해결하며, 시스템 수준의 제어를 가능하게 합니다. 이 문서는 초보자들이 고급 개념을 이해하고 활용할 수 있도록 간단한 설명과 실용적인 예제를 제공합니다.
+## 1. 포인터 (Pointers)
+
+### 포인터란?
+포인터는 메모리 주소를 저장하는 변수입니다. 이는 변수나 데이터의 위치를 참조할 수 있도록 도와줍니다.
+
+#### 포인터 선언과 사용
+```c
+int num = 10;
+int *ptr = &num;  // num의 주소를 ptr에 저장
+
+printf("num의 값: %d\n", *ptr);  // 역참조로 값 출력
+```
+
+#### 주요 연산자
+- **주소 연산자 (`&`)**: 변수의 메모리 주소를 반환.
+- **역참조 연산자 (`*`)**: 포인터가 가리키는 값에 접근.
+
+### 포인터와 배열
+- 배열의 이름은 첫 번째 요소의 주소를 나타냅니다.
+
+```c
+int arr[5] = {1, 2, 3, 4, 5};
+int *ptr = arr;
+
+printf("첫 번째 요소: %d\n", *ptr);
+printf("두 번째 요소: %d\n", *(ptr + 1));
+```
+
+### 다중 포인터
+- 포인터를 가리키는 포인터입니다.
+
+```c
+int num = 10;
+int *ptr = &num;
+int **dptr = &ptr;
+
+printf("num의 값: %d\n", **dptr);  // 10 출력
+```
 
 ---
 
-## 1. 동적 메모리 관리 (Dynamic Memory Management)
+## 2. 동적 메모리 할당
 
-### 동적 메모리란?
-동적 메모리는 프로그램 실행 중에 필요에 따라 메모리를 할당하거나 해제하는 방식으로, 런타임에 메모리를 효율적으로 사용할 수 있습니다. C에서는 다음과 같은 함수를 사용하여 동적 메모리를 관리합니다:
-- `malloc`: 메모리를 할당합니다.
-- `calloc`: 초기화된 메모리를 할당합니다.
-- `realloc`: 이미 할당된 메모리의 크기를 변경합니다.
-- `free`: 할당된 메모리를 해제합니다.
+### 동적 메모리 할당이란?
+실행 중에 메모리를 동적으로 할당하여 유연하게 사용할 수 있는 기능입니다.
 
-### 예제: 동적 배열
+#### 주요 함수
+| 함수        | 설명                                           |
+|-------------|------------------------------------------------|
+| `malloc`    | 지정한 크기만큼 메모리 블록을 할당합니다.         |
+| `calloc`    | 초기화된 메모리 블록을 할당합니다.              |
+| `realloc`   | 기존 메모리 블록의 크기를 변경합니다.           |
+| `free`      | 동적으로 할당된 메모리를 해제합니다.            |
+
+#### 예제: `malloc`과 `free`
 ```c
 #include <stdio.h>
 #include <stdlib.h>
 
 int main() {
-    int *arr;
-    int n;
+    int *arr = (int *)malloc(5 * sizeof(int));  // 정수형 배열 5개 동적 할당
 
-    printf("배열의 크기를 입력하세요: ");
-    scanf("%d", &n);
-
-    arr = (int *)malloc(n * sizeof(int));
-    if (arr == NULL) {
-        printf("메모리 할당 실패\n");
-        return 1;
-    }
-
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < 5; i++) {
         arr[i] = i + 1;
     }
 
-    printf("배열의 내용: ");
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < 5; i++) {
         printf("%d ", arr[i]);
     }
     printf("\n");
 
-    free(arr);
+    free(arr);  // 메모리 해제
     return 0;
 }
 ```
 
-### 주의사항
-1. **메모리 누수 방지**: 사용하지 않는 메모리는 반드시 `free`를 호출하여 해제해야 합니다.
-2. **NULL 체크**: 메모리 할당에 실패할 경우 반환값이 `NULL`이므로 이를 항상 확인해야 합니다.
+### 메모리 누수 방지
+- 동적 메모리를 할당한 후 반드시 `free`를 호출하여 해제해야 합니다.
 
----
-
-## 2. 비트 연산 (Bitwise Operations)
-
-### 비트 연산이란?
-비트 연산은 데이터의 개별 비트를 조작하는 연산으로, 성능이 중요한 저수준 프로그래밍에서 유용하게 사용됩니다. 다음과 같은 연산자를 제공합니다:
-- `&` (AND): 두 비트가 모두 1일 때 1 반환
-- `|` (OR): 두 비트 중 하나가 1이면 1 반환
-- `^` (XOR): 두 비트가 다를 때 1 반환
-- `~` (NOT): 비트를 반전
-- `<<` (왼쪽 시프트): 비트를 왼쪽으로 이동
-- `>>` (오른쪽 시프트): 비트를 오른쪽으로 이동
-
-### 예제: 플래그 관리
 ```c
-#include <stdio.h>
-
-#define FLAG_A (1 << 0)  // 0001
-#define FLAG_B (1 << 1)  // 0010
-#define FLAG_C (1 << 2)  // 0100
-
-int main() {
-    unsigned int flags = 0;
-
-    // 플래그 설정
-    flags |= FLAG_A;
-    flags |= FLAG_B;
-
-    // 플래그 확인
-    if (flags & FLAG_A) {
-        printf("FLAG_A가 설정됨\n");
-    }
-
-    // 플래그 해제
-    flags &= ~FLAG_B;
-
-    // 플래그 출력
-    printf("현재 플래그: %d\n", flags);
-
-    return 0;
-}
+int *ptr = (int *)malloc(sizeof(int));
+*ptr = 42;
+free(ptr);  // 메모리 해제
+ptr = NULL;  // 댕글링 포인터 방지
 ```
-
-### 사용 사례
-- 네트워크 프로토콜 처리
-- 상태 플래그 관리
-- 특정 비트의 데이터 조작 (예: 색상 처리, 권한 설정)
 
 ---
 
-## 3. 함수 포인터 (Function Pointers)
+## 3. 함수와 함수 포인터
 
 ### 함수 포인터란?
-함수 포인터는 함수의 주소를 저장하는 포인터로, 런타임에 함수 호출을 동적으로 선택하거나 전달할 수 있습니다. 이는 플러그인 시스템, 콜백 함수, 이벤트 처리기 등에 유용합니다.
+함수의 주소를 저장하여 동적으로 함수를 호출할 수 있는 포인터입니다.
 
-### 예제: 함수 포인터로 동적 함수 호출
+#### 함수 포인터 선언과 사용
 ```c
 #include <stdio.h>
 
@@ -113,124 +101,129 @@ int add(int a, int b) {
     return a + b;
 }
 
-int multiply(int a, int b) {
-    return a * b;
-}
-
 int main() {
-    int (*operation)(int, int);
+    int (*operation)(int, int) = add;  // 함수 포인터 선언
 
-    operation = add;
-    printf("10 + 5 = %d\n", operation(10, 5));
-
-    operation = multiply;
-    printf("10 * 5 = %d\n", operation(10, 5));
-
+    printf("결과: %d\n", operation(3, 5));  // 함수 호출
     return 0;
 }
 ```
 
-### 사용 사례
-- 콜백 함수 구현
-- 플러그인 기반 아키텍처
-- 이벤트 기반 시스템
+#### 함수 포인터 배열
+```c
+int add(int a, int b) { return a + b; }
+int subtract(int a, int b) { return a - b; }
+
+int (*operations[])(int, int) = {add, subtract};
+
+printf("덧셈 결과: %d\n", operations[0](3, 5));
+printf("뺄셈 결과: %d\n", operations[1](3, 5));
+```
+
+### 함수 포인터의 활용
+- 콜백 함수 구현.
+- 동적으로 함수 실행 경로를 결정.
 
 ---
 
 ## 4. 전처리기 (Preprocessor)
 
 ### 전처리기란?
-C 컴파일러가 소스 코드를 컴파일하기 전에 수행하는 작업을 정의합니다. 전처리기는 다음과 같은 작업을 처리합니다:
-- 매크로 정의
-- 조건부 컴파일
-- 파일 포함
+C 컴파일러가 소스 코드를 컴파일하기 전에 수행하는 명령어 집합입니다.
 
-### 주요 전처리기 지시문
-- `#define`: 매크로 정의
-- `#include`: 파일 포함
-- `#if`, `#ifdef`, `#ifndef`, `#endif`: 조건부 컴파일
-- `#pragma`: 컴파일러 특정 지시
+#### 주요 전처리기 지시문
+| 지시문       | 설명                               |
+|--------------|------------------------------------|
+| `#include`   | 헤더 파일 포함                     |
+| `#define`    | 매크로 정의                        |
+| `#ifdef`     | 조건부 컴파일 시작                  |
+| `#ifndef`    | 조건부 컴파일 (미정의 상태 검사)     |
+| `#pragma`    | 컴파일러에 특정 명령 전달          |
 
-### 예제: 매크로와 조건부 컴파일
+#### 매크로 정의
 ```c
-#include <stdio.h>
+#define PI 3.14159
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define DEBUG 1
-
-int main() {
-    #ifdef DEBUG
-        printf("디버그 모드 활성화\n");
-    #else
-        printf("디버그 모드 비활성화\n");
-    #endif
-
-    return 0;
-}
+printf("원주율: %.2f\n", PI);
+printf("최대값: %d\n", MAX(10, 20));
 ```
 
-### 사용 사례
-- 디버그 코드 관리
-- 플랫폼별 코드 분리
-- 매크로를 통한 간단한 코드 최적화
+#### 조건부 컴파일
+```c
+#ifdef DEBUG
+    printf("디버그 모드\n");
+#else
+    printf("릴리스 모드\n");
+#endif
+```
 
 ---
 
-## 5. 재귀 (Recursion)
+## 5. 재귀 함수 (Recursive Functions)
 
-### 재귀란?
-재귀 함수는 자기 자신을 호출하는 함수입니다. 복잡한 문제를 더 작은 문제로 나누어 해결하는 데 유용합니다.
+### 재귀 함수란?
+재귀 함수는 자기 자신을 호출하여 반복 작업을 수행하는 함수입니다.
 
-### 예제: 팩토리얼 계산
+#### 기본 구조
 ```c
-#include <stdio.h>
-
 int factorial(int n) {
     if (n == 0 || n == 1) {
-        return 1;
+        return 1;  // 기저 조건
     }
-    return n * factorial(n - 1);
+    return n * factorial(n - 1);  // 재귀 호출
 }
 
 int main() {
-    int num = 5;
-    printf("%d! = %d\n", num, factorial(num));
+    printf("5! = %d\n", factorial(5));
     return 0;
 }
 ```
 
-### 주의사항
-1. **기저 조건 필수**: 종료 조건이 없으면 무한 루프에 빠질 수 있습니다.
-2. **스택 오버플로우 방지**: 너무 깊은 재귀 호출은 프로그램의 스택 메모리를 초과할 수 있습니다.
+#### 꼬리 재귀 (Tail Recursion)
+컴파일러가 최적화할 수 있는 재귀 호출 방식입니다.
+
+```c
+int factorial_tail(int n, int acc) {
+    if (n == 0) {
+        return acc;
+    }
+    return factorial_tail(n - 1, n * acc);
+}
+
+int main() {
+    printf("5! = %d\n", factorial_tail(5, 1));
+    return 0;
+}
+```
 
 ---
 
-## 6. 고급 활용
+## 6. 간단한 예제: 동적 함수 호출
 
-### 콜백 함수
-콜백 함수는 다른 함수에 인수로 전달되어 특정 이벤트가 발생할 때 호출됩니다.
-
-#### 예제: 배열 처리
+### 프로그램
 ```c
 #include <stdio.h>
 
-void processArray(int *arr, int size, void (*callback)(int)) {
-    for (int i = 0; i < size; i++) {
-        callback(arr[i]);
-    }
-}
+int add(int a, int b) { return a + b; }
+int subtract(int a, int b) { return a - b; }
 
-void printElement(int elem) {
-    printf("Element: %d\n", elem);
+void executeOperation(int (*operation)(int, int), int x, int y) {
+    printf("결과: %d\n", operation(x, y));
 }
 
 int main() {
-    int numbers[] = {1, 2, 3, 4, 5};
-    processArray(numbers, 5, printElement);
+    executeOperation(add, 10, 5);
+    executeOperation(subtract, 10, 5);
     return 0;
 }
 ```
 
+### 프로그램 설명
+1. 함수 포인터를 통해 동적으로 함수를 호출.
+2. `executeOperation`은 함수 포인터를 인자로 받아 다양한 연산 수행.
+
 ---
 
-이 문서는 C 언어의 고급 개념을 간단한 설명과 예제를 통해 소개했습니다. 이러한 개념을 연습하면 보다 복잡한 문제를 효율적으로 해결할 수 있습니다. 추가 학습이 필요하면 각 주제에 대해 더 깊이 파고들어 보세요!
+이 장에서는 포인터, 동적 메모리 할당, 함수 포인터, 전처리기, 그리고 재귀 함수와 같은 고급 C 개념을 다뤘습니다. 이러한 개념은 복잡한 프로그램 개발에서 필수적인 도구입니다.
 

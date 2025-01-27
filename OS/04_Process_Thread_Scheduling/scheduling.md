@@ -1,7 +1,7 @@
 # CPU 스케줄링 (CPU Scheduling)
 
 ## A. CPU 스케줄링의 기본 개념
-
+ㄴ
 CPU 스케줄링은 운영체제가 프로세스들 간에 CPU 자원을 효율적으로 할당하는 메커니즘입니다. 시스템의 전반적인 성능과 사용자 경험에 직접적인 영향을 미치는 핵심적인 기능입니다.
 
 ### 1. 스케줄링의 목표
@@ -880,3 +880,621 @@ This implementation demonstrates key features of modern multicore scheduling:
    - 성능 모니터링 및 조정
 
 이러한 멀티코어 스케줄링 기법들은 현대 시스템의 성능과 효율성을 크게 향상시킵니다.
+
+## E. 고급 스케줄링 최적화 기법
+
+### 1. 에너지 인지 스케줄링 (Energy-Aware Scheduling)
+
+현대 시스템에서 전력 소비를 고려한 스케줄링이 중요해지고 있습니다.
+
+```mermaid
+graph TD
+    subgraph "에너지 인지 스케줄링"
+        A[전력 모니터링] --> D[스케줄링 결정]
+        B[CPU 주파수 조절] --> D
+        C[코어 온/오프] --> D
+        
+        D --> E[전력 소비 최적화]
+        E --> F[성능 균형]
+        
+        style A fill:#f96,stroke:#333,stroke-width:2px
+        style D fill:#9cf,stroke:#333,stroke-width:2px
+        style F fill:#f9f,stroke:#333,stroke-width:2px
+    end
+```
+
+구현 예제:
+```c
+class EnergyAwareScheduler {
+private:
+    struct Core {
+        bool active;
+        int current_freq;
+        vector<int> available_freqs;
+        float power_consumption;
+        vector<Process*> processes;
+    };
+    
+    vector<Core> cores;
+    float power_budget;
+    float temperature_threshold;
+    
+public:
+    void schedule_task(Process* process) {
+        // 최적의 코어와 주파수 선택
+        auto [target_core, target_freq] = 
+            find_optimal_core_freq(process);
+            
+        if (target_core >= 0) {
+            assign_task(process, target_core, target_freq);
+        } else {
+            handle_overload_situation(process);
+        }
+    }
+    
+private:
+    pair<int, int> find_optimal_core_freq(Process* process) {
+        int best_core = -1;
+        int best_freq = -1;
+        float min_energy_cost = INFINITY;
+        
+        for (int i = 0; i < cores.size(); i++) {
+            if (!cores[i].active) continue;
+            
+            for (int freq : cores[i].available_freqs) {
+                float energy_cost = calculate_energy_cost(
+                    process, i, freq
+                );
+                
+                if (energy_cost < min_energy_cost &&
+                    is_within_power_budget(i, freq)) {
+                    min_energy_cost = energy_cost;
+                    best_core = i;
+                    best_freq = freq;
+                }
+            }
+        }
+        
+        return {best_core, best_freq};
+    }
+    
+    float calculate_energy_cost(Process* process, 
+                              int core_id, 
+                              int freq) {
+        // 에너지 소비 예측 모델
+        float base_power = get_base_power(freq);
+        float utilization = calculate_utilization(
+            cores[core_id], process
+        );
+        float temperature_factor = get_temperature_factor(
+            core_id
+        );
+        
+        return base_power * utilization * temperature_factor;
+    }
+    
+    void adjust_power_state() {
+        // DVFS (Dynamic Voltage and Frequency Scaling)
+        for (auto& core : cores) {
+            if (core.power_consumption > power_budget) {
+                decrease_frequency(core);
+            } else if (has_performance_headroom(core)) {
+                increase_frequency(core);
+            }
+            
+            // 필요시 코어 끄기/켜기
+            if (should_deactivate_core(core)) {
+                deactivate_core(core);
+            } else if (should_activate_core(core)) {
+                activate_core(core);
+            }
+        }
+    }
+};
+```
+
+### 2. QoS 기반 스케줄링 (Quality of Service Scheduling)
+
+서비스 품질 요구사항을 만족시키기 위한 스케줄링 기법입니다.
+
+```mermaid
+graph TD
+    subgraph "QoS 스케줄링"
+        A[SLA 모니터링] --> D[자원 할당]
+        B[우선순위 조정] --> D
+        C[자원 예약] --> D
+        
+        D --> E[QoS 보장]
+        E --> F[SLA 준수]
+        
+        style A fill:#f96,stroke:#333,stroke-width:2px
+        style D fill:#9cf,stroke:#333,stroke-width:2px
+        style F fill:#f9f,stroke:#333,stroke-width:2px
+    end
+```
+
+구현 예제:
+```c
+class QoSScheduler {
+private:
+    struct ServiceClass {
+        int priority;
+        float min_cpu_share;
+        int max_latency_ms;
+        float guaranteed_bandwidth;
+    };
+    
+    map<string, ServiceClass> service_classes;
+    map<Process*, string> process_to_class;
+    
+public:
+    void add_service_class(const string& name, 
+                          const ServiceClass& sc) {
+        service_classes[name] = sc;
+    }
+    
+    void schedule_task(Process* process) {
+        auto service_class = get_service_class(process);
+        
+        if (is_latency_critical(service_class)) {
+            schedule_realtime(process, service_class);
+        } else {
+            schedule_best_effort(process, service_class);
+        }
+        
+        monitor_qos_metrics(process, service_class);
+    }
+    
+private:
+    void schedule_realtime(Process* process,
+                          const ServiceClass& sc) {
+        // 실시간 스케줄링 정책 적용
+        int target_core = find_suitable_core(sc);
+        
+        if (target_core >= 0) {
+            assign_to_core(process, target_core);
+            reserve_resources(process, sc);
+        } else {
+            handle_resource_contention(process, sc);
+        }
+    }
+    
+    void monitor_qos_metrics(Process* process,
+                           const ServiceClass& sc) {
+        // QoS 메트릭 모니터링
+        float current_latency = measure_latency(process);
+        float current_throughput = measure_throughput(process);
+        
+        if (current_latency > sc.max_latency_ms) {
+            handle_qos_violation(process, "latency");
+        }
+        
+        if (current_throughput < sc.guaranteed_bandwidth) {
+            handle_qos_violation(process, "throughput");
+        }
+    }
+    
+    void handle_qos_violation(Process* process,
+                            const string& metric) {
+        // QoS 위반 처리
+        auto service_class = get_service_class(process);
+        
+        // 우선순위 조정
+        adjust_priority(process, service_class);
+        
+        // 자원 재할당
+        reallocate_resources(process, service_class);
+        
+        // 위반 로깅 및 알림
+        log_qos_violation(process, metric);
+    }
+};
+```
+
+### 3. AI/ML 워크로드 최적화 스케줄링
+
+AI와 머신러닝 워크로드의 특성을 고려한 특화된 스케줄링입니다.
+
+```mermaid
+graph TD
+    subgraph "AI/ML 스케줄링"
+        A[GPU 활용] --> D[리소스 할당]
+        B[메모리 패턴] --> D
+        C[배치 크기] --> D
+        
+        D --> E[학습 최적화]
+        E --> F[추론 성능]
+        
+        style A fill:#f96,stroke:#333,stroke-width:2px
+        style D fill:#9cf,stroke:#333,stroke-width:2px
+        style F fill:#f9f,stroke:#333,stroke-width:2px
+    end
+```
+
+구현 예제:
+```c
+class MLWorkloadScheduler {
+private:
+    struct GPUDevice {
+        int device_id;
+        size_t memory_total;
+        size_t memory_used;
+        vector<Process*> running_jobs;
+        float utilization;
+    };
+    
+    vector<GPUDevice> gpus;
+    map<Process*, MLJobMetrics> job_metrics;
+    
+public:
+    void schedule_ml_job(Process* process,
+                        const MLJobRequirements& reqs) {
+        // GPU 선택 및 할당
+        int target_gpu = select_gpu(reqs);
+        
+        if (target_gpu >= 0) {
+            allocate_gpu_resources(process, target_gpu, reqs);
+            monitor_job_progress(process);
+        } else {
+            queue_job_for_later(process, reqs);
+        }
+    }
+    
+private:
+    int select_gpu(const MLJobRequirements& reqs) {
+        int best_gpu = -1;
+        float best_score = -1;
+        
+        for (int i = 0; i < gpus.size(); i++) {
+            if (can_accommodate_job(gpus[i], reqs)) {
+                float score = calculate_gpu_score(gpus[i], reqs);
+                if (score > best_score) {
+                    best_score = score;
+                    best_gpu = i;
+                }
+            }
+        }
+        
+        return best_gpu;
+    }
+    
+    void monitor_job_progress(Process* process) {
+        // 작업 진행 상황 모니터링
+        auto& metrics = job_metrics[process];
+        
+        // 성능 메트릭 수집
+        update_job_metrics(process, metrics);
+        
+        // 필요시 리소스 조정
+        if (needs_resource_adjustment(metrics)) {
+            adjust_resources(process, metrics);
+        }
+        
+        // 학습 진행률 체크
+        if (is_training_job(process)) {
+            check_training_progress(process, metrics);
+        }
+    }
+    
+    void adjust_resources(Process* process,
+                         const MLJobMetrics& metrics) {
+        // 동적 배치 크기 조정
+        if (metrics.gpu_memory_pressure > threshold) {
+            reduce_batch_size(process);
+        }
+        
+        // 메모리 최적화
+        if (metrics.memory_swapping_detected) {
+            optimize_memory_usage(process);
+        }
+        
+        // GPU 병렬화 조정
+        if (can_benefit_from_more_gpus(metrics)) {
+            scale_out_to_more_gpus(process);
+        }
+    }
+};
+```
+
+### 4. 컨테이너 오케스트레이션 스케줄링
+
+현대 클라우드 환경에서의 컨테이너 스케줄링 기법입니다.
+
+```mermaid
+graph TD
+    subgraph "컨테이너 스케줄링"
+        A[리소스 요구사항] --> D[노드 선택]
+        B[어피니티 규칙] --> D
+        C[제약 조건] --> D
+        
+        D --> E[배치 결정]
+        E --> F[스케일링]
+        
+        style A fill:#f96,stroke:#333,stroke-width:2px
+        style D fill:#9cf,stroke:#333,stroke-width:2px
+        style F fill:#f9f,stroke:#333,stroke-width:2px
+    end
+```
+
+구현 예제:
+```c
+class ContainerScheduler {
+private:
+    struct Node {
+        string id;
+        ResourceCapacity capacity;
+        ResourceUsage current_usage;
+        vector<Container*> containers;
+        map<string, string> labels;
+    };
+    
+    vector<Node> nodes;
+    map<string, Affinity> affinities;
+    
+public:
+    void schedule_container(Container* container,
+                          const ContainerSpec& spec) {
+        // 노드 선택
+        auto suitable_nodes = filter_nodes(spec);
+        auto ranked_nodes = rank_nodes(suitable_nodes, spec);
+        
+        if (!ranked_nodes.empty()) {
+            Node* target_node = ranked_nodes[0];
+            deploy_container(container, target_node, spec);
+        } else {
+            handle_scheduling_failure(container, spec);
+        }
+    }
+    
+private:
+    vector<Node*> filter_nodes(const ContainerSpec& spec) {
+        vector<Node*> candidates;
+        
+        for (auto& node : nodes) {
+            if (meets_resource_requirements(node, spec) &&
+                satisfies_constraints(node, spec) &&
+                matches_affinity_rules(node, spec)) {
+                candidates.push_back(&node);
+            }
+        }
+        
+        return candidates;
+    }
+    
+    vector<Node*> rank_nodes(const vector<Node*>& candidates,
+                           const ContainerSpec& spec) {
+        // 노드 순위 계산
+        vector<pair<Node*, float>> scores;
+        
+        for (auto node : candidates) {
+            float score = calculate_node_score(node, spec);
+            scores.push_back({node, score});
+        }
+        
+        // 점수 기준 정렬
+        sort(scores.begin(), scores.end(),
+             [](const auto& a, const auto& b) {
+                 return a.second > b.second;
+             });
+             
+        vector<Node*> ranked_nodes;
+        transform(scores.begin(), scores.end(),
+                 back_inserter(ranked_nodes),
+                 [](const auto& pair) { return pair.first; });
+                 
+        return ranked_nodes;
+    }
+    
+    float calculate_node_score(Node* node,
+                             const ContainerSpec& spec) {
+        float resource_score = calculate_resource_score(node, spec);
+        float spread_score = calculate_spread_score(node, spec);
+        float locality_score = calculate_locality_score(node, spec);
+        
+        return resource_score * 0.5 +
+               spread_score * 0.3 +
+               locality_score * 0.2;
+    }
+    
+    void deploy_container(Container* container,
+                         Node* node,
+                         const ContainerSpec& spec) {
+        // 컨테이너 배포
+        reserve_resources(node, spec);
+        create_container(node, container, spec);
+        update_node_state(node);
+        
+        // 모니터링 설정
+        setup_monitoring(container, node);
+        
+        // 네트워킹 설정
+        configure_networking(container, node);
+    }
+};
+```
+
+### 5. 미래 트렌드와 과제
+
+현대 스케줄링 시스템이 직면한 주요 과제와 향후 발전 방향입니다:
+
+```mermaid
+graph TD
+    subgraph "미래 스케줄링 과제"
+        A[하이브리드 워크로드] --> D[최적화 목표]
+        B[자원 효율성] --> D
+        C[확장성] --> D
+        
+        E[새로운 아키텍처] --> F[미래 시스템]
+        D --> F
+        
+        style A fill:#f96,stroke:#333,stroke-width:2px
+        style D fill:#9cf,stroke:#333,stroke-width:2px
+        style F fill:#f9f,stroke:#333,stroke-width:2px
+    end
+```
+
+1. 하이브리드 워크로드 최적화
+   * 다양한 워크로드 특성 고려
+   * 자원 효율성과 성능 균형
+   * 동적 부하 적응
+
+2. 이종 컴퓨팅 환경 지원
+   * CPU/GPU/TPU/FPGA 통합 관리
+   * 하드웨어 가속기 최적 활용
+   * 이기종 프로세서 간 작업 분배
+
+3. 자율 스케줄링
+   * AI 기반 의사결정
+   * 자가 적응형 시스템
+   * 예측적 자원 할당
+
+4. 확장성과 신뢰성
+   * 대규모 분산 시스템 지원
+   * 장애 복구 메커니즘
+   * 일관성 보장
+
+5. 새로운 컴퓨팅 패러다임 대응
+   * 양자 컴퓨팅 통합
+   * 엣지 컴퓨팅 최적화
+   * 서버리스 아키텍처
+
+구현 예제:
+```c
+class NextGenScheduler {
+private:
+    struct ResourcePool {
+        vector<CPU*> cpus;
+        vector<GPU*> gpus;
+        vector<TPU*> tpus;
+        vector<FPGA*> fpgas;
+        vector<QuantumProcessor*> quantum_processors;
+    };
+    
+    struct WorkloadPredictor {
+        MLModel resource_usage_model;
+        MLModel performance_model;
+        MLModel failure_predictor;
+    };
+    
+    ResourcePool resources;
+    WorkloadPredictor predictor;
+    AIDecisionMaker decision_maker;
+    
+public:
+    void schedule_workload(Workload* workload) {
+        // 워크로드 분석
+        auto characteristics = analyze_workload(workload);
+        
+        // 미래 자원 요구사항 예측
+        auto future_demands = 
+            predictor.predict_resource_demands(workload);
+        
+        // 최적 실행 계획 수립
+        auto execution_plan = 
+            decision_maker.create_optimal_plan(
+                characteristics,
+                future_demands,
+                resources
+            );
+        
+        // 실행 계획 적용
+        execute_plan(workload, execution_plan);
+        
+        // 성능 모니터링 및 피드백
+        monitor_and_adjust(workload, execution_plan);
+    }
+    
+private:
+    WorkloadCharacteristics analyze_workload(
+        Workload* workload) {
+        return {
+            .compute_intensity = 
+                measure_compute_intensity(workload),
+            .memory_pattern = 
+                analyze_memory_access_pattern(workload),
+            .data_locality = 
+                evaluate_data_locality(workload),
+            .parallelism = 
+                estimate_parallelism_degree(workload)
+        };
+    }
+    
+    void execute_plan(Workload* workload,
+                     const ExecutionPlan& plan) {
+        // 자원 할당
+        allocate_resources(workload, plan);
+        
+        // 워크로드 배포
+        deploy_workload(workload, plan);
+        
+        // 실행 환경 최적화
+        optimize_runtime_environment(workload, plan);
+        
+        // 모니터링 설정
+        setup_advanced_monitoring(workload);
+    }
+    
+    void monitor_and_adjust(Workload* workload,
+                          const ExecutionPlan& plan) {
+        while (workload->is_running()) {
+            // 성능 메트릭 수집
+            auto metrics = collect_performance_metrics(workload);
+            
+            // 이상 징후 감지
+            if (detect_anomalies(metrics)) {
+                handle_anomalies(workload, metrics);
+            }
+            
+            // 자원 사용 최적화
+            if (need_optimization(metrics)) {
+                optimize_resource_usage(workload, metrics);
+            }
+            
+            // 실행 계획 갱신
+            update_execution_plan(workload, plan, metrics);
+        }
+    }
+    
+    void handle_anomalies(Workload* workload,
+                         const PerformanceMetrics& metrics) {
+        // 장애 예측
+        if (predictor.failure_predictor.predict_failure(metrics)) {
+            initiate_preventive_actions(workload);
+        }
+        
+        // 성능 저하 대응
+        if (metrics.performance_degradation_detected) {
+            mitigate_performance_issues(workload);
+        }
+        
+        // 자원 경합 해결
+        if (metrics.resource_contention_detected) {
+            resolve_resource_contention(workload);
+        }
+    }
+};
+```
+
+이러한 미래 지향적 스케줄러는 다음과 같은 특징을 가집니다:
+
+1. 적응형 의사결정
+   * AI/ML 기반 예측
+   * 실시간 성능 최적화
+   * 동적 자원 재할당
+
+2. 복합 워크로드 처리
+   * 다중 프로세서 아키텍처 지원
+   * 워크로드 특성 기반 최적화
+   * 자원 사용 효율성 극대화
+
+3. 자가 관리
+   * 자동 장애 감지 및 복구
+   * 성능 자동 튜닝
+   * 예방적 유지보수
+
+4. 확장 가능한 아키텍처
+   * 새로운 컴퓨팅 리소스 통합
+   * 유연한 정책 적용
+   * 플러그인 기반 확장성
+
+이러한 발전은 더욱 복잡해지는 컴퓨팅 환경에서 효율적인 자원 관리를 가능하게 할 것입니다.
