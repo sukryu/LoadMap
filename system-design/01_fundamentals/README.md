@@ -1,114 +1,103 @@
-# 📖 시스템 설계 기초 (01_fundamentals)
+# 📂 시스템 설계 기초 - 01_fundamentals
 
-## 🏆 목표
-- 시스템 설계의 **핵심 원칙과 개념**을 익힌다.
-- **설계 패턴, 아키텍처 스타일, 성능 및 확장성** 등의 기본적인 지식을 학습한다.
-- 실무에서 **안정적이고 확장 가능한 시스템을 설계할 수 있는 기반**을 마련한다.
+> **목표:**  
+> - 시스템 설계의 기초 개념을 학습하여 강력한 아키텍처의 기반을 마련한다.  
+> - 설계 원칙, 디자인 패턴, 아키텍처 스타일, 확장성, 유지보수성, 보안 등의 핵심 개념을 정리하고 실습한다.  
+> - 실무에서 활용할 수 있도록 이론과 함께 실제 사례를 분석하고 트레이드오프를 고려한다.
 
 ---
 
-## 📌 디렉토리 구조 및 학습 내용
+## 📌 **디렉토리 구조**
 ```
-01_fundamentals/
-├── principles/        # 설계 원칙
-├── patterns/          # 디자인 패턴
-├── architecture/      # 아키텍처 스타일
-├── scalability/       # 성능 및 확장성
-└── real_world/        # 실전 설계 사례
-```
-
----
-
-## 🏗️ **1. 설계 원칙 (principles/)**
-> **소프트웨어 설계에서 필수적으로 알아야 할 원칙을 익힌다.**  
-✅ **개념 → 코드 예제 → 실무 적용 방법** 순서로 학습  
-
-### 📚 학습 내용
-- **SOLID 원칙** (SRP, OCP, LSP, ISP, DIP)  
-- **DRY, KISS, YAGNI** 등 일반적인 설계 원칙  
-- **관심사 분리(Separation of Concerns)**  
-- **Fail Fast & Graceful Degradation (빠른 실패 & 우아한 성능 저하)**  
-
-> 📍 자세한 내용은 `principles/README.md` 참고
-
----
-
-## 🎨 **2. 디자인 패턴 (patterns/)**
-> **소프트웨어 개발에서 자주 사용되는 설계 패턴을 익힌다.**  
-
-### 📚 학습 내용
-- **생성 패턴**: Factory, Singleton, Builder  
-- **구조 패턴**: Adapter, Proxy, Decorator  
-- **행위 패턴**: Observer, Strategy, Command  
-
-> 📍 자세한 내용은 `patterns/README.md` 참고
-
----
-
-## 🏛️ **3. 아키텍처 스타일 (architecture/)**
-> **시스템 설계에서 활용되는 다양한 아키텍처 스타일 학습**  
-
-### 📚 학습 내용
-- **계층화 아키텍처 (Layered Architecture)**
-- **이벤트 기반 아키텍처 (Event-Driven Architecture)**
-- **마이크로서비스 아키텍처 (Microservices Architecture)**
-- **서버리스 아키텍처 (Serverless Architecture)**
-
-> 📍 자세한 내용은 `architecture/README.md` 참고
-
----
-
-## 📈 **4. 성능 및 확장성 (scalability/)**
-> **성능 최적화 및 확장성 고려한 시스템 설계 기법 학습**  
-
-### 📚 학습 내용
-- **수평적 확장 (Horizontal Scaling) vs 수직적 확장 (Vertical Scaling)**
-- **로드 밸런싱 (Load Balancing)**
-- **데이터베이스 성능 최적화 (Indexing, Caching, Partitioning)**
-- **분산 시스템에서의 성능 고려 사항**
-
-> 📍 자세한 내용은 `scalability/README.md` 참고
-
----
-
-## 🏆 **5. 실전 설계 사례 (real_world/)**
-> **실제 기업들의 시스템 설계를 분석하며 학습**  
-
-### 📚 학습 내용
-- **Netflix의 아키텍처 설계 원칙**
-- **Uber의 마이크로서비스 적용 사례**
-- **Airbnb의 확장성 고려한 데이터베이스 설계**
-- **AWS의 서버리스 아키텍처 활용 사례**
-
-> 📍 자세한 내용은 `real_world/README.md` 참고
-
----
-
-## 🔍 학습 방법
-1. 각 개념을 이론적으로 학습한다.
-2. 작은 규모의 예제 코드를 작성하여 원리를 이해한다.
-3. 실제 사례를 분석하여 실무 적용 방식을 익힌다.
-4. 설계 결정을 문서화하고 피드백을 받는다.
-
----
-
-## 📚 추천 학습 리소스
-- **"Designing Data-Intensive Applications" - Martin Kleppmann**
-- **"Clean Architecture" - Robert C. Martin**
-- **"System Design Interview" - Alex Xu**
-- **System Design Primer (GitHub)**
-
----
-
-## ✅ 마무리
-이 디렉토리는 시스템 설계의 **기본 개념을 익히는 입문 단계**입니다.  
-모든 설계 원칙과 패턴이 실무에서 어떻게 적용되는지 고민하며 학습하는 것이 중요합니다. 🚀
-
+01_fundamentals/               # 시스템 설계 기초
+├── principles/                # 설계 원칙
+├── patterns/                  # 디자인 패턴
+├── architecture/              # 아키텍처 스타일
+├── scalability/               # 확장성 개념
+├── maintainability/           # 유지보수성
+├── security_basics/           # 보안 기초
+└── README.md
 ```
 
 ---
 
-이 문서는 **01_fundamentals** 디렉토리의 전체적인 개요를 제공하며,  
-각 서브 디렉토리(설계 원칙, 패턴, 아키텍처 스타일 등)에 대한 학습 내용을 소개합니다.  
+## 📖 **1. 개념 개요**
+> **시스템 설계를 올바르게 수행하기 위한 핵심 개념을 학습하는 단계**
 
-필요한 추가 사항이나 수정할 부분이 있다면 알려주세요! 😊
+- ✅ **왜 중요한가?**  
+  - 시스템 설계는 대규모 애플리케이션을 안정적으로 운영하기 위해 필수적이다.
+  - 성능, 확장성, 유지보수성을 고려하여 설계해야 한다.
+  - 보안 및 데이터 일관성을 유지하는 방법을 이해해야 한다.
+
+- ✅ **어떤 문제를 해결하는가?**  
+  - 성능 병목, 데이터 무결성, 시스템 장애, 확장성 문제 해결
+  - 유지보수성을 높이고, 코드의 복잡도를 줄이는 방법 학습
+  - 분산 환경에서의 트랜잭션 관리 및 네트워크 문제 해결
+
+- ✅ **실무에서 어떻게 적용하는가?**  
+  - 강력한 설계 원칙을 기반으로 안정적인 소프트웨어를 구축
+  - 적절한 디자인 패턴과 아키텍처 스타일을 선택하여 유지보수성을 개선
+  - 확장성과 보안을 고려한 시스템을 설계하여 실제 프로젝트에서 적용
+
+---
+
+## 🏗 **2. 학습 내용**
+### 📚 주요 학습 주제
+- **설계 원칙 (principles/)**
+  - SOLID 원칙, CAP 정리, ACID vs BASE 모델
+  - 시스템 디자인 트레이드오프 및 주요 고려 사항
+
+- **디자인 패턴 (patterns/)**
+  - 싱글톤, 팩토리, 리포지토리 패턴 등 주요 패턴 학습
+  - 객체지향 및 함수형 프로그래밍 패턴 적용 사례
+
+- **아키텍처 스타일 (architecture/)**
+  - 모놀리식 vs 마이크로서비스 아키텍처
+  - 레이어드 아키텍처, 클린 아키텍처, 헥사고날 아키텍처
+
+- **확장성 (scalability/)**
+  - 수평적/수직적 확장 방식, 로드 밸런싱, 캐싱 전략
+  - 데이터 샤딩 및 데이터베이스 스케일링
+
+- **유지보수성 (maintainability/)**
+  - 코드 모듈화, 리팩토링, 테스트 전략 및 CI/CD 적용
+  - 코드 품질 개선을 위한 베스트 프랙티스
+
+- **보안 기초 (security_basics/)**
+  - 인증/인가 원칙, 데이터 암호화, OWASP Top 10 취약점 대응
+  - API 보안 및 인프라 보안 기초
+
+---
+
+## 🚀 **3. 실전 사례 분석**
+> **실제 기업이 시스템 설계 원칙을 어떻게 활용하는가?**
+
+- **Netflix** - 마이크로서비스 아키텍처 및 분산 시스템 적용 사례
+- **Uber** - 확장성을 고려한 데이터 관리 및 서비스 패턴
+- **Google** - 대규모 분산 시스템 설계 및 트랜잭션 관리 기법
+
+---
+
+## 🎯 **4. 학습 방법**
+1️⃣ 개념 이론 학습  
+2️⃣ 설계 패턴 학습  
+3️⃣ 실제 사례 분석  
+4️⃣ 코드 실습 진행  
+5️⃣ 트레이드오프 분석  
+
+---
+
+## 📚 **5. 추천 리소스**
+- 📖 _Designing Data-Intensive Applications_ - Martin Kleppmann  
+- 📖 _Building Microservices_ - Sam Newman  
+- 📖 _System Design Interview_ - Alex Xu  
+- 📌 [System Design Primer](https://github.com/donnemartin/system-design-primer)  
+- 📌 [Awesome Scalability](https://github.com/binhnguyennus/awesome-scalability)  
+
+---
+
+## ✅ **마무리**
+이 문서는 **시스템 설계를 위한 기초 개념을 학습하는 첫 단계**입니다.
+이론 → 패턴 학습 → 실전 사례 → 코드 실습의 흐름을 따라 학습하며,
+실무에서 최적의 설계를 고민하고 적용하는 능력을 키우는 것이 목표입니다. 🚀
+

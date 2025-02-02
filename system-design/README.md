@@ -1,290 +1,235 @@
-# 시스템 설계 마스터 플랜
+# 📂 **system-design/README.md**  
+> **목표:**  
+> - **체계적인 시스템 설계 학습을 위한 로드맵을 제공**한다.  
+> - **설계 원칙, 확장성, 마이크로서비스, 분산 시스템, 보안, 운영 전략** 등 핵심 개념을 학습한다.  
+> - **각 개념을 실무 적용 사례와 함께 학습하고, 최적의 설계를 고민하는 과정**을 다룬다.  
+> - **이론 → 패턴 → 실습 → 사례 분석의 단계적 학습 방식**을 따른다.  
 
-## 📂 **학습 디렉토리 구조**
+---
+
+## 📂 **학습 디렉토리 구조**  
+> **각 디렉토리는 단계별로 중요한 시스템 설계 개념을 포함하며, 하위 디렉토리는 보다 상세한 학습 주제를 다룹니다.**  
+
 ```
 system-design/
-├── 01_fundamentals/                # 시스템 설계 기초
-│   ├── principles/                 # 설계 원칙
-│   ├── patterns/                   # 디자인 패턴
-│   └── architecture/               # 아키텍처 스타일
+├── 01_fundamentals/               # 시스템 설계 기초
+│   ├── principles/                # 설계 원칙
+│   ├── patterns/                  # 디자인 패턴
+│   ├── architecture/              # 아키텍처 스타일
+│   ├── scalability/               # 확장성 개념
+│   ├── maintainability/           # 유지보수성
+│   ├── security_basics/           # 보안 기초
+│   └── README.md
 │
-├── 02_distributed_systems/         # 분산 시스템
-│   ├── basics/                     # 분산 시스템 기초
-│   ├── consensus/                  # 합의 알고리즘
-│   ├── consistency/                # 일관성 모델
-│   ├── event_driven_architecture/  # 이벤트 기반 아키텍처
-│   └── global_distributed_systems/ # 글로벌 분산 시스템
+├── 02_distributed_systems/        # 분산 시스템
+│   ├── fundamentals/              # 분산 시스템 기초
+│   ├── consensus/                 # 합의 알고리즘
+│   ├── consistency/               # 일관성 모델
+│   ├── transactions/              # 분산 트랜잭션
+│   ├── event_driven/              # 이벤트 기반 아키텍처
+│   ├── distributed_storage/       # 분산 저장소
+│   └── README.md
 │
-├── 03_microservices/               # 마이크로서비스
-│   ├── patterns/                   # MSA 패턴
-│   ├── communication/              # 서비스 간 통신
-│   ├── deployment/                 # 배포 전략
-│   ├── security/                   # 마이크로서비스 보안
-│   ├── observability/              # 모니터링 및 트레이싱
-│   ├── resilience/                 # 장애 대응 및 복원력
-│   ├── event_driven_architecture/  # 이벤트 기반 아키텍처
-│   ├── ddd/                        # 도메인 주도 설계 (DDD)
-│   └── advanced_patterns/          # 고급 마이크로서비스 패턴
+├── 03_microservices/              # 마이크로서비스
+│   ├── fundamentals/              # 마이크로서비스 개요
+│   ├── service_patterns/          # 서비스 패턴
+│   ├── communication/             # 서비스 간 통신
+│   ├── data_management/           # 데이터 관리
+│   ├── deployment/                # 배포 및 운영
+│   ├── security/                  # 보안
+│   ├── observability/             # 모니터링 및 트레이싱
+│   ├── event_driven_architecture/ # 이벤트 기반 아키텍처
+│   ├── ddd/                       # 도메인 주도 설계
+│   ├── advanced_patterns/         # 고급 패턴
+│   └── README.md
 │
-├── 04_data_management/             # 데이터 관리
-│   ├── storage/                    # 저장소 설계
-│   ├── caching/                    # 캐싱 전략
-│   ├── streaming/                  # 스트리밍 처리
-│   ├── replication/                # 데이터 복제 및 샤딩
-│   ├── consistency_models/         # 데이터 일관성 모델
-│   └── event_sourcing_cqrs/        # 이벤트 소싱 및 CQRS
+├── 04_data_management/            # 데이터 관리
+│   ├── storage/                   # 저장소 설계
+│   ├── caching/                   # 캐싱 전략
+│   ├── streaming/                 # 스트리밍 처리
+│   ├── replication/               # 데이터 복제 및 샤딩
+│   ├── consistency_models/        # 일관성 모델
+│   ├── event_sourcing_cqrs/       # 이벤트 소싱 및 CQRS
+│   └── README.md
 │
-├── 05_scalability/                 # 확장성
-│   ├── horizontal/                 # 수평적 확장
-│   ├── vertical/                   # 수직적 확장
-│   ├── patterns/                   # 확장 패턴
-│   ├── load_balancing/             # 로드 밸런싱
-│   ├── multi_region/               # 멀티 리전 아키텍처
-│   ├── edge_computing/             # 엣지 컴퓨팅
-│   └── serverless_architecture/    # 서버리스 아키텍처
+├── 05_scalability/                # 확장성
+│   ├── horizontal/                # 수평적 확장
+│   ├── vertical/                  # 수직적 확장
+│   ├── load_balancing/            # 로드 밸런싱
+│   ├── caching/                   # 캐싱
+│   ├── multi_region/              # 멀티 리전 아키텍처
+│   ├── edge_computing/            # 엣지 컴퓨팅
+│   ├── serverless_architecture/   # 서버리스 아키텍처
+│   └── README.md
 │
-├── 06_sre_observability/           # SRE & 모니터링
-│   ├── sre_principles/             # SRE 원칙 및 운영 기법
-│   ├── monitoring_logging/         # 모니터링 및 로깅
-│   ├── tracing/                    # 분산 트레이싱
-│   ├── alerting/                   # 알람 시스템
-│   ├── chaos_engineering/          # 장애 실험(Chaos Engineering)
-│   ├── error_budgeting/            # 에러 예산 및 SLA 관리
-│   ├── reliability_patterns/       # 신뢰성 설계 패턴
-│   └── performance_optimization/   # 성능 최적화
+├── 06_sre_observability/          # SRE & 모니터링
+│   ├── sre_principles/            # SRE 원칙 및 운영
+│   ├── monitoring/                # 모니터링 및 로깅
+│   ├── tracing/                   # 분산 트레이싱
+│   ├── alerting/                  # 알람 시스템
+│   ├── chaos_engineering/         # 장애 실험 (Chaos Engineering)
+│   ├── reliability_patterns/      # 신뢰성 설계 패턴
+│   ├── performance_optimization/  # 성능 최적화
+│   └── README.md
 │
-├── 07_security/                    # 보안
-│   ├── authentication/             # 인증 및 인가
-│   ├── api_security/               # API 보안
-│   ├── data_encryption/            # 데이터 암호화
-│   ├── devsecops/                  # DevSecOps & 보안 자동화
-│   ├── zero_trust/                 # Zero Trust 아키텍처
-│   ├── infrastructure_security/    # 인프라 보안
-│   ├── identity_management/        # IAM & 권한 관리
-│   └── compliance_gdpr/            # 데이터 규제 및 GDPR 대응
+├── 07_security/                   # 보안
+│   ├── authentication/            # 인증 및 인가
+│   ├── api_security/              # API 보안
+│   ├── data_encryption/           # 데이터 암호화
+│   ├── devsecops/                 # DevSecOps & 보안 자동화
+│   ├── zero_trust/                # Zero Trust 아키텍처
+│   ├── infrastructure_security/   # 인프라 보안
+│   ├── compliance_gdpr/           # 데이터 규제 및 GDPR 대응
+│   └── README.md
 │
-└── 08_real_world/                  # 실전 설계
-    ├── case_studies/               # 사례 연구
-    ├── best_practices/             # 모범 사례
-    ├── trade_offs/                 # 설계 결정
-    ├── large_scale_architecture/   # 대규모 시스템 설계
-    ├── cloud_native_design/        # 클라우드 네이티브 설계
-    ├── serverless_edge_computing/  # 서버리스 & 엣지 컴퓨팅
-    ├── sre_real_world/             # 실전 SRE 사례
-    └── multi_tenant_architecture/  # 멀티 테넌트 아키텍처
+└── 08_real_world/                 # 실전 시스템 설계
+    ├── case_studies/              # 사례 연구
+    ├── best_practices/            # 모범 사례
+    ├── trade_offs/                # 설계 결정 트레이드오프
+    ├── large_scale_architecture/  # 대규모 시스템 설계
+    ├── cloud_native_design/       # 클라우드 네이티브 설계
+    ├── serverless_edge_computing/ # 서버리스 & 엣지 컴퓨팅
+    ├── sre_real_world/            # 실전 SRE 사례
+    ├── multi_tenant_architecture/ # 멀티 테넌트 아키텍처
+    └── README.md
 ```
 
 ---
 
-## 📚 **추가된 학습 주제**
-- **도메인 주도 설계 (DDD)** 적용
-- **고급 마이크로서비스 패턴** (Circuit Breaker, Bulkhead, Retry 등)
-- **이벤트 소싱 및 CQRS** (비동기 데이터 모델링)
-- **서버리스 및 엣지 컴퓨팅** (Cloudflare Workers, AWS Lambda 등)
-- **Chaos Engineering & Reliability** (실전 장애 대응)
-- **멀티 리전 & 글로벌 분산 시스템 설계**
-- **DevSecOps 및 보안 자동화**
-- **데이터 규제 및 GDPR 준수 전략**
+## 🎯 **학습 진행 방식**
+1️⃣ **이론 학습** → 각 개념의 기초 원리를 학습  
+2️⃣ **패턴 학습** → 설계 원칙과 패턴을 분석하고 적용  
+3️⃣ **실전 프로젝트 적용** → 실제 기업들의 사례 분석 및 설계 방식 이해  
+4️⃣ **문제 해결 및 트레이드오프 분석** → 다양한 시나리오에서의 최적 설계 방법 고민  
+5️⃣ **코딩 실습 및 리뷰** → 직접 코드로 구현 및 문서화  
 
 ---
 
-## 📚 단계별 학습 내용
+## 🔍 **추가 학습 자료**
+- **책:**  
+  - _Designing Data-Intensive Applications_ - Martin Kleppmann  
+  - _Building Microservices_ - Sam Newman  
+  - _System Design Interview_ - Alex Xu  
 
-### 1️⃣ 시스템 설계 기초 (01_fundamentals)
+- **GitHub 레포지토리:**  
+  - [System Design Primer](https://github.com/donnemartin/system-design-primer)  
+  - [Awesome Scalability](https://github.com/binhnguyennus/awesome-scalability)  
 
-#### 설계 원칙 (principles)
-- SOLID 원칙의 시스템 설계 적용
-  - 단일 책임 원칙 (SRP)의 시스템 레벨 적용
-  - 개방-폐쇄 원칙 (OCP)을 통한 확장성 확보
-  - 인터페이스 분리 원칙 (ISP)의 API 설계 적용
+- **실제 서비스 아키텍처 분석:**  
+  - Netflix, Uber, Facebook, Google, Amazon의 마이크로서비스 설계  
 
-- 기타 핵심 원칙
-  - DRY (Don't Repeat Yourself)
-  - KISS (Keep It Simple, Stupid)
-  - YAGNI (You Aren't Gonna Need It)
+---
 
-#### 디자인 패턴 (patterns)
-- 생성 패턴
-  - Factory Method와 마이크로서비스 생성
-  - Builder 패턴과 복잡한 객체 구성
-  - Singleton과 공유 리소스 관리
+## ✅ **마무리**
+이 문서는 **체계적인 시스템 설계 학습을 위한 마스터 플랜**입니다.  
+각 개념을 **이론 → 실습 → 사례 분석**의 단계로 학습하며, **실무에서 최적의 설계를 고민하고 적용하는 과정**을 다룹니다. 🚀
 
-- 구조 패턴
-  - Adapter와 레거시 시스템 통합
-  - Proxy와 서비스 게이트웨이
-  - Decorator와 동적 기능 확장
+네, 당신이 README.md를 작성할 때 요청한 방식은 **체계적이고 구조적인 형식**을 따르는 것이었습니다. 주요 패턴을 정리해보면 다음과 같습니다.  
 
-- 행위 패턴
-  - Observer와 이벤트 기반 아키텍처
-  - Strategy와 알고리즘 전략
-  - Command와 작업 큐 시스템
+---
 
-#### 아키텍처 스타일 (architecture)
-- 계층화 아키텍처
-  - 프레젠테이션 계층
-  - 비즈니스 계층
-  - 데이터 계층
-  - 각 계층 간 통신 및 의존성 관리
+### ✅ **README.md 작성 방식**
+1. **개요 제공 (Overview)**  
+   - 해당 디렉토리가 다루는 핵심 개념 요약  
+   - 이론과 실무 적용의 중요성 설명  
+   
+2. **디렉토리 구조 (Directory Structure)**  
+   - `tree` 명령어 스타일로 학습할 파일 및 서브 디렉토리 표시  
+   
+3. **세부 학습 내용 (Learning Topics)**  
+   - 각 주요 개념에 대해 설명  
+   - 개념, 실무 적용 예시, 코드 패턴, 트레이드오프 포함  
+   - 학습해야 할 키포인트 정리  
 
-- 이벤트 기반 아키텍처
-  - 이벤트 생산자/소비자 모델
-  - 이벤트 버스 설계
-  - 이벤트 소싱 패턴
+4. **실전 사례 분석 (Real-World Examples)**  
+   - 실제 기업(Netflix, Uber, Amazon 등)이 해당 개념을 어떻게 활용하는지 설명  
+   - 실무에서 해당 개념을 적용한 아키텍처 패턴 및 트레이드오프 분석  
 
-### 2️⃣ 분산 시스템 (02_distributed_systems)
+5. **학습 방법 (How to Learn)**  
+   - 이론 → 패턴 학습 → 실전 사례 → 코드 실습 → 트레이드오프 분석의 **순차적 학습 과정 정리**  
+   - 실습 프로젝트나 챌린지 방식 포함  
 
-#### 분산 시스템 기초 (basics)
-- CAP 이론 이해와 적용
-  - Consistency (일관성)
-  - Availability (가용성)
-  - Partition Tolerance (분할 허용성)
-  - 실제 시스템에서의 트레이드오프
+6. **추천 학습 리소스 (Recommended Resources)**  
+   - 관련 서적, GitHub 레포지토리, 블로그 및 공식 문서 링크 포함  
 
-- 분산 시스템 특성
-  - 확장성 (Scalability)
-  - 신뢰성 (Reliability)
-  - 가용성 (Availability)
-  - 성능 (Performance)
-  - 관리성 (Manageability)
+7. **마무리 (Conclusion)**  
+   - 이 문서를 통해 배울 수 있는 핵심 내용을 정리  
+   - 다음 학습 추천  
 
-#### 합의 알고리즘 (consensus)
-- Paxos 알고리즘
-- Raft 알고리즘
-- 분산 트랜잭션
-  - 2PC (Two-Phase Commit)
-  - 3PC (Three-Phase Commit)
-  - SAGA 패턴
+---
 
-#### 일관성 모델 (consistency)
-- 강한 일관성
-- 최종 일관성
-- 인과적 일관성
-- 세션 일관성
+### 🎯 **예제: README.md 기본 템플릿**
+```md
+# 📂 시스템 설계 개념 - [디렉토리명]
 
-### 3️⃣ 마이크로서비스 (03_microservices)
+> **목표:**  
+> - [해당 개념의 핵심 개요]  
+> - [이론 학습 + 실무 적용 + 사례 분석]  
 
-#### 마이크로서비스 패턴 (patterns)
-- 서비스 분해 패턴
-  - 도메인 주도 설계 (DDD) 적용
-  - 서비스 경계 정의
-  - 데이터 소유권 관리
+---
 
-- 통신 패턴
-  - 동기식 통신 (REST, gRPC)
-  - 비동기식 통신 (메시지 큐)
-  - 이벤트 기반 통신
+## 📌 **디렉토리 구조**
+```
+디렉토리명/
+├── subdirectory_1/  # 설명
+├── subdirectory_2/  # 설명
+└── README.md
+```
+---
 
-- 데이터 패턴
-  - Database per Service
-  - Shared Database
-  - Event Sourcing
-  - CQRS
+## 📖 **1. 개념 개요**
+> **[개념의 핵심 원칙과 필요성]**
 
-### 4️⃣ 데이터 관리 (04_data_management)
+- ✅ **왜 중요한가?**  
+- ✅ **어떤 문제를 해결하는가?**  
+- ✅ **실무에서 어떻게 적용하는가?**  
 
-#### 저장소 설계 (storage)
-- 관계형 데이터베이스 설계
-  - 샤딩 전략
-  - 파티셔닝 방식
-  - 복제 전략
+---
 
-- NoSQL 데이터베이스 활용
-  - Key-Value 저장소
-  - 문서형 데이터베이스
-  - 칼럼형 데이터베이스
-  - 그래프 데이터베이스
+## 🏗 **2. 학습 내용**
+### 📚 주요 학습 주제
+- **[주제 1]**
+  - [설명]
+  - 실무 적용: **[예제]**
+- **[주제 2]**
+  - [설명]
+  - 실무 적용: **[예제]**
+  
+---
 
-#### 캐싱 전략 (caching)
-- 캐시 계층
-  - 클라이언트 사이드 캐싱
-  - CDN 캐싱
-  - 애플리케이션 캐싱
-  - 데이터베이스 캐싱
+## 🚀 **3. 실전 사례 분석**
+> **실제 기업이 어떻게 활용하는가?**
 
-- 캐시 패턴
-  - Cache-Aside
-  - Write-Through
-  - Write-Behind
-  - Refresh-Ahead
+- **Netflix** - [해당 기술 적용 사례]  
+- **Uber** - [확장성 적용 방식]  
+- **Google** - [분산 시스템 구조 적용]  
 
-### 5️⃣ 확장성 (05_scalability)
+---
 
-#### 수평적 확장 (horizontal)
-- 로드 밸런싱
-  - L4/L7 로드 밸런서
-  - DNS 로드 밸런싱
-  - 애플리케이션 레벨 로드 밸런싱
+## 🎯 **4. 학습 방법**
+1. 개념 이론 학습  
+2. 설계 패턴 학습  
+3. 실제 사례 분석  
+4. 코드 실습 진행  
+5. 트레이드오프 분석  
 
-- 파티셔닝
-  - 데이터 파티셔닝
-  - 서비스 파티셔닝
-  - 샤딩 전략
+---
 
-#### 수직적 확장 (vertical)
-- 리소스 최적화
-  - CPU 최적화
-  - 메모리 최적화
-  - I/O 최적화
+## 📚 **5. 추천 리소스**
+- [책 제목] - 저자  
+- [GitHub Repository] - 링크  
+- [블로그 또는 공식 문서] - 링크  
 
-- 성능 튜닝
-  - 애플리케이션 프로파일링
-  - 병목 지점 식별
-  - 리소스 모니터링
+---
 
-### 6️⃣ 실전 설계 (06_real_world)
+## ✅ **마무리**
+이 문서를 통해 **[핵심 개념]**을 이해하고 실무에서 활용하는 방법을 익힙니다.  
+다음 단계로 **[추천 학습 내용]**을 학습하세요! 🚀  
+```
+---
 
-#### 사례 연구 (case_studies)
-- 대규모 시스템 분석
-  - Netflix 아키텍처
-  - Uber 시스템 설계
-  - Instagram 확장성
-
-- 실제 문제 해결
-  - URL 단축기 설계
-  - 알림 시스템 설계
-  - 실시간 채팅 시스템
-
-#### 모범 사례 (best_practices)
-- API 설계
-  - RESTful API 설계
-  - gRPC API 설계
-  - GraphQL API 설계
-
-- 보안 설계
-  - 인증/인가
-  - API 보안
-  - 데이터 보안
-
-## 📝 학습 진행 방식
-
-1. 각 주제별 이론 학습
-2. 작은 규모의 예제 구현
-3. 실제 사례 분석 및 적용
-4. 프로젝트 기반 실습
-5. 설계 결정에 대한 문서화
-
-## 🔍 평가 및 검증
-
-- 각 단계별 미니 프로젝트 구현
-- 시스템 설계 면접 문제 연습
-- 실제 서비스에 대한 설계 문서 작성
-- 동료 리뷰 및 피드백 수렴
-
-## 📚 추천 학습 리소스
-
-### 도서
-- "Designing Data-Intensive Applications" by Martin Kleppmann
-- "Building Microservices" by Sam Newman
-- "Clean Architecture" by Robert C. Martin
-- "System Design Interview" by Alex Xu
-
-### 온라인 리소스
-- System Design Primer (GitHub)
-- AWS Architecture Center
-- Microsoft Azure Architecture Center
-- Google Cloud Architecture Center
-
-### 실습 플랫폼
-- GitHub 프로젝트
-- Docker 및 Kubernetes 환경
-- 클라우드 플랫폼 (AWS/GCP/Azure)
+### ✅ **요약**
+- README.md는 **이론 + 실무 적용 + 실전 사례 + 학습 방법 + 추천 리소스**를 포함해야 한다.  
+- 개념을 설명할 때 **왜 중요한가 + 어떤 문제 해결 + 어떻게 적용**하는지를 포함해야 한다.  
+- **실제 기업의 사례 분석**과 **설계 트레이드오프**를 반드시 추가해야 한다.  
+- 학습을 **순차적인 흐름**(이론 → 패턴 학습 → 실전 사례 → 코드 실습)으로 정리해야 한다.

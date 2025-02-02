@@ -1,147 +1,106 @@
-# 📂 **04_data_management (데이터 관리)**
+# 📂 데이터 관리 - 04_data_management
+
 > **목표:**  
-> - **대규모 데이터**를 안정적으로 관리하는 방법을 익힌다.  
-> - **데이터 저장, 캐싱, 스트리밍, 복제 및 분산 처리** 등 핵심 개념을 실무 관점에서 학습한다.  
-> - **데이터 일관성 모델 및 이벤트 소싱(CQRS)** 같은 고급 패턴을 적용하는 방법을 익힌다.
+> - 데이터 저장, 관리 및 최적화 전략을 학습한다.  
+> - 분산 데이터 저장소, 캐싱, 스트리밍 데이터 처리, 데이터 복제 및 샤딩을 이해하고 활용한다.  
+> - 데이터 일관성 모델과 이벤트 소싱 및 CQRS 패턴을 실무에서 적용하는 방법을 익힌다.
 
 ---
 
-## 📌 **디렉토리 구조 및 학습 내용**
+## 📌 **디렉토리 구조**
 ```
-data_management/
-├── storage/                    # 데이터 저장소 설계
-├── caching/                    # 캐싱 전략
-├── streaming/                  # 스트리밍 데이터 처리
-├── replication/                # 데이터 복제 및 샤딩
-├── consistency_models/         # 데이터 일관성 모델
-├── event_sourcing_cqrs/        # 이벤트 소싱 및 CQRS
-└── real_world_examples/        # 실전 사례 분석
+04_data_management/            # 데이터 관리 개념 학습
+├── storage/                   # 저장소 설계
+├── caching/                   # 캐싱 전략
+├── streaming/                 # 스트리밍 처리
+├── replication/               # 데이터 복제 및 샤딩
+├── consistency_models/        # 일관성 모델
+├── event_sourcing_cqrs/       # 이벤트 소싱 및 CQRS
+└── README.md
 ```
 
 ---
 
-## 📖 **1. 데이터 저장소 설계 (storage/)**
-> 데이터를 저장하고 관리하는 다양한 방식 학습  
+## 📖 **1. 개념 개요**
+> **데이터 관리는 시스템 성능, 확장성 및 가용성을 결정하는 핵심 요소이다.**
 
-### 📚 학습 내용
-- **Relational Database (RDBMS) vs NoSQL**
-  - MySQL, PostgreSQL vs MongoDB, Cassandra 비교
-  - 실무 적용: **트랜잭션이 중요한 경우 vs 확장성이 중요한 경우**
+- ✅ **왜 중요한가?**  
+  - 대규모 시스템에서 데이터 일관성과 확장성을 유지하는 것이 필수적이다.
+  - 성능을 극대화하기 위해 캐싱, 스트리밍, 데이터 샤딩을 적절히 활용해야 한다.
+  - 데이터 무결성과 보안이 중요한 요소로 작용한다.
 
-- **Sharding & Partitioning (샤딩 및 파티셔닝)**
-  - 데이터베이스를 수평적으로 분산하는 방식
-  - 실무 적용: **Facebook, Twitter의 대규모 사용자 데이터 처리 방식**
+- ✅ **어떤 문제를 해결하는가?**  
+  - 데이터 일관성 문제 (CAP 이론, PACELC 이론 적용)
+  - 대규모 트래픽을 처리할 수 있는 효율적인 데이터 저장 및 분산 기법 적용
+  - 데이터의 신뢰성과 가용성을 높이는 복제 및 장애 복구 전략
 
-- **Polyglot Persistence (다양한 저장소 활용)**
-  - 특정 목적에 맞는 데이터베이스 선택
-  - 실무 적용: **검색(Elasticsearch) + 로그(Kafka) + 트랜잭션(MySQL) 조합**
-
----
-
-## 📖 **2. 캐싱 전략 (caching/)**
-> 데이터 액세스 속도를 높이기 위한 캐싱 활용법 학습  
-
-### 📚 학습 내용
-- **Client-Side Caching (클라이언트 사이드 캐싱)**
-  - 브라우저, 모바일 앱에서 캐싱 적용
-  - 실무 적용: **CDN을 활용한 정적 파일 캐싱**
-
-- **Application-Level Caching (애플리케이션 캐싱)**
-  - Redis, Memcached 활용
-  - 실무 적용: **세션 관리, API 응답 캐싱**
-
-- **Database Caching (데이터베이스 캐싱)**
-  - 데이터베이스 질의 성능 최적화
-  - 실무 적용: **Write-Through, Write-Behind, Cache-Aside 패턴**
-
-- **Cache Expiration & Invalidation (캐시 무효화)**
-  - TTL(Time-To-Live), LRU(Least Recently Used) 적용
-  - 실무 적용: **쇼핑몰의 재고 관리 캐싱 최적화**
+- ✅ **실무에서 어떻게 적용하는가?**  
+  - 글로벌 서비스에서 멀티 리전 데이터 복제 및 샤딩 적용
+  - Redis, Memcached 등의 캐싱 기술 활용하여 응답 속도 최적화
+  - Kafka, Pulsar 등의 스트리밍 아키텍처를 활용한 실시간 데이터 처리
 
 ---
 
-## 📖 **3. 스트리밍 데이터 처리 (streaming/)**
-> 실시간 데이터 처리 및 로그 분석 기술 학습  
+## 🏗 **2. 학습 내용**
+### 📚 주요 학습 주제
+- **저장소 설계 (storage/)**
+  - 관계형 데이터베이스 vs NoSQL 데이터베이스
+  - 데이터 모델링 및 인덱싱 기법
 
-### 📚 학습 내용
-- **Message Queue vs Event Streaming**
-  - Kafka, RabbitMQ, AWS Kinesis 비교
-  - 실무 적용: **이벤트 기반 아키텍처에서의 활용 사례**
+- **캐싱 전략 (caching/)**
+  - Redis, Memcached를 활용한 캐싱 전략
+  - CDN(Content Delivery Network) 적용 방법
+  - 캐시 일관성 유지 기법
 
-- **Real-Time vs Batch Processing**
-  - Apache Flink, Spark Streaming vs Hadoop Batch
-  - 실무 적용: **금융 트랜잭션 모니터링 및 사기 탐지**
+- **스트리밍 처리 (streaming/)**
+  - Kafka, Apache Pulsar, Flink를 활용한 실시간 데이터 처리
+  - 이벤트 기반 데이터 파이프라인 구축
 
-- **Change Data Capture (CDC)**
-  - 데이터 변경 이벤트 감지
-  - 실무 적용: **Debezium을 활용한 DB 이벤트 스트리밍**
+- **데이터 복제 및 샤딩 (replication/)**
+  - 마스터-슬레이브 복제
+  - 리더-팔로워 모델 및 멀티 리전 복제 전략
+  - 샤딩(Sharding) 기법과 분산 데이터베이스 설계
 
----
+- **일관성 모델 (consistency_models/)**
+  - CAP 이론, PACELC 이론 이해 및 적용
+  - 강한 일관성 vs 최종적 일관성
 
-## 📖 **4. 데이터 복제 및 샤딩 (replication/)**
-> 데이터 가용성과 성능을 위한 **복제 및 샤딩 전략** 학습  
-
-### 📚 학습 내용
-- **Replication (데이터 복제)**
-  - Master-Slave vs Multi-Master 복제 방식
-  - 실무 적용: **MySQL Read Replica 활용**
-
-- **Partitioning (파티셔닝)**
-  - Key-Based(해싱), Range-Based, Geo-Partitioning 방식
-  - 실무 적용: **Global 서비스에서 사용자 데이터를 지역별로 저장**
-
-- **Consistency vs Availability Tradeoff**
-  - CAP 이론과 데이터 복제 방식
-  - 실무 적용: **Cassandra의 eventual consistency 적용 방식**
+- **이벤트 소싱 및 CQRS (event_sourcing_cqrs/)**
+  - CQRS(Command Query Responsibility Segregation) 개념 및 적용
+  - 이벤트 소싱을 통한 데이터 변경 기록 및 복원
+  - SAGA 패턴을 활용한 트랜잭션 관리
 
 ---
 
-## 📖 **5. 데이터 일관성 모델 (consistency_models/)**
-> 분산 환경에서 데이터의 **일관성을 보장하는 방식** 학습  
+## 🚀 **3. 실전 사례 분석**
+> **대규모 서비스가 데이터 관리를 어떻게 활용하는가?**
 
-### 📚 학습 내용
-- **ACID vs BASE 모델**
-  - 강한 일관성(ACID) vs 최종적 일관성(BASE) 비교
-  - 실무 적용: **온라인 결제 시스템 vs SNS 뉴스피드 일관성 요구 사항**
-
-- **Strong Consistency (강한 일관성)**
-  - 모든 노드에서 즉시 동일한 데이터 제공
-  - 실무 적용: **은행 계좌 잔액 정보 처리**
-
-- **Eventual Consistency (최종적 일관성)**
-  - 시간이 지나면 모든 노드가 동일한 데이터를 가짐
-  - 실무 적용: **DynamoDB, Cassandra 기반 분산 시스템**
-
-- **Causal Consistency (인과적 일관성)**
-  - A가 B보다 먼저 일어나야 한다는 보장
-  - 실무 적용: **SNS 댓글 정렬 방식**
+- **Netflix** - 분산 데이터베이스 및 이벤트 소싱을 통한 확장성 확보
+- **Facebook** - MySQL 샤딩 및 캐싱을 활용한 대규모 트래픽 처리
+- **Uber** - 데이터 스트리밍과 CQRS 패턴을 활용한 실시간 분석 아키텍처
 
 ---
 
-## 📖 **6. 이벤트 소싱 및 CQRS (event_sourcing_cqrs/)**
-> 데이터 변경을 이벤트 기반으로 관리하는 고급 패턴 학습  
-
-### 📚 학습 내용
-- **What is Event Sourcing? (이벤트 소싱이란?)**
-  - 데이터를 현재 상태가 아닌 변경 이벤트로 저장
-  - 실무 적용: **금융 트랜잭션 기록 보관 시스템**
-
-- **CQRS (Command Query Responsibility Segregation)**
-  - 읽기/쓰기 모델을 분리하여 성능 향상
-  - 실무 적용: **온라인 쇼핑몰의 주문 처리 최적화**
-
-- **Saga Pattern (분산 트랜잭션 관리)**
-  - 여러 마이크로서비스 간 데이터 일관성을 유지하는 방법
-  - 실무 적용: **주문-결제-배송 프로세스에서 롤백 처리**
+## 🎯 **4. 학습 방법**
+1️⃣ 개념 이론 학습  
+2️⃣ 설계 패턴 학습  
+3️⃣ 실제 사례 분석  
+4️⃣ 코드 실습 진행  
+5️⃣ 트레이드오프 분석  
 
 ---
 
-## 📖 **7. 실전 사례 분석 (real_world_examples/)**
-> 실제 기업들이 데이터 관리 전략을 어떻게 적용하는지 학습  
+## 📚 **5. 추천 리소스**
+- 📖 _Designing Data-Intensive Applications_ - Martin Kleppmann  
+- 📖 _NoSQL Distilled_ - Pramod J. Sadalage & Martin Fowler  
+- 📖 _Kafka: The Definitive Guide_ - Gwen Shapira et al.  
+- 📌 [Apache Kafka Documentation](https://kafka.apache.org/documentation/)  
+- 📌 [Awesome Database](https://github.com/numetriclab/awesome-db)  
 
-### 📚 학습 내용
-- **Netflix의 데이터 관리 아키텍처**
-- **Uber의 실시간 데이터 스트리밍**
-- **Amazon DynamoDB의 일관성 모델 적용 방식**
-- **Airbnb의 예약 시스템에서 CQRS 활용**
-- **Google Spanner의 글로벌 데이터베이스 설계**
+---
+
+## ✅ **마무리**
+이 문서는 **데이터 관리의 핵심 개념을 체계적으로 학습하는 단계**입니다.
+이론 → 패턴 학습 → 실전 사례 → 코드 실습의 흐름을 따라 학습하며,
+실무에서 확장성과 일관성을 고려한 데이터 저장 및 관리 아키텍처를 설계할 수 있도록 합니다. 🚀
+

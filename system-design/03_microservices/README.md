@@ -1,196 +1,122 @@
-# 📂 **03_microservices (마이크로서비스)**
+# 📂 마이크로서비스 아키텍처 - 03_microservices
+
 > **목표:**  
-> - 모놀리식 시스템과 마이크로서비스 아키텍처(MSA)의 차이를 이해한다.  
-> - MSA의 주요 패턴과 **서비스 간 통신, 데이터 관리, 보안, 장애 대응**을 학습한다.  
-> - 실무에서 **도메인 주도 설계(DDD)** 및 **고급 패턴**을 활용하여 **확장 가능하고 유지보수성이 높은** 시스템을 설계하는 방법을 익힌다.
+> - 마이크로서비스 아키텍처(MSA)의 개념과 설계 원칙을 학습한다.  
+> - 서비스 분리 전략, 서비스 간 통신 방식, 데이터 관리 기법을 이해하고 활용한다.  
+> - 실무에서 확장 가능하고 유지보수하기 쉬운 마이크로서비스 시스템을 설계하는 방법을 익힌다.
 
 ---
 
-## 📌 **디렉토리 구조 및 학습 내용**
+## 📌 **디렉토리 구조**
 ```
-microservices/
+03_microservices/              # 마이크로서비스 개념 학습
 ├── fundamentals/              # 마이크로서비스 개요
-├── patterns/                  # MSA 패턴
+├── service_patterns/          # 서비스 패턴
 ├── communication/             # 서비스 간 통신
-├── data_management/           # 데이터 관리 전략
-├── deployment/                # 배포 및 운영 전략
-├── security/                  # 마이크로서비스 보안
+├── data_management/           # 데이터 관리
+├── deployment/                # 배포 및 운영
+├── security/                  # 보안
 ├── observability/             # 모니터링 및 트레이싱
-├── resilience/                # 장애 대응 및 복원력
 ├── event_driven_architecture/ # 이벤트 기반 아키텍처
-├── ddd/                       # 도메인 주도 설계 (DDD)
-├── advanced_patterns/         # 고급 마이크로서비스 패턴
-└── real_world_examples/       # 실전 사례 분석
+├── ddd/                       # 도메인 주도 설계
+├── advanced_patterns/         # 고급 패턴
+└── README.md
 ```
 
 ---
 
-## 📖 **1. 마이크로서비스 개요 (fundamentals/)**
-> 마이크로서비스가 **무엇인지** 이해하고, 기존 모놀리식 아키텍처와 비교
+## 📖 **1. 개념 개요**
+> **마이크로서비스 아키텍처는 독립적으로 배포 가능한 작은 서비스들의 집합으로 구성된 분산 시스템이다.**
 
-### 📚 학습 내용
-- **What is Microservices? (마이크로서비스란?)**
-  - Monolithic vs Microservices 비교
-  - 실무 적용: **MSA를 도입하는 이유와 장단점**
+- ✅ **왜 중요한가?**  
+  - 서비스 간 결합도를 낮추고 독립적인 배포가 가능하게 한다.
+  - 확장성과 유지보수성을 향상시키며, DevOps 및 CI/CD 파이프라인과 잘 어울린다.
+  - 빠른 기능 배포 및 유연한 개발이 가능하다.
 
-- **When to Use Microservices? (언제 MSA를 사용할까?)**
-  - 적절한 사용 사례 (ex. 대규모 확장이 필요한 경우)
-  - 실무 적용: **Netflix, Amazon의 MSA 도입 과정**
+- ✅ **어떤 문제를 해결하는가?**  
+  - 모놀리식 아키텍처의 한계를 극복하고 팀 간 협업을 용이하게 함
+  - 대규모 시스템의 서비스 확장과 장애 격리를 효율적으로 관리
+  - 서비스 간 데이터 공유 및 복잡한 비즈니스 로직 분리를 가능하게 함
 
----
-
-## 📖 **2. MSA 패턴 (patterns/)**
-> 서비스 분해 전략과 아키텍처 패턴을 학습
-
-### 📚 학습 내용
-- **Service Decomposition (서비스 분해)**
-  - 도메인별 서비스 나누기 (Bounded Context)
-  - 실무 적용: **DDD를 활용한 마이크로서비스 설계**
-
-- **Database per Service (서비스별 데이터베이스)**
-  - 각 서비스가 독립적인 DB를 가져야 하는 이유
-  - 실무 적용: **Banking 시스템에서 데이터 일관성 유지**
-
-- **API Gateway Pattern (API 게이트웨이 패턴)**
-  - 서비스 요청을 단일 진입점으로 통합
-  - 실무 적용: **Netflix API Gateway (Zuul) 사례**
+- ✅ **실무에서 어떻게 적용하는가?**  
+  - 각 도메인별 독립적인 마이크로서비스 설계 및 배포
+  - API Gateway를 활용한 서비스 통합 및 보안 강화
+  - 컨테이너 및 쿠버네티스를 통한 자동 확장 및 운영 효율화
 
 ---
 
-## 📖 **3. 서비스 간 통신 (communication/)**
-> 마이크로서비스 간 데이터를 주고받는 다양한 방식 학습
+## 🏗 **2. 학습 내용**
+### 📚 주요 학습 주제
+- **마이크로서비스 개요 (fundamentals/)**
+  - 모놀리식 vs 마이크로서비스 비교
+  - 마이크로서비스 도입의 장단점
 
-### 📚 학습 내용
-- **Synchronous vs Asynchronous Communication (동기 vs 비동기 통신)**
-  - REST vs gRPC vs Message Queue 비교
-  - 실무 적용: **Kafka, RabbitMQ 활용**
+- **서비스 패턴 (service_patterns/)**
+  - API Gateway, BFF (Backend for Frontend)
+  - 서비스 레지스트리 및 서비스 디스커버리
 
-- **Service Mesh (서비스 메시)**
-  - Istio, Linkerd와 같은 서비스 메시의 역할
-  - 실무 적용: **Envoy 기반 트래픽 관리**
+- **서비스 간 통신 (communication/)**
+  - REST, gRPC, GraphQL, 메시지 큐 (Kafka, RabbitMQ)
+  - 동기 vs 비동기 통신 방식
 
----
+- **데이터 관리 (data_management/)**
+  - 데이터 분할 전략 (Database per Service, Shared Database)
+  - CQRS 및 이벤트 소싱 적용
 
-## 📖 **4. 데이터 관리 전략 (data_management/)**
-> 분산 환경에서 데이터를 일관되게 유지하는 방법 학습
+- **배포 및 운영 (deployment/)**
+  - CI/CD 파이프라인 구축
+  - Canary Deployment, Blue-Green Deployment
 
-### 📚 학습 내용
-- **Eventual Consistency (최종적 일관성)**
-  - 분산 시스템에서 강한 일관성을 유지하는 것이 어려운 이유
-  - 실무 적용: **DynamoDB, Cassandra 등의 NoSQL 활용**
+- **보안 (security/)**
+  - 서비스 간 인증 및 인가 (OAuth, JWT, mTLS)
+  - Zero Trust 아키텍처 적용
 
-- **CQRS (Command Query Responsibility Segregation)**
-  - 읽기/쓰기 분리하여 성능 최적화
-  - 실무 적용: **고성능 검색 시스템에서 CQRS 적용**
+- **모니터링 및 트레이싱 (observability/)**
+  - 분산 로깅 및 트레이싱 (OpenTelemetry, Zipkin, Jaeger)
+  - 장애 분석 및 실시간 모니터링 (Prometheus, Grafana)
 
-- **Event Sourcing (이벤트 소싱)**
-  - 변경 이력을 이벤트로 저장하고 재현하는 방법
-  - 실무 적용: **결제 시스템의 트랜잭션 처리**
+- **이벤트 기반 아키텍처 (event_driven_architecture/)**
+  - 이벤트 소싱과 CQRS 패턴
+  - 메시지 브로커(Kafka, RabbitMQ)를 활용한 비동기 아키텍처
 
----
+- **도메인 주도 설계 (ddd/)**
+  - Bounded Context 개념
+  - Aggregate 및 Repository 패턴 적용
 
-## 📖 **5. 배포 및 운영 전략 (deployment/)**
-> CI/CD 및 MSA 운영 전략 학습
-
-### 📚 학습 내용
-- **Continuous Integration & Continuous Deployment (CI/CD)**
-  - MSA 환경에서 지속적 배포 자동화
-  - 실무 적용: **GitOps (ArgoCD, FluxCD) 활용**
-
-- **Blue-Green Deployment & Canary Release**
-  - 무중단 배포 전략과 롤백 방식
-  - 실무 적용: **Kubernetes에서 Canary 배포 적용**
+- **고급 패턴 (advanced_patterns/)**
+  - Sidecar 패턴, Circuit Breaker 패턴
+  - Strangler Fig 패턴을 활용한 단계적 마이그레이션
 
 ---
 
-## 📖 **6. 마이크로서비스 보안 (security/)**
-> 각 서비스의 보안성을 유지하는 방법
+## 🚀 **3. 실전 사례 분석**
+> **대규모 서비스가 마이크로서비스 아키텍처를 어떻게 활용하는가?**
 
-### 📚 학습 내용
-- **Authentication & Authorization (인증 및 인가)**
-  - OAuth2, OpenID Connect 활용
-  - 실무 적용: **JWT 기반 보안 토큰 사용**
-
-- **Zero Trust Security (제로 트러스트 보안)**
-  - 서비스 간 인증 및 접근 제어 강화
-  - 실무 적용: **mTLS (Mutual TLS) 적용**
-
-- **API Security (API 보안)**
-  - API Key, Rate Limiting, WAF 적용 방법
-  - 실무 적용: **Cloudflare, AWS API Gateway 활용**
+- **Netflix** - API Gateway 및 서비스 디스커버리를 활용한 확장성 극대화
+- **Uber** - 이벤트 기반 아키텍처 및 CQRS 패턴 적용 사례
+- **Amazon** - 독립적 서비스 운영을 위한 마이크로서비스 및 서버리스 활용
 
 ---
 
-## 📖 **7. 모니터링 및 트레이싱 (observability/)**
-> 마이크로서비스 환경에서 시스템을 가시적으로 관리하는 방법
-
-### 📚 학습 내용
-- **Distributed Tracing (분산 트레이싱)**
-  - 요청이 여러 서비스에서 어떻게 처리되는지 추적
-  - 실무 적용: **Jaeger, OpenTelemetry 활용**
-
-- **Log Aggregation (로그 수집 및 분석)**
-  - 중앙 집중형 로그 관리 방식
-  - 실무 적용: **ELK Stack (Elasticsearch, Logstash, Kibana)**
-
-- **Alerting & Monitoring (알람 및 모니터링)**
-  - Prometheus, Grafana 기반 실시간 모니터링
-  - 실무 적용: **SLI/SLO/SLA 정의 및 관리**
+## 🎯 **4. 학습 방법**
+1️⃣ 개념 이론 학습  
+2️⃣ 설계 패턴 학습  
+3️⃣ 실제 사례 분석  
+4️⃣ 코드 실습 진행  
+5️⃣ 트레이드오프 분석  
 
 ---
 
-## 📖 **8. 장애 대응 및 복원력 (resilience/)**
-> 장애가 발생했을 때 시스템을 빠르게 복구하는 방법
-
-### 📚 학습 내용
-- **Circuit Breaker Pattern (서킷 브레이커 패턴)**
-  - 장애가 발생한 서비스에 대한 요청 차단
-  - 실무 적용: **Resilience4j 활용**
-
-- **Bulkhead Pattern (벌크헤드 패턴)**
-  - 특정 서비스 장애가 전체 시스템에 영향을 주지 않도록 격리
-  - 실무 적용: **멀티 스레드 풀 사용**
-
-- **Retry & Fallback Mechanism**
-  - 실패 시 자동 재시도 및 대체 경로 제공
-  - 실무 적용: **Spring Retry, Polly 활용**
+## 📚 **5. 추천 리소스**
+- 📖 _Building Microservices_ - Sam Newman  
+- 📖 _Microservices Patterns_ - Chris Richardson  
+- 📖 _The Kubernetes Book_ - Nigel Poulton  
+- 📌 [Microservices.io Patterns](https://microservices.io/)  
+- 📌 [Awesome Microservices](https://github.com/mfornos/awesome-microservices)  
 
 ---
 
-## 📖 **9. 도메인 주도 설계 (DDD/)**
-> 도메인을 중심으로 서비스 경계를 나누는 전략 학습
-
-### 📚 학습 내용
-- **Bounded Context (경계 문맥)**
-  - 하나의 도메인은 독립적인 서비스로 분리
-  - 실무 적용: **유저 관리 서비스 vs 결제 서비스 분리**
-
-- **Entity, Aggregate, Value Object**
-  - 데이터 구조를 도메인 중심으로 모델링
-  - 실무 적용: **Hexagonal Architecture 적용**
-
----
-
-## 📖 **10. 고급 마이크로서비스 패턴 (advanced_patterns/)**
-> 대규모 시스템에서 활용되는 패턴 학습
-
-### 📚 학습 내용
-- **Sidecar Pattern (사이드카 패턴)**
-  - 보안, 로깅, 모니터링을 개별 컨테이너로 분리
-  - 실무 적용: **Istio 서비스 메시 활용**
-
-- **Saga Pattern**
-  - 분산 트랜잭션을 관리하는 방식
-  - 실무 적용: **AWS Step Functions 활용**
-
----
-
-## 📖 **11. 실전 사례 분석 (real_world_examples/)**
-> 실제 기업들이 MSA를 어떻게 활용하는지 학습
-
-### 📚 학습 내용
-- **Netflix의 MSA 전환 과정**
-- **Uber의 서비스 간 통신 방식**
-- **Amazon의 API Gateway 적용 사례**
-- **Spotify의 MSA 기반 추천 시스템**
-- **eBay의 CQRS & Event Sourcing 적용 사례**
+## ✅ **마무리**
+이 문서는 **마이크로서비스 아키텍처의 개념과 실무 적용 방법을 체계적으로 학습하기 위한 단계**입니다. 
+이론 → 패턴 학습 → 실전 사례 → 코드 실습의 흐름을 따라 학습하며, 
+실무에서 확장성과 유지보수성을 고려한 마이크로서비스 시스템을 설계할 수 있도록 합니다. 🚀

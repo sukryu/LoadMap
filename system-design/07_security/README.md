@@ -1,177 +1,114 @@
-# 📂 **07_security (보안)**
+# 📂 보안 - 07_security
+
 > **목표:**  
-> - **소프트웨어 및 인프라 보안**의 기본 개념을 익힌다.  
-> - **인증 및 인가, API 보안, 데이터 암호화, DevSecOps** 등의 보안 기법을 학습한다.  
-> - 실무에서 **안전한 시스템을 설계하고 공격을 방어하는 방법**을 배운다.
+> - 애플리케이션 및 인프라 보안의 핵심 개념을 학습한다.  
+> - 인증, 인가, 데이터 암호화, API 보안 및 인프라 보안 원칙을 이해하고 실무에 적용한다.  
+> - 최신 보안 위협 및 대응 방안을 연구하여 안전한 시스템을 설계한다.
 
 ---
 
-## 📌 **디렉토리 구조 및 학습 내용**
+## 📌 **디렉토리 구조**
 ```
-security/
+07_security/                   # 보안 개념 학습
 ├── authentication/            # 인증 및 인가
 ├── api_security/              # API 보안
 ├── data_encryption/           # 데이터 암호화
 ├── devsecops/                 # DevSecOps & 보안 자동화
 ├── zero_trust/                # Zero Trust 아키텍처
 ├── infrastructure_security/   # 인프라 보안
-├── identity_management/       # IAM & 권한 관리
 ├── compliance_gdpr/           # 데이터 규제 및 GDPR 대응
-└── real_world_examples/       # 실전 사례 분석
+└── README.md
 ```
 
 ---
 
-## 📖 **1. 인증 및 인가 (authentication/)**
-> **사용자 인증 및 접근 제어 시스템 설계**  
+## 📖 **1. 개념 개요**
+> **보안(Security)은 시스템의 기밀성, 무결성, 가용성을 보장하기 위한 필수 요소이다.**
 
-### 📚 학습 내용
-- **Authentication vs Authorization**
-  - 인증(Authentication)과 인가(Authorization)의 차이
-  - 실무 적용: **OAuth2, OpenID Connect, JWT 활용**
+- ✅ **왜 중요한가?**  
+  - 데이터 유출 및 해킹 공격을 방지하기 위해 필수적이다.
+  - 기업의 신뢰성과 법적 규정을 준수하는 데 중요한 역할을 한다.
+  - 클라우드 환경에서의 보안 강화가 필수적으로 요구된다.
 
-- **Single Sign-On (SSO)**
-  - 여러 서비스에서 한 번의 로그인으로 인증
-  - 실무 적용: **Google, Facebook SSO 방식 분석**
+- ✅ **어떤 문제를 해결하는가?**  
+  - 인증 및 인가 오류로 인한 데이터 유출 문제 해결
+  - API 및 인프라의 보안 취약점 방지
+  - 규정 준수 및 보안 정책을 체계적으로 관리
 
-- **Multi-Factor Authentication (MFA)**
-  - 추가 보안 레이어 적용 (OTP, 생체인증)
-  - 실무 적용: **은행, 금융 시스템에서 MFA 적용**
-
----
-
-## 📖 **2. API 보안 (api_security/)**
-> **API를 안전하게 보호하는 방법 학습**  
-
-### 📚 학습 내용
-- **Rate Limiting & Throttling**
-  - DDoS 공격 방지를 위한 요청 제한
-  - 실무 적용: **AWS API Gateway Rate Limiting 설정**
-
-- **OAuth2 & API Keys**
-  - 클라이언트가 API를 안전하게 호출하는 방법
-  - 실무 적용: **OAuth2.0 Authorization Code Flow 적용**
-
-- **HMAC & Digital Signatures**
-  - 요청의 무결성을 검증하는 방법
-  - 실무 적용: **Webhook 서명 검증 방식**
+- ✅ **실무에서 어떻게 적용하는가?**  
+  - OAuth 2.0, JWT, SAML을 활용한 인증 및 권한 부여
+  - API 게이트웨이를 통한 보안 강화 및 WAF(Web Application Firewall) 적용
+  - TLS, AES, RSA를 이용한 데이터 암호화 및 무결성 유지
 
 ---
 
-## 📖 **3. 데이터 암호화 (data_encryption/)**
-> **데이터를 안전하게 저장하고 전송하는 방법 학습**  
+## 🏗 **2. 학습 내용**
+### 📚 주요 학습 주제
+- **인증 및 인가 (authentication/)**
+  - OAuth 2.0, OpenID Connect, SAML 개념 및 적용
+  - MFA(Multi-Factor Authentication)와 SSO(Single Sign-On)
 
-### 📚 학습 내용
-- **Symmetric vs Asymmetric Encryption**
-  - 대칭키 vs 비대칭키 암호화 비교
-  - 실무 적용: **AES, RSA, ECC 암호화 방식 분석**
+- **API 보안 (api_security/)**
+  - API Gateway 및 WAF(Web Application Firewall) 적용
+  - Rate Limiting 및 API Key 관리 전략
+  - 보안 헤더 및 HTTPS 적용
 
-- **TLS & HTTPS**
-  - 데이터 전송 시 보안 유지
-  - 실무 적용: **SSL/TLS 인증서 적용 및 HSTS 설정**
+- **데이터 암호화 (data_encryption/)**
+  - 대칭 및 비대칭 암호화 (AES, RSA, ECC)
+  - 전송 중/저장 시 데이터 보호 (TLS, HSM 활용)
+  - 해시 알고리즘 및 디지털 서명 적용
 
-- **Database Encryption**
-  - 저장된 데이터의 보안 유지 방법
-  - 실무 적용: **MySQL TDE(Transparent Data Encryption) 활용**
+- **DevSecOps 및 보안 자동화 (devsecops/)**
+  - 보안 CI/CD 파이프라인 구축 (SAST, DAST, IAST 적용)
+  - 코드 보안 분석 및 자동화된 취약점 스캐닝
+  - 컨테이너 및 쿠버네티스 보안 강화
 
----
+- **Zero Trust 아키텍처 (zero_trust/)**
+  - 네트워크 기반 접근 제어 및 무신뢰 모델 적용
+  - 마이크로세그멘테이션 및 지속적 인증 원칙
+  - ID 기반 보안 정책 및 정책 실행
 
-## 📖 **4. DevSecOps & 보안 자동화 (devsecops/)**
-> **CI/CD 파이프라인에서 보안을 자동화하는 방법 학습**  
+- **인프라 보안 (infrastructure_security/)**
+  - 클라우드 보안 원칙 (AWS, GCP, Azure 보안 베스트 프랙티스)
+  - 네트워크 보안 (VPC, 방화벽, IDS/IPS 적용)
+  - 컨테이너 및 서버리스 보안
 
-### 📚 학습 내용
-- **Shift-Left Security**
-  - 개발 초기 단계부터 보안 적용
-  - 실무 적용: **코드 분석 도구 활용 (Snyk, SonarQube)**
-
-- **Container Security**
-  - Docker, Kubernetes 환경에서 보안 강화
-  - 실무 적용: **Kubernetes Network Policies 활용**
-
-- **Security as Code**
-  - 코드로 보안 정책을 관리하는 방식
-  - 실무 적용: **Terraform 및 AWS Security Hub 적용**
-
----
-
-## 📖 **5. Zero Trust 아키텍처 (zero_trust/)**
-> **신뢰할 수 없는 네트워크에서도 보안을 유지하는 방법 학습**  
-
-### 📚 학습 내용
-- **What is Zero Trust?**
-  - 기본적으로 모든 트래픽을 신뢰하지 않는 보안 모델
-  - 실무 적용: **Google BeyondCorp 사례 분석**
-
-- **Identity-Based Security**
-  - 사용자 및 디바이스 인증 기반 접근 제어
-  - 실무 적용: **IAM 기반 Zero Trust 환경 구축**
-
-- **Microsegmentation**
-  - 네트워크를 세분화하여 접근 통제
-  - 실무 적용: **Cloud Firewall & VPC Security 적용**
+- **데이터 규제 및 GDPR 대응 (compliance_gdpr/)**
+  - GDPR, CCPA 등 개인 정보 보호법 준수 전략
+  - 데이터 보존 및 삭제 정책 수립
+  - ISO 27001 및 SOC 2 보안 인증 이해
 
 ---
 
-## 📖 **6. 인프라 보안 (infrastructure_security/)**
-> **서버 및 네트워크 보안을 강화하는 방법 학습**  
+## 🚀 **3. 실전 사례 분석**
+> **대기업 및 클라우드 서비스에서 보안을 어떻게 강화하는가?**
 
-### 📚 학습 내용
-- **Firewalls & Security Groups**
-  - 네트워크 보안을 위한 기본적인 접근 통제
-  - 실무 적용: **AWS Security Group & NACL 설정**
-
-- **DDoS Protection**
-  - 분산 서비스 거부 공격 방어 전략
-  - 실무 적용: **Cloudflare, AWS Shield 활용**
-
-- **Log & Intrusion Detection**
-  - 시스템 로그 분석 및 침입 탐지 시스템(IDS) 적용
-  - 실무 적용: **Wazuh, OSSEC 기반 침입 탐지**
+- **Google** - Zero Trust 보안 모델(BeyondCorp) 적용 사례
+- **Netflix** - AWS 보안 및 IAM(Identity Access Management) 적용 사례
+- **Facebook** - OAuth 및 API 보안 정책 운영
 
 ---
 
-## 📖 **7. IAM & 권한 관리 (identity_management/)**
-> **권한 및 역할 기반 접근 제어(RBAC)를 설계하는 방법 학습**  
-
-### 📚 학습 내용
-- **Role-Based Access Control (RBAC)**
-  - 역할 기반 권한 관리 방식
-  - 실무 적용: **AWS IAM Role & Policy 설정**
-
-- **Attribute-Based Access Control (ABAC)**
-  - 속성 기반 접근 제어 모델
-  - 실무 적용: **Azure AD ABAC 활용**
-
-- **Least Privilege Principle (최소 권한 원칙)**
-  - 불필요한 권한 부여 방지
-  - 실무 적용: **클라우드 환경에서 IAM 정책 최적화**
+## 🎯 **4. 학습 방법**
+1️⃣ 개념 이론 학습  
+2️⃣ 보안 패턴 학습  
+3️⃣ 실제 사례 분석  
+4️⃣ 코드 실습 진행  
+5️⃣ 트레이드오프 분석  
 
 ---
 
-## 📖 **8. 데이터 규제 및 GDPR 대응 (compliance_gdpr/)**
-> **데이터 보호 및 개인정보 처리 법률 준수 전략 학습**  
-
-### 📚 학습 내용
-- **GDPR & CCPA Compliance**
-  - 유럽(EU) 및 미국(캘리포니아) 데이터 보호법 비교
-  - 실무 적용: **사용자 데이터 삭제 요청 처리**
-
-- **Data Masking & Anonymization**
-  - 개인정보 보호를 위한 데이터 변환 기술
-  - 실무 적용: **Tokenization vs Pseudonymization 비교**
-
-- **Audit Logging & Compliance Monitoring**
-  - 데이터 액세스 기록 유지 및 감사 로그 관리
-  - 실무 적용: **AWS CloudTrail을 활용한 감사 로그 관리**
+## 📚 **5. 추천 리소스**
+- 📖 _The Web Application Hacker’s Handbook_ - Dafydd Stuttard  
+- 📖 _Security Engineering_ - Ross Anderson  
+- 📖 _Zero Trust Networks_ - Evan Gilman & Doug Barth  
+- 📌 [OWASP Top 10 Security Risks](https://owasp.org/www-project-top-ten/)  
+- 📌 [Google Cloud Security Best Practices](https://cloud.google.com/security/best-practices)  
 
 ---
 
-## 📖 **9. 실전 사례 분석 (real_world_examples/)**
-> **실제 기업들의 보안 사례 및 공격 대응 방식 학습**  
+## ✅ **마무리**
+이 문서는 **보안의 핵심 개념과 실무 적용 방법을 학습하는 단계**입니다.
+이론 → 패턴 학습 → 실전 사례 → 코드 실습의 흐름을 따라 학습하며,
+실무에서 보안 강화를 위한 전략을 효과적으로 적용할 수 있도록 합니다. 🚀
 
-### 📚 학습 내용
-- **Google의 Zero Trust 보안 모델 (BeyondCorp)**
-- **Facebook의 OAuth 인증 및 API 보안 전략**
-- **Amazon의 IAM 정책 및 보안 자동화 적용 사례**
-- **Apple의 개인정보 보호 정책 및 데이터 암호화 기법**
-- **Cloudflare의 DDoS 방어 시스템 구축 사례**
