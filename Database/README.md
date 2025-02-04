@@ -33,13 +33,13 @@ Database/
 │   ├── python-orm.md          # Python: SQLAlchemy, Django ORM
 │   ├── node-orm.md            # Node.js: Sequelize, TypeORM
 │   ├── go-orm.md              # Go: GORM, Ent
+│   ├── java-orm.md            # Java: Hibernate
 │   └── tips.md                # ORM 사용 시 주의점 및 성능 튜닝
 ├── nosql/                     # NoSQL 및 분산 DB
 │   ├── intro.md               # NoSQL 개요 (MongoDB, Redis, Cassandra 등)
 │   ├── mongodb.md             # MongoDB 사용법과 사례
 │   ├── redis.md               # Redis: 캐싱과 데이터 저장
-│   ├── cassandra.md           # Cassandra: 분산 데이터베이스
-│   └── cap_theorem.md         # CAP 이론 및 Eventual Consistency
+│   └── cassandra.md           # Cassandra: 분산 데이터베이스
 └── storage/                   # 스토리지 및 파일시스템
     ├── intro.md               # 스토리지 개요
     ├── s3.md                  # S3: 특징과 설정 방법
