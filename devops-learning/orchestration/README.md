@@ -14,10 +14,8 @@
 ```
 orchestration/
 ├── kubernetes
-│   ├── core-concepts
-│   ├── workloads
-│   ├── networking
-│   └── storage
+│   ├── basic
+│   └── advanced
 │
 ├── local-development
 │   └── minikube

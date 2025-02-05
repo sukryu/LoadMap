@@ -16,6 +16,8 @@ advanced/
 ├── networking.md      # 네트워크, 인그레스 및 보안 정책
 ├── storage.md         # 퍼시스턴트 볼륨 및 스토리지 관리
 ├── scaling.md         # HPA 및 클러스터 오토스케일링
+├── containerd.md      # Kubernetes 컨테이너 런타임
+├── coredns.md         # 클러스터 네트워크 및 서비스 디스커버리
 └── README.md
 ```
 
