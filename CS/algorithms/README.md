@@ -15,3 +15,15 @@
 
 # 다이나믹 프로그래밍 (Dynamic Programming)
 [Dynamic Programming Algorithms](./dynamic-programming/README.md)
+
+# 탐욕 알고리즘 (Greedy)
+
+# 해시 알고리즘 (Hash)
+
+# 백트래킹 알고리즘 (Backtracking)
+
+# 문자열 처리 알고리즘 (String Processing)
+
+# 최적화 알고리즘 (Optimization)
+
+# 확률적 알고리즘 (Probabilistic)
