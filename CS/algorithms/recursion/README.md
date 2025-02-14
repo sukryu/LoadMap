@@ -1,16 +1,57 @@
 # 재귀 알고리즘
 
-## 일반 재귀(Recursion)
-[Recursion](recursion.md)
+재귀 알고리즘은 문제를 자기 자신과 유사한 더 작은 문제들로 분할하여 해결하는 강력한 기법입니다.  
+복잡한 문제를 자연스럽게 단순화할 수 있고, 다양한 알고리즘(트리 순회, 분할 정복, 동적 계획법 등)에 널리 활용됩니다.  
+아래는 여러 유형의 재귀 알고리즘에 대한 간단한 이론 설명과, 각 유형에 맞춘 구현체 예시 파일로 연결된 링크입니다.
 
-## 꼬리 재귀(Tail Recursion)
-[tail recursion](tail.md)
+---
 
-## 직접 재귀(Direct Recursion)
-[direct recursion](direct.md)
+## 일반 재귀 (Recursion)
+- **개념:**  
+  함수가 자기 자신을 호출하여 문제를 분할하고, 기본 종료 조건(base case)을 통해 재귀 호출을 중단합니다.
+- **구현 예시:**  
+  [Recursion](recursion.md)  
+  (예: `recursion.c`)
 
-## 간접 재귀(Indirect Recursion)
-[indirect recursion](indirect.md)
+---
 
-## 순수 재귀(Pure Recursion)
-[pure recursion](pure.md)
+## 꼬리 재귀 (Tail Recursion)
+- **개념:**  
+  재귀 호출이 함수의 마지막 작업으로 이루어지는 경우를 말합니다.  
+  컴파일러 최적화를 통해 꼬리 재귀는 반복문처럼 변환되어, 스택 사용을 최소화할 수 있습니다.
+- **구현 예시:**  
+  [Tail Recursion](tail.md)  
+  (예: `tail_recursion.c`)
+
+---
+
+## 직접 재귀 (Direct Recursion)
+- **개념:**  
+  함수가 직접 자기 자신을 호출하는 가장 전통적인 형태의 재귀입니다.
+- **구현 예시:**  
+  [Direct Recursion](direct.md)  
+  (예: `direct_recursion.c`)
+
+---
+
+## 간접 재귀 (Indirect Recursion)
+- **개념:**  
+  여러 함수가 서로를 순환적으로 호출하여 재귀 구조를 형성하는 방식입니다.  
+  예를 들어, 함수 A가 함수 B를 호출하고, 함수 B가 다시 함수 A를 호출하는 경우입니다.
+- **구현 예시:**  
+  [Indirect Recursion](indirect.md)  
+  (예: `indirect_recursion.c`)
+
+---
+
+## 순수 재귀 (Pure Recursion)
+- **개념:**  
+  부수 효과(side effect) 없이, 오직 재귀 호출만을 사용하여 문제를 해결하는 방식입니다.  
+  함수의 결과가 오직 입력과 재귀 호출 결과에만 의존합니다.
+- **구현 예시:**  
+  [Pure Recursion](pure.md)  
+  (예: `pure_recursion.c`)
+
+---
+
+각 링크에는 해당 재귀 유형의 구현 예시가 포함되어 있어, 이론과 함께 실무에서 활용 가능한 재귀 알고리즘 예시를 확인할 수 있습니다.
