@@ -30,7 +30,7 @@
 
 - **이진 탐색 (Binary Search):**  
   정렬된 배열을 대상으로 중간값을 기준으로 탐색 범위를 절반씩 좁혀가며 검색합니다.  
-  [Bianry Search](binary.md)
+  [Bianry Search](binary.c)
 
 - **이진 검색 심화 (Binary Search Advanced):**  
   이진 탐색의 변형 및 최적화를 통해 보다 복잡한 조건에서도 효율적인 검색을 지원합니다.  
