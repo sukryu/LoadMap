@@ -30,6 +30,7 @@ Go의 `plugin` 패키지를 사용하면, 별도의 공유 라이브러리(.so �
 
 - **main.go**: 플러그인을 동적으로 로드하고, 해당 모듈의 함수를 호출하는 기본 예제 코드가 포함되어 있습니다.
 - **examples/**: 다양한 플러그인 예제와, 플러그인 인터페이스 설계 및 확장 사례를 포함합니다.
+  - 예를 들어, `01_simple_plugin.go`, `02_plugin_with_interface.go`, `03_plugin_dynamic_loading_and_versioning.go`, `04_plugin_concurrency_example.go`, `05_plugin_error_handling.go`, `06_plugin_hot_reload.go`, `07_multi_plugin_loading.go` 등의 예제가 포함될 수 있습니다.
 
 ---
 
