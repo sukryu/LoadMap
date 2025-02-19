@@ -1,0 +1,39 @@
+// your_service.proto
+// 이 파일은 gRPC 서비스를 정의하기 위한 프로토콜 버퍼 파일입니다.
+// 프로토콜 버퍼(proto3 문법)를 사용하여, 서비스 인터페이스와 메시지 타입을 선언합니다.
+
+syntax = "proto3";
+
+// Go에서 생성된 코드를 위한 패키지 옵션입니다.
+// 실제 프로젝트에 맞게 go_package 경로를 변경하세요.
+option go_package = "github.com/your-username/go-backend-roadmap/03-backend-architecture/grpc/proto;proto";
+
+// --------------------------------------------------------------------------
+// 메시지 타입 정의
+// --------------------------------------------------------------------------
+
+// HelloRequest 메시지는 클라이언트가 서버에 인사를 요청할 때 사용하는 데이터 구조입니다.
+message HelloRequest {
+  // 클라이언트의 이름을 담는 필드입니다.
+  // 필드 번호는 1번으로 지정합니다.
+  string name = 1;
+}
+
+// HelloResponse 메시지는 서버가 클라이언트의 요청에 대해 응답할 때 사용하는 데이터 구조입니다.
+message HelloResponse {
+  // 서버에서 생성한 인사 메시지를 담는 필드입니다.
+  // 필드 번호는 1번으로 지정합니다.
+  string message = 1;
+}
+
+// --------------------------------------------------------------------------
+// 서비스 정의
+// --------------------------------------------------------------------------
+
+// YourService 서비스는 간단한 인사 기능을 제공하는 예제 서비스입니다.
+// 클라이언트는 HelloRequest 메시지를 전송하고, 서버는 HelloResponse 메시지를 반환합니다.
+service YourService {
+  // SayHello 메서드는 Unary RPC 방식으로 동작합니다.
+  // 클라이언트의 인사 요청(HelloRequest)을 받아, 인사 메시지(HelloResponse)를 반환합니다.
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+}
