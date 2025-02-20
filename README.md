@@ -188,20 +188,21 @@
 - ### Languages and Frameworks
 
   <code><img height="70" src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_go_gopher_icon_130571.png" alt="Go"></code>
-  <code><img height="70" src="https://upload.wikimedia.org/wikipedia/commons/4/44/Elixir_logo.png" alt="Elixir"></code>
-  <code><img height="70" src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" alt="C/C++"></code>
+  <code><img height="70" src="https://en.wikipedia.org/wiki/Elixir_(programming_language)#/media/File:Elixir_programming_language_logo.png" alt="Elixir"></code>
+  <code><img height="70" src="https://en.wikipedia.org/wiki/C_(programming_language)#/media/File:The_C_Programming_Language_logo.svg" alt="C"></code>
+  <code><img height="70" src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" alt="C++"></code>
 
 - ### Database
 
-  <code><img height="70" src="https://cdn.icon-icons.com/icons2/2415/PNG/512/postgresql_original_wordmark_logo_icon_146392.png" alt="PostgreSQL"></code>
+  <code><img height="70" src="https://en.wikipedia.org/wiki/PostgreSQL#/media/File:Postgresql_elephant.svg" alt="PostgreSQL"></code>
   <code><img height="70" src="https://webassets.mongodb.com/_com_assets/cms/mongodb-logo-rgb-j6w271g1xn.jpg" alt="MongoDB"></code>
-  <code><img height="70" src="https://cdn.icon-icons.com/icons2/2699/PNG/512/redis_logo_icon_168877.png" alt="Redis"></code>
+  <code><img height="70" src="https://en.wikipedia.org/wiki/Redis#/media/File:Redis_logo.svg" alt="Redis"></code>
 
 - ### Cloud & DevOps
 
-  <code><img height="70" src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker"></code>
+  <code><img height="70" src="https://en.wikipedia.org/wiki/Docker_(software)#/media/File:Docker_logo.svg" alt="Docker"></code>
   <code><img height="70" src="https://raw.githubusercontent.com/kubernetes/kubernetes/master/logo/logo.png" alt="Kubernetes"></code>
-  <code><img height="70" src="https://raw.githubusercontent.com/jenkins-zh/jenkins-zh/master/assets/images/jenkins-logo.png" alt="Jenkins"></code>
+  <code><img height="70" src="https://en.wikipedia.org/wiki/Jenkins_(software)#/media/File:Jenkins_logo_with_title.svg" alt="Jenkins"></code>
   <code><img height="70" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Actions"></code>
 
 ---
