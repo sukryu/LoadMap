@@ -24,10 +24,19 @@ Go의 `database/sql` 패키지와 다양한 SQL 드라이버(PostgreSQL, MySQL, 
 ## Directory Structure 📁
 
 ```plaintext
-04-go-sql/
-├── main.go         # 기본 데이터베이스 연결 및 쿼리 실행 예제
-├── examples/       # 트랜잭션, Prepared Statement, 커넥션 풀링 등의 추가 예제
-└── README.md       # 이 문서
+go-sql/
+├── main.go                           # 기본 데이터베이스 연동 예제
+└── examples/
+    ├── 01_connection_pooling.go      # 연결 풀 관리
+    ├── 02_prepared_statements.go     # 준비된 구문 활용
+    ├── 03_transactions.go            # 트랜잭션 처리
+    ├── 04_batch_operations.go        # 배치 작업 처리
+    ├── 05_query_builder.go           # 동적 쿼리 생성
+    ├── 06_error_handling.go          # 에러 처리 전략
+    ├── 07_migration_patterns.go      # 마이그레이션 관리
+    ├── 08_query_monitoring.go        # 쿼리 모니터링
+    ├── 09_context_usage.go           # 컨텍스트 활용
+    └── 10_replication_handling.go    # 복제 처리
 ```
 
 - **main.go**: 기본적인 데이터베이스 연결과 쿼리 실행을 보여주는 샘플 코드가 포함되어 있습니다.

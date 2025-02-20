@@ -24,12 +24,21 @@
 
 ## Directory Structure 📁
 
-```plaintext
-04-database/
-└── nosql-go/
-    ├── main.go         # NoSQL 데이터베이스와의 기본 연결 및 CRUD 예제
-    ├── examples/       # MongoDB, Redis 등 고급 활용 사례 및 추가 예제
-    └── README.md       # 이 문서
+```
+nosql-go/
+├── main.go               # 기본 데이터베이스 연동 예제
+├── examples/            # 고급 기능 구현 예제
+│   ├── 01_worker_pool.go        # 병렬 처리 구현
+│   ├── 02_aggregation.go        # MongoDB 집계 파이프라인
+│   ├── 03_redis_caching.go      # Redis 캐싱 전략
+│   ├── 04_redis_pubsub.go       # 발행-구독 패턴
+│   ├── 05_transactions.go       # 트랜잭션 처리
+│   ├── 06_error_handling.go     # 오류 처리 전략
+│   ├── 07_sharding.go          # 샤딩 구현
+│   ├── 08_monitoring.go        # 성능 모니터링
+│   ├── 09_data_migration.go    # 데이터 마이그레이션
+│   └── 10_security.go          # 보안 구현
+└── README.md            # 프로젝트 문서
 ```
 
 - **main.go**: NoSQL 데이터베이스와 연결하고 간단한 CRUD 작업을 수행하는 기본 예제가 포함되어 있습니다.

@@ -25,9 +25,19 @@
 ```plaintext
 04-database/
 └── query-optimization/
-    ├── main.go         # 쿼리 최적화 관련 기본 예제 코드
-    ├── examples/       # 다양한 최적화 기법과 실행 계획 분석 예제
-    └── README.md       # 이 문서
+    ├── main.go                        # 쿼리 최적화의 핵심 구현
+    ├── examples/
+    │   ├── 01_worker_pool.go         # 병렬 쿼리 처리 구현
+    │   ├── 02_advanced_indexing.go   # 고급 인덱싱 전략
+    │   ├── 03_query_profiling.go     # 쿼리 프로파일링 도구
+    │   ├── 04_connection_pooling.go  # 데이터베이스 연결 풀 최적화
+    │   ├── 05_batch_processing.go    # 대량 데이터 처리 최적화
+    │   ├── 06_query_caching.go       # 쿼리 결과 캐싱 전략
+    │   ├── 07_error_handling.go      # 데이터베이스 오류 처리
+    │   ├── 08_monitoring_metrics.go  # 성능 모니터링 시스템
+    │   ├── 09_partition_strategy.go  # 테이블 파티셔닝 전략
+    │   └── 10_optimization_patterns.go # 쿼리 최적화 패턴
+    └── README.md                      # 프로젝트 문서화
 ```
 
 - **main.go**: 기본적인 SQL 쿼리 최적화와 실행 계획 분석을 위한 샘플 코드를 제공합니다.
