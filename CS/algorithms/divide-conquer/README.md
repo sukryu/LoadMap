@@ -88,11 +88,11 @@
 
 - **Selection Algorithm:**  
   예를 들어, QuickSelect 알고리즘은 분할 정복을 사용하여 배열에서 k번째 작은 원소를 효율적으로 찾습니다.  
-  [Selection Algorithm](select.md)
+  [Selection Algorithm](./Selection/README.md)
 
 - **Maximum Subarray Problem:**  
   배열에서 연속된 부분 배열의 합이 최대가 되는 부분을 찾는 문제를 분할 정복으로 해결하는 알고리즘입니다.  
-  [Maximum Subarray Problem](max_subarray.md)
+  [Maximum Subarray Problem](./MaximumSubarray/README.md)
 
 ---
 
