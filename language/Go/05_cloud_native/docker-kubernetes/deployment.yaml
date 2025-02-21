@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-deployment # 애플리케이션 배포 이름
+  namespace: backend # 배포할 네임스페이스
+  labels:
+    app: go-api # 애플리케이션 식별 레이블
+    tier: backend # 시스템 내 계층 레이블
+    environment: production # 환경 레이블
+  annotations:
+    kubernetes.io/change-cause: "Release v1.2.0 - Enhanced performance and security upgrades" # 배포 변경 이력 추적용
+spec:
+  # 레플리카 수 설정: 고가용성을 위해 3개의 포드 유지
+  replicas: 3
+  
+  # 배포 전략 설정: 롤링 업데이트로 무중단 배포 구현
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # 추가로 생성할 수 있는 최대 포드 수 (기존 replicas 기준)
+      maxUnavailable: 0  # 업데이트 중 사용 불가능한 최대 포드 수 (0으로 설정하여 항상 모든 포드 가용성 확보)
+  
+  # 셀렉터: 이 배포가 관리할 포드를 식별하는 레이블 지정
+  selector:
+    matchLabels:
+      app: go-api
+      tier: backend
+  
+  # 포드 템플릿 정의: 배포할 포드의 상세 명세
+  template:
+    metadata:
+      labels:
+        app: go-api
+        tier: backend
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true" # Prometheus 메트릭 수집 활성화
+        prometheus.io/port: "8080"   # 메트릭 수집 포트
+        prometheus.io/path: "/metrics" # 메트릭 엔드포인트 경로
+    spec:
+      # 배포 스케줄링 정책: 노드 간 포드 분산 배포
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - go-api
+                topologyKey: "kubernetes.io/hostname"
+      
+      # 서비스 계정: 필요한 권한을 가진 서비스 계정 지정
+      serviceAccountName: go-api-service-account
+      
+      # 컨테이너 정의
+      containers:
+        - name: go-api
+          # 이미지: 프라이빗 레지스트리의 이미지 명시
+          image: registry.company.com/backend/go-api:1.2.0
+          imagePullPolicy: Always # 항상 최신 이미지 사용 보장
+          
+          # 포트 정의: 컨테이너가 노출하는 포트 지정
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          
+          # 환경 변수 정의
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: go-api-config
+                  key: db_host
+            # 보안이 필요한 환경 변수는 Secret에서 로드
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: go-api-secrets
+                  key: db_password
+          
+          # ConfigMap 마운트: 애플리케이션 구성 파일 제공
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/configs
+              readOnly: true
+            - name: tmp-volume
+              mountPath: /tmp
+          
+          # 리소스 요청 및 제한: 적절한 자원 할당으로 안정적 실행 보장
+          resources:
+            requests:
+              cpu: 200m       # 200 밀리코어 CPU 요청
+              memory: 256Mi   # 256 메가바이트 메모리 요청
+            limits:
+              cpu: 500m       # 최대 500 밀리코어 CPU 사용
+              memory: 512Mi   # 최대 512 메가바이트 메모리 사용
+          
+          # 라이브니스 프로브: 컨테이너 정상 여부 확인
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30   # 컨테이너 시작 후 첫 프로브 실행 전 대기 시간
+            periodSeconds: 10         # 프로브 간 간격
+            timeoutSeconds: 5         # 프로브 타임아웃
+            failureThreshold: 3       # 실패로 간주하기 전 재시도 횟수
+          
+          # 레디니스 프로브: 트래픽 수신 가능 상태 확인
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: http
+            initialDelaySeconds: 5    # 빠른 초기 확인
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1       # 성공으로 간주하기 위한 연속 성공 횟수
+          
+          # 스타트업 프로브: 애플리케이션 시작 시간이 긴 경우 활용
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30    # 150초(5*30) 동안 시작 가능
+          
+          # 보안 컨텍스트: 컨테이너 실행 권한 제한
+          securityContext:
+            runAsNonRoot: true      # 루트가 아닌 사용자로 실행
+            runAsUser: 1000         # UID 1000으로 실행
+            runAsGroup: 1000        # GID 1000으로 실행
+            allowPrivilegeEscalation: false # 권한 상승 방지
+            capabilities:
+              drop:
+                - ALL              # 모든 권한 제거
+      
+      # 볼륨 정의
+      volumes:
+        - name: config-volume
+          configMap:
+            name: go-api-config    # 애플리케이션 설정이 포함된 ConfigMap
+        - name: tmp-volume
+          emptyDir: {}            # 임시 데이터 저장용 임시 볼륨
+      
+      # 이미지 풀 시크릿: 프라이빗 레지스트리 인증
+      imagePullSecrets:
+        - name: registry-credentials
+      
+      # 토폴로지 분산 힌트: 가용 영역 간 포드 분산
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "topology.kubernetes.io/zone"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: go-api
+      
+      # 종료 유예 기간: 포드 종료 시 애플리케이션에 주어지는 유예 시간
+      terminationGracePeriodSeconds: 60
+      
+      # 노드 셀렉터: 특정 노드에만 배포되도록 제한
+      nodeSelector:
+        node-type: backend
+        kubernetes.io/os: linux

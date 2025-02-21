@@ -1,0 +1,31 @@
+# .helmignore 파일
+# 이 파일은 Helm 차트 패키징 시 무시할 파일 및 디렉토리를 정의합니다.
+# (패턴은 .gitignore와 동일한 구문을 따릅니다.)
+
+# 운영체제 및 에디터에서 생성되는 임시 파일 및 불필요한 파일들
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+
+# Git 관련 파일들 (버전 관리 정보는 차트 패키지에 포함하지 않습니다)
+.git/
+.gitignore
+
+# 로컬 빌드 아티팩트 및 배포 산출물 (Helm 차트 패키징 결과물 제외)
+*.tgz
+*.tar.gz
+dist/
+build/
+out/
+
+# IDE 및 개발 환경 관련 설정 파일
+.vscode/
+.idea/
+
+# 기타 불필요한 파일 및 디렉토리
+node_modules/
+Dockerfile
+Makefile

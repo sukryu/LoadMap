@@ -1,0 +1,219 @@
+{{/* 
+    deployment.yaml - Go 백엔드 애플리케이션을 위한 Kubernetes Deployment 리소스 템플릿
+    
+    이 템플릿은 values.yaml에서 정의된 값을 사용하여 Kubernetes Deployment 리소스를 생성합니다.
+    Deployment는 선언적 방식으로 애플리케이션의 상태를 정의하고, 설정된 수의 Pod 복제본이 
+    항상 실행되도록 보장합니다.
+  */}}
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: {{ include "go-api.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+    labels:
+      {{- include "go-api.labels" . | nindent 4 }}
+    {{- with .Values.deployment.annotations }}
+    annotations:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  spec:
+    {{- if not .Values.autoscaling.enabled }}
+    # 복제본 수 설정 - autoscaling이 비활성화된 경우에만 적용됩니다.
+    # autoscaling이 활성화된 경우 HPA(Horizontal Pod Autoscaler)가 이 값을 동적으로 조정합니다.
+    replicas: {{ .Values.deployment.replicaCount }}
+    {{- end }}
+    # 선택자는 이 Deployment가 관리할 Pod를 식별하는 데 사용됩니다.
+    # Pod 템플릿의 레이블과 일치해야 합니다.
+    selector:
+      matchLabels:
+        {{- include "go-api.selectorLabels" . | nindent 6 }}
+    # 배포 전략 설정 - 애플리케이션 업데이트 방식을 정의합니다.
+    # RollingUpdate는 점진적으로 Pod를 업데이트하여 무중단 배포를 제공합니다.
+    # Recreate는 모든 Pod를 삭제한 후 새 버전을 생성합니다(다운타임 발생).
+    strategy:
+      {{- toYaml .Values.deployment.strategy | nindent 4 }}
+    # progressDeadlineSeconds는 업데이트 작업이 진행되지 않는 것으로 간주되기 전의 최대 시간(초)입니다.
+    # 이 시간이 지나면 배포가 실패로 표시됩니다.
+    progressDeadlineSeconds: {{ .Values.deployment.progressDeadlineSeconds | default 600 }}
+    # Pod 템플릿은 Deployment가 생성할 Pod의 스펙을 정의합니다.
+    template:
+      metadata:
+        {{- with .Values.podAnnotations }}
+        annotations:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        labels:
+          {{- include "go-api.selectorLabels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      spec:
+        {{- with .Values.imagePullSecrets }}
+        # 프라이빗 레지스트리에서 이미지를 가져오기 위한 시크릿 설정
+        imagePullSecrets:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        # 서비스 계정 설정 - Pod가 실행될 때 사용할 Kubernetes 서비스 계정을 지정합니다.
+        serviceAccountName: {{ include "go-api.serviceAccountName" . }}
+        # Pod 종료 전 그레이스풀 셧다운을 위한 시간(초)을 설정합니다.
+        # 이 시간 동안 컨테이너는 진행 중인 요청을 완료할 수 있습니다.
+        terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds | default 30 }}
+        # Pod 보안 컨텍스트 - Pod 수준의 보안 설정을 정의합니다.
+        securityContext:
+          {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        # 컨테이너 정의 - 실제 애플리케이션 컨테이너를 구성합니다.
+        containers:
+          - name: {{ .Chart.Name }}
+            # 컨테이너 보안 컨텍스트 - 컨테이너 수준의 보안 설정을 정의합니다.
+            securityContext:
+              {{- toYaml .Values.securityContext | nindent 12 }}
+            # 컨테이너 이미지 설정
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            # 컨테이너 포트 설정 - 컨테이너가 노출할 포트를 정의합니다.
+            ports:
+              - name: http
+                containerPort: {{ .Values.config.appPort | default 8080 }}
+                protocol: TCP
+            # 라이프사이클 훅 - 컨테이너 시작 및 종료 시 실행할 작업을 정의합니다.
+            {{- if .Values.deployment.lifecycle }}
+            lifecycle:
+              {{- toYaml .Values.deployment.lifecycle | nindent 12 }}
+            {{- end }}
+            # 라이브니스 프로브 - 컨테이너가 살아있는지 확인합니다. 실패하면 컨테이너가 재시작됩니다.
+            {{- if .Values.probes.liveness }}
+            livenessProbe:
+              {{- toYaml .Values.probes.liveness | nindent 12 }}
+            {{- end }}
+            # 레디니스 프로브 - 컨테이너가 트래픽을 처리할 준비가 되었는지 확인합니다.
+            # 실패하면 엔드포인트에서 해당 Pod가 제거됩니다.
+            {{- if .Values.probes.readiness }}
+            readinessProbe:
+              {{- toYaml .Values.probes.readiness | nindent 12 }}
+            {{- end }}
+            # 스타트업 프로브 - 컨테이너 시작 시 애플리케이션이 초기화되었는지 확인합니다.
+            # 스타트업 프로브가 성공할 때까지 다른 프로브는 비활성화됩니다.
+            {{- if .Values.probes.startup }}
+            startupProbe:
+              {{- toYaml .Values.probes.startup | nindent 12 }}
+            {{- end }}
+            # 리소스 요청 및 제한 - 컨테이너의 CPU 및 메모리 리소스를 정의합니다.
+            resources:
+              {{- toYaml .Values.resources | nindent 12 }}
+            # 환경 변수 설정 - 애플리케이션에 전달할 환경 변수를 정의합니다.
+            env:
+              # 기본 환경 변수 설정
+              - name: LOG_LEVEL
+                value: {{ .Values.config.logLevel | quote }}
+              - name: APP_PORT
+                value: {{ .Values.config.appPort | quote }}
+              - name: APP_TIMEOUT_SECONDS
+                value: {{ .Values.config.timeoutSeconds | quote }}
+              - name: ENABLE_METRICS
+                value: {{ .Values.config.enableMetrics | quote }}
+              # POD_NAME과 POD_NAMESPACE 환경 변수 설정
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: POD_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+              # 애플리케이션 환경
+              - name: APP_ENV
+                value: {{ .Values.global.environment | default "development" | quote }}
+              
+              # 데이터베이스 관련 환경 변수 (데이터베이스 활성화 시)
+              {{- if .Values.database.enabled }}
+              - name: DB_TYPE
+                value: {{ .Values.database.type | quote }}
+              - name: DB_HOST
+                value: {{ .Values.database.host | quote }}
+              - name: DB_PORT
+                value: {{ .Values.database.port | quote }}
+              - name: DB_NAME
+                value: {{ .Values.database.name | quote }}
+              - name: DB_USER
+                value: {{ .Values.database.username | quote }}
+              {{- if .Values.database.existingSecret }}
+              - name: DB_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.database.existingSecret }}
+                    key: {{ .Values.database.existingSecretPasswordKey | default "password" }}
+              {{- end }}
+              {{- if .Values.database.sslMode }}
+              - name: DB_SSL_MODE
+                value: {{ .Values.database.sslMode | quote }}
+              {{- end }}
+              {{- end }}
+  
+              # 캐시 관련 환경 변수 (캐시 활성화 시)
+              {{- if .Values.cache.enabled }}
+              - name: CACHE_TYPE
+                value: {{ .Values.cache.type | quote }}
+              - name: CACHE_HOST
+                value: {{ .Values.cache.host | quote }}
+              - name: CACHE_PORT
+                value: {{ .Values.cache.port | quote }}
+              {{- if .Values.cache.existingSecret }}
+              - name: CACHE_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.cache.existingSecret }}
+                    key: {{ .Values.cache.existingSecretPasswordKey | default "password" }}
+              {{- end }}
+              - name: CACHE_TTL
+                value: {{ .Values.cache.ttl | quote }}
+              {{- end }}
+              
+              # 추가 환경 변수
+              {{- if .Values.config.extraEnv }}
+              {{- toYaml .Values.config.extraEnv | nindent 12 }}
+              {{- end }}
+            
+            # ConfigMap에서 가져올 환경 변수
+            {{- if .Values.config.envFromConfigMap }}
+            envFrom:
+              {{- range .Values.config.envFromConfigMap }}
+              - configMapRef:
+                  name: {{ . }}
+              {{- end }}
+              
+              # Secret에서 가져올 환경 변수
+              {{- range .Values.config.envFromSecret }}
+              - secretRef:
+                  name: {{ . }}
+              {{- end }}
+            {{- end }}
+            
+            # 볼륨 마운트 설정
+            {{- if .Values.volumeMounts }}
+            volumeMounts:
+              {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- end }}
+        
+        # Node 선택기 - 특정 레이블이 있는 노드에만 Pod를 스케줄링합니다.
+        {{- with .Values.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        
+        # 어피니티 설정 - Pod 배치를 위한 고급 스케줄링 규칙을 정의합니다.
+        {{- with .Values.affinity }}
+        affinity:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        
+        # 톨러레이션 - 특정 테인트(taint)가 있는 노드에 Pod가 스케줄링될 수 있도록 합니다.
+        {{- with .Values.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        
+        # 볼륨 정의
+        {{- if .Values.volumes }}
+        volumes:
+          {{- toYaml .Values.volumes | nindent 8 }}
+        {{- end }}

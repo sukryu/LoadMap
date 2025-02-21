@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS SAM 템플릿 - Go 기반 서버리스 애플리케이션
+  이 템플릿은 Go로 작성된 서버리스 함수를 AWS Lambda와 API Gateway를 통해 배포합니다.
+  이벤트 기반 처리, 자동 확장, 그리고 비용 효율적인 운영을 목표로 합니다.
+
+# 글로벌 설정: 모든 함수에 공통으로 적용할 기본 속성을 정의합니다.
+Globals:
+  Function:
+    Runtime: go1.x            # Go 언어용 Lambda 런타임
+    Timeout: 30               # 기본 함수 타임아웃 (초)
+    MemorySize: 128           # 기본 메모리 크기 (MB)
+    Environment:
+      Variables:
+        ENVIRONMENT: "production"  # 기본 환경 변수 (필요에 따라 오버라이드 가능)
+
+Resources:
+
+  # -------------------------------------------------------------------
+  # GoServerlessFunction: AWS Lambda 함수 리소스
+  # -------------------------------------------------------------------
+  GoServerlessFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GoServerlessFunction    # Lambda 함수 이름
+      Handler: main                         # 빌드된 Go 바이너리의 핸들러 이름 (진입점)
+      CodeUri: ./                           # 애플리케이션 코드가 위치한 디렉토리 (로컬)
+      Description: "Go 서버리스 함수 - AWS Lambda에서 실행되는 함수입니다."
+      MemorySize: 256                       # 함수에 할당할 메모리 (MB)
+      Timeout: 30                           # 함수 타임아웃 (초)
+      Policies:
+        - AWSLambdaBasicExecutionRole       # CloudWatch Logs 전송 권한 등 기본 실행 권한
+      Environment:
+        Variables:
+          LOG_LEVEL: "info"                 # 로그 레벨 설정
+          APP_PORT: "8080"                  # 애플리케이션 내부 포트 (필요시 사용)
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /                        # API Gateway에서 호출될 경로
+            Method: any                    # 모든 HTTP 메서드 지원 (GET, POST, 등)
+            RestApiId: GoApiGateway     # 아래 정의된 API Gateway 리소스 참조
+
+  # -------------------------------------------------------------------
+  # GoApiGateway: API Gateway 리소스
+  # -------------------------------------------------------------------
+  GoApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: GoServerlessApi                # API 이름
+      StageName: prod                      # 배포 스테이지 (예: prod)
+      EndpointConfiguration:
+        Type: REGIONAL      # 엔드포인트 구성 (REGIONAL, EDGE, 또는 PRIVATE)
+      DefinitionBody:
+        swagger: "2.0"                     # Swagger 2.0 형식 사용
+        info:
+          title: "Go Serverless API"
+          version: "1.0"
+        paths:
+          "/":
+            x-amazon-apigateway-any-method:
+              produces:
+                - application/json
+              responses: {}
+              # Lambda 프록시 통합 설정: 모든 HTTP 메서드에 대해 Lambda 함수를 호출
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GoServerlessFunction.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+
+Outputs:
+  # 배포된 Lambda 함수의 ARN 출력
+  FunctionArn:
+    Description: "ARN of the Go Serverless Function"
+    Value: GoServerlessFunction.Arn
+
+  # API Gateway URL 출력
+  ApiUrl:
+    Description: "URL endpoint of the deployed API"
+    Value: "https://${GoApiGateway.RestApiId}.execute-api.${AWS::Region}.amazonaws.com/prod/"

@@ -1,0 +1,120 @@
+{{/* 
+    hpa.yaml - Go 백엔드 애플리케이션을 위한 Kubernetes HorizontalPodAutoscaler 리소스 템플릿
+    
+    이 템플릿은 values.yaml에서 정의된 값을 사용하여 Kubernetes HorizontalPodAutoscaler(HPA) 리소스를 생성합니다.
+    HPA는 CPU/메모리 사용량 또는 사용자 정의 메트릭에 따라 Deployment의 Pod 복제본 수를 자동으로 스케일링합니다.
+    이를 통해 트래픽 부하에 따라 애플리케이션이 동적으로 확장 및 축소되어 리소스 사용을 최적화합니다.
+    
+    이 HPA는 .Values.autoscaling.enabled가 true인 경우에만 생성됩니다.
+  */}}
+  {{- if .Values.autoscaling.enabled }}
+  {{- $apiVersion := "autoscaling/v2" -}}
+  {{- if not (semverCompare ">=1.23-0" .Capabilities.KubeVersion.GitVersion) -}}
+  {{- $apiVersion = "autoscaling/v2beta2" -}}
+  {{- end }}
+  apiVersion: {{ $apiVersion }}
+  kind: HorizontalPodAutoscaler
+  metadata:
+    # HPA 이름 - 템플릿 헬퍼 함수를 통해 생성
+    name: {{ include "go-api.fullname" . }}
+    # 네임스페이스 - 릴리스가 설치된 네임스페이스 사용
+    namespace: {{ .Release.Namespace }}
+    # 레이블 - 차트 표준 레이블 적용
+    labels:
+      {{- include "go-api.labels" . | nindent 4 }}
+    # 어노테이션 - values.yaml에서 정의된 HPA 어노테이션 적용
+    {{- with .Values.autoscaling.annotations }}
+    annotations:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  spec:
+    # 스케일링 대상 - 어떤 워크로드를 스케일링할지 지정
+    scaleTargetRef:
+      # 스케일링할 리소스 유형 (일반적으로 Deployment)
+      apiVersion: apps/v1
+      kind: Deployment
+      # 스케일링할 Deployment 이름
+      name: {{ include "go-api.fullname" . }}
+    
+    # 복제본 수 범위 - 스케일링할 최소 및 최대 Pod 수 설정
+    minReplicas: {{ .Values.autoscaling.minReplicas }}
+    maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+    
+    # 동작 설정 - 스케일링 알고리즘의 동작 방식 제어
+    {{- if .Values.autoscaling.behavior }}
+    behavior:
+      {{- toYaml .Values.autoscaling.behavior | nindent 4 }}
+    {{- else if and (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) .Values.autoscaling.defaultBehavior }}
+    # Kubernetes 1.18+ 버전에서는 스케일링 동작을 커스터마이즈할 수 있음
+    # 기본 동작 설정 예시: 빠른 스케일 업, 느린 스케일 다운
+    behavior:
+      scaleUp:
+        # 스케일 업 안정화 기간 (초): 이 기간 동안 가장 높은, 필요한 복제본 수 사용
+        stabilizationWindowSeconds: 60 # 1분
+        # 복제본 수 변경 정책
+        policies:
+        - type: Percent
+          value: 100   # 필요시 현재 복제본 수의 100%까지 증가 가능
+          periodSeconds: 15
+        - type: Pods
+          value: 4     # 한 번에 최대 4개 Pod 추가 가능
+          periodSeconds: 15
+        # 여러 정책이 있을 경우 가장 큰 변화를 허용
+        selectPolicy: Max
+      scaleDown:
+        # 스케일 다운 안정화 기간 (초): 더 긴 안정화 기간으로 플래핑 방지
+        stabilizationWindowSeconds: 300 # 5분
+        # 복제본 수 변경 정책
+        policies:
+        - type: Percent
+          value: 25    # 한 번에 25%까지만 축소
+          periodSeconds: 60
+        - type: Pods
+          value: 2     # 한 번에 최대 2개 Pod 제거 가능
+          periodSeconds: 60
+        # 여러 정책이 있을 경우 가장 작은 변화만 허용
+        selectPolicy: Min
+    {{- end }}
+    
+    # 메트릭 - 스케일링 기준이 되는 메트릭 정의
+    metrics:
+      {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+      # CPU 사용률 기반 스케일링
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            {{- if eq $apiVersion "autoscaling/v2" }}
+            type: Utilization
+            averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+            {{- else }}
+            type: AverageUtilization
+            averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+            {{- end }}
+      {{- end }}
+      
+      {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+      # 메모리 사용률 기반 스케일링
+      - type: Resource
+        resource:
+          name: memory
+          target:
+            {{- if eq $apiVersion "autoscaling/v2" }}
+            type: Utilization
+            averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+            {{- else }}
+            type: AverageUtilization
+            averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+            {{- end }}
+      {{- end }}
+      
+      {{- if .Values.autoscaling.customMetrics }}
+      # 사용자 정의 메트릭 기반 스케일링 (Prometheus 등)
+      {{- toYaml .Values.autoscaling.customMetrics | nindent 4 }}
+      {{- end }}
+      
+      {{- if .Values.autoscaling.externalMetrics }}
+      # 외부 메트릭 기반 스케일링 (외부 모니터링 시스템 등)
+      {{- toYaml .Values.autoscaling.externalMetrics | nindent 4 }}
+      {{- end }}
+  {{- end }}

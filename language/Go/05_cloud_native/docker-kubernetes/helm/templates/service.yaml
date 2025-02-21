@@ -1,0 +1,116 @@
+{{/* 
+    service.yaml - Go 백엔드 애플리케이션을 위한 Kubernetes Service 리소스 템플릿
+    
+    이 템플릿은 values.yaml에서 정의된 값을 사용하여 Kubernetes Service 리소스를 생성합니다.
+    Service는 애플리케이션 포드에 대한 안정적인 네트워크 엔드포인트를 제공하며,
+    내부 서비스 디스커버리와 로드 밸런싱을 담당합니다.
+  */}}
+  apiVersion: v1
+  kind: Service
+  metadata:
+    # 서비스 이름 생성 - 템플릿 헬퍼 함수 사용
+    name: {{ include "go-api.fullname" . }}
+    # 네임스페이스 설정 - 릴리스가 설치된 네임스페이스 사용
+    namespace: {{ .Release.Namespace }}
+    # 레이블 설정 - 차트 표준 레이블 적용
+    labels:
+      {{- include "go-api.labels" . | nindent 4 }}
+    # 어노테이션 설정 - values.yaml에서 정의된 서비스 어노테이션 적용 
+    {{- with .Values.service.annotations }}
+    annotations:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  spec:
+    # 서비스 유형 - ClusterIP, NodePort, LoadBalancer, ExternalName 중 하나
+    # - ClusterIP: 클러스터 내부에서만 접근 가능한 IP 할당 (기본값)
+    # - NodePort: 각 노드의 IP에서 특정 포트를 통해 서비스 접근 가능
+    # - LoadBalancer: 클라우드 제공자의 로드 밸런서를 생성하여 서비스 노출
+    # - ExternalName: CNAME 레코드로 서비스를 외부 도메인에 매핑
+    type: {{ .Values.service.type }}
+    
+    # 포트 설정 - 서비스가 노출할 포트 및 프로토콜 정의
+    ports:
+      - port: {{ .Values.service.port }}           # 서비스에서 노출할 포트
+        targetPort: {{ .Values.service.targetPort | default "http" }}  # 트래픽을 전달할 컨테이너 포트
+        protocol: TCP                               # 사용할 프로토콜: TCP, UDP, SCTP
+        name: http                                  # 포트 이름 (서비스 검색 및 참조에 사용)
+        {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePort }}
+        # NodePort 유형일 경우 노드에서 노출할 포트 (30000-32767 범위)
+        nodePort: {{ .Values.service.nodePort }}
+        {{- end }}
+    
+    # 셀렉터 - 트래픽을 라우팅할 포드를 식별하는 레이블
+    # Deployment의 포드 템플릿 레이블과 일치해야 함
+    selector:
+      {{- include "go-api.selectorLabels" . | nindent 4 }}
+    
+    # 세션 어피니티 설정 - 클라이언트 요청이 동일한 포드로 라우팅되도록 제어
+    # None: 세션 어피니티 없음 (기본값) - 무작위 포드로 요청 분산
+    # ClientIP: 클라이언트 IP를 기반으로 요청을 동일한 포드로 라우팅
+    {{- if .Values.service.sessionAffinity }}
+    sessionAffinity: {{ .Values.service.sessionAffinity }}
+    
+    # 세션 어피니티 설정이 ClientIP일 경우 타임아웃 구성
+    {{- if eq .Values.service.sessionAffinity "ClientIP" }}
+    sessionAffinityConfig:
+      clientIP:
+        # 클라이언트 IP 어피니티 타임아웃 (초) - 이 시간 이후 새 포드에 재분배될 수 있음
+        timeoutSeconds: {{ .Values.service.sessionAffinityConfig.clientIP.timeoutSeconds | default 10800 }}
+    {{- end }}
+    {{- end }}
+    
+    # 외부 트래픽 정책 - 외부에서 들어오는 트래픽 처리 방법 정의 (LoadBalancer, NodePort 유형에서 사용)
+    # - Cluster: 모든 클러스터 노드로 트래픽 분산 가능 (기본값)
+    # - Local: 포드가 실행 중인 노드로만 트래픽 라우팅 (노드 간 홉 없음, 클라이언트 IP 보존)
+    {{- if .Values.service.externalTrafficPolicy }}
+    externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+    {{- end }}
+    
+    # 내부 트래픽 정책 - 클러스터 내부에서 들어오는 트래픽 처리 방법 정의
+    # - Cluster: 모든 클러스터 노드로 트래픽 분산 가능 (기본값)
+    # - Local: 포드가 실행 중인 노드로만 트래픽 라우팅
+    {{- if .Values.service.internalTrafficPolicy }}
+    internalTrafficPolicy: {{ .Values.service.internalTrafficPolicy }}
+    {{- end }}
+    
+    # IP 패밀리 정책 - 서비스에서 사용할 IP 패밀리 지정 (IPv4, IPv6, 또는 둘 다)
+    # - SingleStack: 단일 IP 패밀리만 사용 (기본값)
+    # - PreferDualStack: 가능한 경우 듀얼 스택, 불가능한 경우 단일 스택
+    # - RequireDualStack: 반드시 듀얼 스택 사용
+    {{- if .Values.service.ipFamilyPolicy }}
+    ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy }}
+    
+    # IP 패밀리 - 사용할 IP 패밀리 지정 (IPv4, IPv6)
+    # ipFamilyPolicy가 설정된 경우에만 의미가 있음
+    {{- if .Values.service.ipFamilies }}
+    ipFamilies:
+      {{- toYaml .Values.service.ipFamilies | nindent 4 }}
+    {{- end }}
+    {{- end }}
+    
+    # 클러스터 IP - 서비스에 할당할 특정 IP (선택 사항)
+    # "None"으로 설정하면 헤드리스 서비스가 됨 (서비스 디스커버리만 사용)
+    {{- if .Values.service.clusterIP }}
+    clusterIP: {{ .Values.service.clusterIP }}
+    {{- end }}
+    
+    # LoadBalancer 유형일 경우 특정 외부 IP 할당 (선택 사항)
+    {{- if and (eq .Values.service.type "LoadBalancer") .Values.service.loadBalancerIP }}
+    loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+    {{- end }}
+    
+    # LoadBalancer 소스 범위 - 서비스에 접근할 수 있는 IP CIDR 범위 제한 (선택 사항)
+    {{- if and (eq .Values.service.type "LoadBalancer") .Values.service.loadBalancerSourceRanges }}
+    loadBalancerSourceRanges:
+      {{- toYaml .Values.service.loadBalancerSourceRanges | nindent 4 }}
+    {{- end }}
+    
+    # ExternalName 유형일 경우 매핑할 외부 도메인 이름 (선택 사항)
+    {{- if and (eq .Values.service.type "ExternalName") .Values.service.externalName }}
+    externalName: {{ .Values.service.externalName }}
+    {{- end }}
+    
+    # 게시되지 않는 엔드포인트 - 서비스 검색에는 포함되지만 프록시/로드 밸런싱은 제외할 엔드포인트
+    {{- if .Values.service.publishNotReadyAddresses }}
+    publishNotReadyAddresses: {{ .Values.service.publishNotReadyAddresses }}
+    {{- end }}

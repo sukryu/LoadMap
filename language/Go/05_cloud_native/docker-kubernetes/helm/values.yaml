@@ -1,0 +1,415 @@
+# values.yaml 파일은 Helm 차트의 기본 구성 값을 정의합니다.
+# 이 파일에 정의된 값들은 템플릿 렌더링 시 사용되며, 
+# 설치 또는 업그레이드 시 --set 플래그나 사용자 정의 values 파일로 오버라이드할 수 있습니다.
+
+# 글로벌 설정
+# 차트의 전체적인 동작이나 기본 구성을 제어하는 설정입니다.
+global:
+  # 이미지 풀 정책을 글로벌하게 설정할 수 있습니다.
+  imagePullPolicy: IfNotPresent
+  # 모든 파드에 적용할 ImagePullSecrets
+  imagePullSecrets: []
+  # 애플리케이션 환경(development, staging, production 등)
+  environment: "development"
+
+# nameOverride는 차트 이름을 부분적으로 오버라이드합니다.
+# 예: go-api를 myapi로 변경하려면 "myapi"를 설정합니다.
+nameOverride: ""
+
+# fullnameOverride는 차트의 전체 이름을 완전히 오버라이드합니다.
+# 기본적으로 전체 이름은 "릴리스 이름-차트 이름"이 됩니다.
+fullnameOverride: ""
+
+# 이미지 설정
+# 배포될 컨테이너 이미지에 대한 정보를 설정합니다.
+image:
+  # 이미지 저장소 경로 (레지스트리/사용자/저장소)
+  repository: "registry.company.com/backend/go-api"
+  # 이미지 태그 (버전)
+  # 프로덕션 환경에서는 구체적인 버전 태그를 사용하는 것이 좋습니다.
+  tag: "latest"
+  # 이미지 풀 정책: Always, IfNotPresent, Never
+  # - Always: 항상 새 이미지를 가져옵니다.
+  # - IfNotPresent: 로컬에 이미지가 없을 때만 가져옵니다.
+  # - Never: 로컬 이미지만 사용합니다.
+  pullPolicy: IfNotPresent
+
+# 이미지 풀 시크릿 목록
+# 프라이빗 컨테이너 레지스트리에서 이미지를 가져오기 위한 시크릿을 지정합니다.
+imagePullSecrets:
+  - name: registry-credentials
+
+# 서비스 계정 설정
+# 포드가 실행될 때 사용할 Kubernetes 서비스 계정을 설정합니다.
+serviceAccount:
+  # 서비스 계정 생성 여부
+  create: true
+  # 서비스 계정에 추가할 어노테이션
+  annotations: {}
+  # 생성하지 않고 사용할 기존 서비스 계정 이름
+  # create가 false인 경우에만 사용됩니다.
+  name: ""
+  # 서비스 계정에 부여할 역할 기반 접근 제어(RBAC) 규칙
+  rbac:
+    create: true
+    rules: []
+
+# 포드 설정
+# 배포될 포드에 대한 일반적인 설정을 정의합니다.
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+
+# 보안 컨텍스트 설정
+# 컨테이너 수준의 보안 설정을 정의합니다.
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+# 서비스 설정
+# Kubernetes 서비스 리소스 구성을 정의합니다.
+service:
+  # 서비스 유형: ClusterIP, NodePort, LoadBalancer, ExternalName
+  type: ClusterIP
+  # 외부에 노출할 서비스 포트
+  port: 80
+  # 백엔드 애플리케이션 포트
+  targetPort: 8080
+  # NodePort 유형을 사용할 경우 지정할 노드 포트
+  # 30000-32767 범위에서 지정, 비워두면 자동 할당됩니다.
+  nodePort: ""
+  # 서비스에 추가할 어노테이션
+  annotations: {}
+  # 서비스 세션 어피니티 설정 
+  # (None, ClientIP)
+  sessionAffinity: None
+  # 세션 어피니티 타임아웃 설정 (초 단위)
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3시간
+
+# Ingress 설정
+# Kubernetes Ingress 리소스 구성을 정의합니다.
+ingress:
+  # Ingress 리소스 생성 여부
+  enabled: false
+  # 사용할 Ingress 클래스 이름
+  className: "nginx"
+  # Ingress 어노테이션 (Ingress 컨트롤러 구성용)
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # SSL/TLS 활성화
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # 기타 어노테이션...
+  # Ingress 호스트 설정
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # TLS 설정
+  tls:
+    - secretName: api-tls-cert
+      hosts:
+        - api.example.com
+
+# 리소스 설정
+# 컨테이너의 CPU/메모리 요청 및 제한을 설정합니다.
+# 참고: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+resources:
+  # 컨테이너가 시작하기 위해 필요한 최소 리소스
+  requests:
+    cpu: 100m      # 0.1 코어
+    memory: 128Mi  # 128 메가바이트
+  # 컨테이너가 사용할 수 있는 최대 리소스
+  limits:
+    cpu: 500m      # 0.5 코어
+    memory: 512Mi  # 512 메가바이트
+
+# 파드 배치를 위한 노드 선택기를 정의합니다.
+# 예: 특정 하드웨어 또는 리전의 노드에만 배포
+nodeSelector: {}
+
+# 파드 배치를 위한 톨러레이션을 정의합니다.
+# 특정 테인트(taint)가 있는 노드에 배포하기 위해 사용합니다.
+tolerations: []
+
+# 파드 배치를 위한 어피니티 규칙을 정의합니다.
+# 노드/파드 어피니티, 안티-어피니티 설정을 통해 배포 전략을 세밀하게 제어합니다.
+affinity:
+  # 파드 안티-어피니티: 동일 애플리케이션의 파드들이 여러 노드에 분산되도록 함
+  podAntiAffinity:
+    # 권장 설정 (스케줄러가 최선을 다하지만, 불가능하면 같은 노드에 배치할 수도 있음)
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - go-api
+          # 분산의 기준이 되는 토폴로지 키 (노드, 영역 등)
+          topologyKey: "kubernetes.io/hostname"
+
+# 자동 확장 설정(HPA)
+# CPU/메모리 사용량에 따라 자동으로 파드 수를 조절합니다.
+autoscaling:
+  # HPA 활성화 여부
+  enabled: false
+  # 최소 복제본 수
+  minReplicas: 1
+  # 최대 복제본 수
+  maxReplicas: 10
+  # 목표 CPU 사용률 (백분율)
+  targetCPUUtilizationPercentage: 80
+  # 목표 메모리 사용률 (백분율, 선택적)
+  targetMemoryUtilizationPercentage: 80
+  # 추가 HPA 메트릭 (선택적)
+  additionalMetrics: []
+
+# 배포(Deployment) 설정
+# Kubernetes Deployment 리소스의 구성을 정의합니다.
+deployment:
+  # 복제본 수 (autoscaling.enabled=true인 경우 minReplicas로 대체됨)
+  replicaCount: 2
+  # 배포 전략
+  strategy:
+    # RollingUpdate 또는 Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      # 업데이트 중 추가 생성할 최대 파드 수 (기존 복제본 수 대비 비율 또는 절대값)
+      maxSurge: 1
+      # 업데이트 중 사용 불가능한 최대 파드 수
+      maxUnavailable: 0
+  # 배포에 추가할 어노테이션
+  annotations: {}
+  # 배포에 추가할 레이블
+  labels: {}
+  # 파드 관리 정책 (OrderedReady 또는 Parallel)
+  podManagementPolicy: OrderedReady
+  # 파드 종료 유예 기간 (초 단위)
+  terminationGracePeriodSeconds: 60
+  # 업데이트 중 레디니스 체크 실패 시 진행 데드라인 (초 단위)
+  progressDeadlineSeconds: 600
+  # 파드 중지 전 실행할 훅
+  lifecycle:
+    preStop:
+      exec:
+        command: ["sh", "-c", "sleep 10"]  # 컨테이너 종료 전 유예 시간
+
+# 프로브 설정
+# 컨테이너 상태 확인을 위한 프로브를 설정합니다.
+probes:
+  # 라이브니스 프로브: 컨테이너가 실행 중인지 확인
+  liveness:
+    # HTTP 요청 방식 프로브
+    httpGet:
+      # 프로브 요청 경로
+      path: /health
+      # 프로브 요청 포트
+      port: http
+    # 초기 지연 시간 (초 단위)
+    initialDelaySeconds: 30
+    # 프로브 간 간격 (초 단위)
+    periodSeconds: 10
+    # 타임아웃 (초 단위)
+    timeoutSeconds: 5
+    # 성공 기준 횟수
+    successThreshold: 1
+    # 실패 기준 횟수
+    failureThreshold: 3
+  
+  # 레디니스 프로브: 컨테이너가 트래픽을 처리할 준비가 되었는지 확인
+  readiness:
+    httpGet:
+      path: /readiness
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    successThreshold: 1
+    failureThreshold: 3
+  
+  # 스타트업 프로브: 애플리케이션이 시작되었는지 확인 (초기 준비에 시간이 오래 걸리는 경우 유용)
+  startup:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 30    # 150초(5*30) 동안 시작 가능
+    timeoutSeconds: 3
+    successThreshold: 1
+
+# 애플리케이션 구성
+# 애플리케이션 동작을 제어하는 환경 변수 및 구성을 정의합니다.
+config:
+  # 로그 레벨 (debug, info, warn, error)
+  logLevel: "info"
+  # 애플리케이션 포트
+  appPort: 8080
+  # 요청 타임아웃 (초 단위)
+  timeoutSeconds: 30
+  # 메트릭 활성화 여부
+  enableMetrics: true
+  # 추가 환경 변수 (키-값 쌍)
+  extraEnv:
+    - name: "API_VERSION"
+      value: "v1"
+    - name: "MAX_CONNECTIONS"
+      value: "100"
+  # ConfigMap에서 가져올 환경 변수
+  envFromConfigMap:
+    - name: "common-config"
+  # Secret에서 가져올 환경 변수
+  envFromSecret:
+    - name: "api-secrets"
+
+# 데이터베이스 설정
+# 애플리케이션이 사용할 데이터베이스 연결 정보를 정의합니다.
+database:
+  # 데이터베이스 연결 활성화 여부
+  enabled: true
+  # 데이터베이스 유형 (postgres, mysql, mongodb 등)
+  type: "postgres"
+  # 데이터베이스 연결 정보
+  host: "postgres-svc.database.svc.cluster.local"
+  port: 5432
+  name: "appdb"
+  username: "appuser"
+  # 패스워드는 보안을 위해 기존 시크릿을 참조하도록 설정
+  existingSecret: "db-credentials"
+  existingSecretPasswordKey: "password"
+  # SSL 모드 (postgres용)
+  sslMode: "require"
+  # 최대 연결 수
+  maxConnections: 20
+  # 연결 타임아웃 (초 단위)
+  connectionTimeout: 5
+
+# 캐시 설정
+# 레디스 같은 캐시 시스템 연결 정보를 정의합니다.
+cache:
+  # 캐시 사용 여부
+  enabled: true
+  # 캐시 유형 (redis, memcached 등)
+  type: "redis"
+  # 연결 정보
+  host: "redis-svc.cache.svc.cluster.local"
+  port: 6379
+  # 데이터베이스 인덱스
+  db: 0
+  # 기본 TTL (초 단위)
+  ttl: 3600
+  # 비밀번호를 포함하는 시크릿
+  existingSecret: "redis-credentials"
+  existingSecretPasswordKey: "password"
+
+# 볼륨 마운트 설정
+# 애플리케이션에 마운트할 볼륨을 정의합니다.
+volumeMounts:
+  # 설정 파일 마운트
+  - name: config-volume
+    mountPath: /app/config
+    readOnly: true
+  # 임시 파일용 볼륨
+  - name: tmp-volume
+    mountPath: /tmp
+
+# 볼륨 정의
+volumes:
+  # 설정 파일을 위한 ConfigMap 볼륨
+  - name: config-volume
+    configMap:
+      name: "go-api-config"
+  # 임시 데이터를 위한 emptyDir 볼륨
+  - name: tmp-volume
+    emptyDir: {}
+
+# 프로메테우스 ServiceMonitor 설정
+# 프로메테우스 운영자를 통한 모니터링 설정을 정의합니다.
+serviceMonitor:
+  # ServiceMonitor 리소스 생성 여부
+  enabled: false
+  # 추가 레이블 (프로메테우스 운영자가 ServiceMonitor를 찾기 위해 사용)
+  additionalLabels:
+    release: prometheus
+  # 스크래핑 간격
+  interval: "15s"
+  # 스크래핑 타임아웃
+  scrapeTimeout: "10s"
+  # 메트릭 엔드포인트 설정
+  path: /metrics
+  port: http
+  # 메트릭 릴레이블링 규칙
+  metricRelabelings: []
+  # 릴레이블링 규칙
+  relabelings: []
+
+# 의존성 차트 설정
+# Chart.yaml에 정의된 의존성에 대한 설정을 오버라이드합니다.
+
+# PostgreSQL 설정
+postgresql:
+  # PostgreSQL 의존성 차트 활성화 여부
+  enabled: false  # 기본적으로 비활성화, 외부 DB 사용 가정
+  # 글로벌 설정
+  global:
+    postgresql:
+      auth:
+        username: "appuser"
+        database: "appdb"
+  # 인증 설정
+  auth:
+    username: "appuser"
+    database: "appdb"
+    existingSecret: "postgres-credentials"
+  # Primary DB 설정
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  # 리소스 제한
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+# Redis 설정
+redis:
+  # Redis 의존성 차트 활성화 여부
+  enabled: false  # 기본적으로 비활성화, 외부 Redis 사용 가정
+  # 아키텍처: standalone 또는 replication
+  architecture: standalone
+  # 인증 설정
+  auth:
+    enabled: true
+    existingSecret: "redis-credentials"
+    existingSecretPasswordKey: "password"
+  # Persistence 설정
+  master:
+    persistence:
+      enabled: true
+      size: 4Gi
+  # 리소스 제한
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 100m

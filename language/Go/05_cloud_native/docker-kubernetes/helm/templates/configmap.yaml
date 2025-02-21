@@ -1,0 +1,185 @@
+{{/* 
+    configmap.yaml - Go 백엔드 애플리케이션을 위한 Kubernetes ConfigMap 리소스 템플릿
+    
+    이 템플릿은 values.yaml에서 정의된 값을 사용하여 Kubernetes ConfigMap 리소스를 생성합니다.
+    ConfigMap은 애플리케이션의 환경 설정, 구성 파일 등을 컨테이너에 제공하기 위한 방법입니다.
+    이를 통해 애플리케이션 코드와 구성을 분리하여 같은 컨테이너 이미지를 다양한 환경에서 재사용할 수 있게 합니다.
+  */}}
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    # ConfigMap 이름 - 템플릿 헬퍼 함수를 통해 생성
+    name: {{ include "go-api.fullname" . }}-config
+    # 네임스페이스 - 릴리스가 설치된 네임스페이스 사용
+    namespace: {{ .Release.Namespace }}
+    # 레이블 - 차트 표준 레이블 적용
+    labels:
+      {{- include "go-api.labels" . | nindent 4 }}
+    # 어노테이션 - 사용자 정의 메타데이터 추가
+    {{- with .Values.configMap.annotations }}
+    annotations:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  data:
+    # 애플리케이션 환경 설정
+    # 이 값들은 환경 변수나 파일로 컨테이너에 마운트될 수 있습니다
+    
+    # 애플리케이션 환경 (development, staging, production 등)
+    APP_ENV: {{ .Values.global.environment | default "development" | quote }}
+    
+    # 로그 설정
+    LOG_LEVEL: {{ .Values.config.logLevel | default "info" | quote }}
+    LOG_FORMAT: {{ .Values.configMap.logFormat | default "json" | quote }}
+    
+    # 서버 설정
+    SERVER_PORT: {{ .Values.config.appPort | default 8080 | quote }}
+    SERVER_TIMEOUT_SECONDS: {{ .Values.config.timeoutSeconds | default 30 | quote }}
+    SERVER_SHUTDOWN_TIMEOUT: {{ .Values.configMap.serverShutdownTimeout | default 5 | quote }}
+    
+    # 메트릭 설정
+    ENABLE_METRICS: {{ .Values.config.enableMetrics | default true | quote }}
+    METRICS_PATH: {{ .Values.configMap.metricsPath | default "/metrics" | quote }}
+    
+    # 트레이싱 설정 (OpenTelemetry 등)
+    {{- if .Values.configMap.enableTracing }}
+    ENABLE_TRACING: {{ .Values.configMap.enableTracing | quote }}
+    TRACING_PROVIDER: {{ .Values.configMap.tracingProvider | default "jaeger" | quote }}
+    TRACING_ENDPOINT: {{ .Values.configMap.tracingEndpoint | quote }}
+    TRACING_SAMPLE_RATE: {{ .Values.configMap.tracingSampleRate | default "0.1" | quote }}
+    {{- end }}
+    
+    # 데이터베이스 연결 설정
+    {{- if .Values.database.enabled }}
+    DB_TYPE: {{ .Values.database.type | quote }}
+    DB_HOST: {{ .Values.database.host | quote }}
+    DB_PORT: {{ .Values.database.port | quote }}
+    DB_NAME: {{ .Values.database.name | quote }}
+    DB_USER: {{ .Values.database.username | quote }}
+    # 주의: 비밀번호는 Secret에서 관리해야 함
+    DB_MAX_CONNECTIONS: {{ .Values.database.maxConnections | default 20 | quote }}
+    DB_CONNECTION_TIMEOUT: {{ .Values.database.connectionTimeout | default 5 | quote }}
+    {{- if .Values.database.sslMode }}
+    DB_SSL_MODE: {{ .Values.database.sslMode | quote }}
+    {{- end }}
+    {{- end }}
+    
+    # 캐시 설정
+    {{- if .Values.cache.enabled }}
+    CACHE_TYPE: {{ .Values.cache.type | quote }}
+    CACHE_HOST: {{ .Values.cache.host | quote }}
+    CACHE_PORT: {{ .Values.cache.port | quote }}
+    CACHE_TTL: {{ .Values.cache.ttl | default 3600 | quote }}
+    CACHE_DB_INDEX: {{ .Values.cache.db | default 0 | quote }}
+    # 주의: 비밀번호는 Secret에서 관리해야 함
+    {{- end }}
+    
+    # 리소스 한도 설정
+    RESOURCE_MAX_REQUEST_SIZE: {{ .Values.configMap.maxRequestSize | default "10m" | quote }}
+    RESOURCE_MAX_CONCURRENT_REQUESTS: {{ .Values.configMap.maxConcurrentRequests | default 100 | quote }}
+    
+    # CORS 설정
+    {{- if .Values.configMap.cors }}
+    CORS_ENABLED: {{ .Values.configMap.cors.enabled | default true | quote }}
+    CORS_ALLOWED_ORIGINS: {{ .Values.configMap.cors.allowedOrigins | default "*" | quote }}
+    CORS_ALLOWED_METHODS: {{ .Values.configMap.cors.allowedMethods | default "GET,POST,PUT,DELETE,OPTIONS" | quote }}
+    CORS_ALLOWED_HEADERS: {{ .Values.configMap.cors.allowedHeaders | default "*" | quote }}
+    CORS_ALLOW_CREDENTIALS: {{ .Values.configMap.cors.allowCredentials | default false | quote }}
+    CORS_MAX_AGE: {{ .Values.configMap.cors.maxAge | default 86400 | quote }}
+    {{- end }}
+    
+    # 애플리케이션 특정 설정
+    # values.yaml의 configMap.customConfig에서 정의된 사용자 정의 설정
+    {{- range $key, $value := .Values.configMap.customConfig }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    
+    # 애플리케이션 구성 파일
+    # 파일 전체 내용을 ConfigMap에 포함시키기
+    {{- if .Values.configMap.includeFiles }}
+    {{- range $filename, $content := .Values.configMap.includeFiles }}
+    {{ $filename }}: |
+      {{- $content | nindent 4 }}
+    {{- end }}
+    {{- end }}
+    
+    # 기본 애플리케이션 구성 파일
+    # 애플리케이션이 시작 시 읽을 수 있는 기본 구성 파일
+    config.yaml: |
+      # 애플리케이션 기본 설정
+      app:
+        name: {{ .Chart.Name }}
+        version: {{ .Chart.AppVersion | quote }}
+        environment: {{ .Values.global.environment | default "development" }}
+      
+      # 서버 설정
+      server:
+        port: {{ .Values.config.appPort | default 8080 }}
+        timeout: {{ .Values.config.timeoutSeconds | default 30 }}
+        shutdown_timeout: {{ .Values.configMap.serverShutdownTimeout | default 5 }}
+      
+      # 로그 설정
+      logging:
+        level: {{ .Values.config.logLevel | default "info" }}
+        format: {{ .Values.configMap.logFormat | default "json" }}
+        
+      # 메트릭 설정
+      metrics:
+        enabled: {{ .Values.config.enableMetrics | default true }}
+        path: {{ .Values.configMap.metricsPath | default "/metrics" }}
+      
+      {{- if .Values.configMap.enableTracing }}
+      # 트레이싱 설정
+      tracing:
+        enabled: {{ .Values.configMap.enableTracing }}
+        provider: {{ .Values.configMap.tracingProvider | default "jaeger" }}
+        endpoint: {{ .Values.configMap.tracingEndpoint }}
+        sample_rate: {{ .Values.configMap.tracingSampleRate | default 0.1 }}
+      {{- end }}
+      
+      {{- if .Values.database.enabled }}
+      # 데이터베이스 설정
+      database:
+        type: {{ .Values.database.type }}
+        host: {{ .Values.database.host }}
+        port: {{ .Values.database.port }}
+        name: {{ .Values.database.name }}
+        user: {{ .Values.database.username }}
+        # 비밀번호는 환경 변수로 주입
+        max_connections: {{ .Values.database.maxConnections | default 20 }}
+        connection_timeout: {{ .Values.database.connectionTimeout | default 5 }}
+        {{- if .Values.database.sslMode }}
+        ssl_mode: {{ .Values.database.sslMode }}
+        {{- end }}
+      {{- end }}
+      
+      {{- if .Values.cache.enabled }}
+      # 캐시 설정
+      cache:
+        type: {{ .Values.cache.type }}
+        host: {{ .Values.cache.host }}
+        port: {{ .Values.cache.port }}
+        ttl: {{ .Values.cache.ttl | default 3600 }}
+        db_index: {{ .Values.cache.db | default 0 }}
+        # 비밀번호는 환경 변수로 주입
+      {{- end }}
+      
+      # 리소스 제한 설정
+      resources:
+        max_request_size: {{ .Values.configMap.maxRequestSize | default "10m" }}
+        max_concurrent_requests: {{ .Values.configMap.maxConcurrentRequests | default 100 }}
+      
+      {{- if .Values.configMap.cors }}
+      # CORS 설정
+      cors:
+        enabled: {{ .Values.configMap.cors.enabled | default true }}
+        allowed_origins: [{{ .Values.configMap.cors.allowedOrigins | default "*" | quote }}]
+        allowed_methods: [{{ .Values.configMap.cors.allowedMethods | default "GET,POST,PUT,DELETE,OPTIONS" }}]
+        allowed_headers: [{{ .Values.configMap.cors.allowedHeaders | default "*" }}]
+        allow_credentials: {{ .Values.configMap.cors.allowCredentials | default false }}
+        max_age: {{ .Values.configMap.cors.maxAge | default 86400 }}
+      {{- end }}
+      
+      {{- if .Values.configMap.customYamlConfig }}
+      # 사용자 정의 YAML 설정
+      {{- .Values.configMap.customYamlConfig | nindent 4 }}
+      {{- end }}

@@ -1,0 +1,116 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-api-ingress # Ingress 리소스 이름
+  namespace: backend   # 서비스와 동일한 네임스페이스
+  labels:
+    app: go-api        # 애플리케이션 식별 레이블
+    tier: backend      # 시스템 내 계층 레이블
+  annotations:
+    # Ingress 컨트롤러 지정 (이 경우 nginx)
+    kubernetes.io/ingress.class: "nginx"
+    
+    # SSL/TLS 설정
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"        # HTTP에서 HTTPS로 자동 리다이렉트
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"  # 모든 HTTP 요청을 HTTPS로 강제 리다이렉트
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"      # cert-manager로 TLS 인증서 자동 발급 설정
+    
+    # 보안 헤더 설정 및 로깅 설정
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Content-Security-Policy: default-src 'self'";
+      access_log /var/log/nginx/ingress-access.log main;
+    
+    # 모니터링 및 로깅
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    
+    # CORS 설정
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://example.com,https://www.example.com"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    
+    # 프록시 버퍼 사이즈 및 타임아웃 설정
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"         # 최대 요청 바디 크기
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"     # 초 단위 연결 타임아웃
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"        # 초 단위 전송 타임아웃
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"        # 초 단위 읽기 타임아웃
+    
+    # 레이트 리미팅 설정
+    nginx.ingress.kubernetes.io/limit-rps: "10"                # 초당 요청 수 제한
+    nginx.ingress.kubernetes.io/limit-connections: "5"         # 동시 연결 수 제한
+    nginx.ingress.kubernetes.io/limit-rpm: "100"               # 분당 요청 수 제한
+    
+    # 세션 고정 (필요한 경우)
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    
+    # WAF/보안 규칙 통합 (예: ModSecurity)
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
+    
+    # 기타 메타데이터
+    description: "Go API Ingress - 외부 HTTP/HTTPS 트래픽 라우팅 및 TLS 종료"
+    
+spec:
+  # TLS 인증서 설정
+  tls:
+    - hosts:
+        - api.example.com        # 도메인 이름(실제 도메인으로 교체)
+        - api-v2.example.com     # 추가 도메인(필요한 경우)
+      secretName: go-api-tls     # TLS 인증서를 저장할 Kubernetes Secret 이름
+  
+  # 라우팅 규칙
+  rules:
+    # 첫 번째 호스트에 대한 규칙
+    - host: api.example.com
+      http:
+        paths:
+          # 기본 API 경로
+          - path: /api
+            pathType: Prefix      # 경로 매칭 유형: Exact(정확히 일치), Prefix(접두사 일치), ImplementationSpecific(컨트롤러 구현 의존)
+            backend:
+              service:
+                name: go-api-service  # 트래픽을 전달할 서비스 이름 (service.yaml에서 정의한 이름)
+                port:
+                  name: http          # 또는 'number: 80'을 사용하여 포트 번호로 지정 가능
+          
+          # 상태 확인 엔드포인트
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: go-api-service
+                port:
+                  name: http
+          
+          # 모든 경로를 기본 서비스로 리다이렉트 (최후 매치)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: go-api-service
+                port:
+                  name: http
+    
+    # 두 번째 호스트에 대한 규칙 (추가 도메인이 있는 경우)
+    - host: api-v2.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: go-api-v2-service  # 다른 서비스로 라우팅(존재하는 경우)
+                port:
+                  name: http
+  
+  # 기본 백엔드 - 매치되는 규칙이 없을 때 트래픽을 전달할 서비스
+  defaultBackend:
+    service:
+      name: default-http-backend  # 404 또는 기타 오류 응답을 제공하는 서비스
+      port:
+        number: 80
