@@ -26,9 +26,16 @@
 ```plaintext
 06-messaging-systems/
 └── kafka-rabbiqmq/
-    ├── main.go          # Kafka와 RabbitMQ의 기본 예제 코드
-    ├── examples/        # 고급 사용 사례 및 추가 실습 예제
-    └── README.md        # 이 문서
+    ├── main.go                    # Kafka와 RabbitMQ의 기본 예제 코드 (간단한 메시지 전송/소비)
+    ├── examples/                  # 고급 사용 사례 및 추가 실습 예제
+    │   ├── 01_advanced_producer.go    # Kafka 고급 프로듀서: 비동기 메시지 전송 및 결과 모니터링
+    │   ├── 02_advanced_consumer.go    # Kafka 고급 컨슈머: 컨슈머 그룹을 통한 지속적 메시지 소비
+    │   ├── 03_streaming_processing.go # Kafka 스트리밍 처리: 메시지 변환 후 출력 토픽 전송
+    │   ├── 04_rabbitmq_rpc_example.go # RabbitMQ RPC 패턴: RPC 서버와 클라이언트 구현
+    │   ├── 01_rabbitmq_publisher.go   # RabbitMQ 고급 퍼블리셔: 큐에 메시지 게시
+    │   ├── 02_rabbitmq_consumer.go    # RabbitMQ 고급 소비자: 수동 ACK를 통한 메시지 소비
+    │   └── 03_rabbitmq_exchange_topic.go  # RabbitMQ 토픽 익스체인지: 라우팅 키 기반 메시지 라우팅
+    └── README.md                  # 이 문서 (메시징 시스템 개요 및 예제 가이드)
 ```
 
 - **main.go**: 기본적인 Kafka와 RabbitMQ 예제를 통해 메시지 전송 및 소비 과정을 시연합니다.

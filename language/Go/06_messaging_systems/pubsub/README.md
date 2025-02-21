@@ -25,9 +25,14 @@
 ```plaintext
 06-messaging-systems/
 └── pubsub/
-    ├── main.go         # 기본 Pub/Sub 예제 코드 (게시자/구독자 통합 예제)
-    ├── examples/       # 추가 실습 예제 및 고급 사용 사례 (Push/ Pull 방식, 멀티 구독 등)
-    └── README.md       # 이 문서
+    ├── main.go           # 기본 Pub/Sub 예제 (토픽에 메시지 게시 및 구독하여 수신)
+    ├── examples/         # 고급 예제들이 포함된 폴더
+    │   ├── 01_push_example.go       # Push Subscription을 활용한 HTTP 서버 예제
+    │   ├── 02_pull_example.go       # Pull Subscription을 통한 메시지 수신 예제
+    │   ├── 03_streaming_example.go  # 스트리밍 처리: 메시지 수신 후 변환 및 병렬 처리 예제
+    │   ├── 04_custom_retry.go       # 사용자 정의 재시도 로직 적용 예제
+    └── README.md         # 이 문서
+
 ```
 
 - **main.go**: Google Cloud Pub/Sub를 활용하여 토픽에 메시지를 게시하고, 구독을 통해 메시지를 처리하는 기본 예제가 포함되어 있습니다.
