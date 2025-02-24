@@ -110,42 +110,48 @@ int rangeSum(int* prefix, int l, int r) {
  *   동적 할당된 2차원 배열의 메모리 해제는 호출 측에서 적절히 수행해야 합니다.
  */
 int** build2DPrefixSum(int** matrix, int rows, int cols) {
-    // 동적 할당을 통해 (rows+1) x (cols+1) 크기의 누적 합 배열 생성
+    // (rows+1) x (cols+1) 크기의 2차원 배열 할당
     int** prefix = (int**)malloc((rows + 1) * sizeof(int*));
     if (prefix == NULL) {
+        // 메모리 할당 실패 시, 바로 NULL 반환
         return NULL;
     }
-    
+
+    // 2차원 할당 루프
     for (int i = 0; i <= rows; i++) {
         prefix[i] = (int*)malloc((cols + 1) * sizeof(int));
         if (prefix[i] == NULL) {
-            // 메모리 할당 실패시 이전 할당된 메모리를 해제하고 NULL 반환
+            // ========== 수정된 부분 시작 ==========
+            // 지금까지 할당된 i개 분량 해제
             for (int k = 0; k < i; k++) {
                 free(prefix[k]);
             }
+            // prefix 자체도 해제
             free(prefix);
+            // NULL 반환
             return NULL;
+            // ========== 수정된 부분 끝 ==========
         }
     }
-    
-    // 누적 합 배열의 첫 행과 첫 열은 0으로 초기화
+
+    // 첫 행과 첫 열을 0으로 초기화
     for (int i = 0; i <= rows; i++) {
         prefix[i][0] = 0;
     }
     for (int j = 0; j <= cols; j++) {
         prefix[0][j] = 0;
     }
-    
-    // 누적 합 계산:
-    // prefix[i][j] = prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1] + matrix[i-1][j-1]
+
+    // 실제 누적 합 계산
     for (int i = 1; i <= rows; i++) {
         for (int j = 1; j <= cols; j++) {
-            prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1]
-                         - prefix[i - 1][j - 1] + matrix[i - 1][j - 1];
+            prefix[i][j] = prefix[i-1][j]
+                         + prefix[i][j-1]
+                         - prefix[i-1][j-1]
+                         + matrix[i-1][j-1];
         }
     }
-    
-    return prefix;
+    return prefix;  // 성공적으로 할당, 계산 완료
 }
 
 /*

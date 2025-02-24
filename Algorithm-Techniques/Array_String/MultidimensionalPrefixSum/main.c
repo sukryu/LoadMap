@@ -52,37 +52,48 @@
  * 공간 복잡도: O(rows * cols)
  */
 int** build2DPrefixSum(int** matrix, int rows, int cols) {
-    int i, j;
     // (rows+1) x (cols+1) 크기의 2차원 배열 할당
     int** prefix = (int**)malloc((rows + 1) * sizeof(int*));
-    if (prefix == NULL) return NULL;
-    
-    for (i = 0; i <= rows; i++) {
+    if (prefix == NULL) {
+        // 메모리 할당 실패 시, 바로 NULL 반환
+        return NULL;
+    }
+
+    // 2차원 할당 루프
+    for (int i = 0; i <= rows; i++) {
         prefix[i] = (int*)malloc((cols + 1) * sizeof(int));
         if (prefix[i] == NULL) {
-            for (j = 0; j < i; j++)
-                free(prefix[j]);
+            // ========== 수정된 부분 시작 ==========
+            // 지금까지 할당된 i개 분량 해제
+            for (int k = 0; k < i; k++) {
+                free(prefix[k]);
+            }
+            // prefix 자체도 해제
             free(prefix);
+            // NULL 반환
             return NULL;
+            // ========== 수정된 부분 끝 ==========
         }
     }
-    
+
     // 첫 행과 첫 열을 0으로 초기화
-    for (i = 0; i <= rows; i++) {
+    for (int i = 0; i <= rows; i++) {
         prefix[i][0] = 0;
     }
-    for (j = 0; j <= cols; j++) {
+    for (int j = 0; j <= cols; j++) {
         prefix[0][j] = 0;
     }
-    
-    // 누적합 배열 채우기
-    for (i = 1; i <= rows; i++) {
-        for (j = 1; j <= cols; j++) {
-            prefix[i][j] = prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1] + matrix[i-1][j-1];
+
+    // 실제 누적 합 계산
+    for (int i = 1; i <= rows; i++) {
+        for (int j = 1; j <= cols; j++) {
+            prefix[i][j] = prefix[i-1][j]
+                         + prefix[i][j-1]
+                         - prefix[i-1][j-1]
+                         + matrix[i-1][j-1];
         }
     }
-    
-    return prefix;
+    return prefix;  // 성공적으로 할당, 계산 완료
 }
 
 /*
