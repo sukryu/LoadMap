@@ -3,13 +3,20 @@
 현대 **백엔드 + 클라우드 엔지니어**가 알아야 할 **핵심 보안 주제**들을 모아 놓은 디렉토리입니다.  
 **웹 애플리케이션(Backend) 보안**, **클라우드 인프라(Cloud) 보안**, **쿠버네티스(Kubernetes) 보안**처럼 영역별로 문서를 분리하여, 체계적으로 학습하고 참고할 수 있게 구성했습니다.
 
+추가로 아래와 같은 항목들을 보완했습니다:
+- **실습 환경 가이드**: 학습에 필요한 환경(Docker, Kubernetes 클러스터, 클라우드 계정 등)을 소개합니다.
+- **취약점 진단 및 자동화 도구**: OWASP ZAP, Burp Suite, Trivy, Snyk, Lynis, Auditd, Falco, Kube-bench 등 실무에서 사용할 수 있는 도구들을 추천합니다.
+- **DevSecOps 및 보안 자동화**: CI/CD 파이프라인에서의 보안 검사 도구 연동 방법을 소개합니다.
+- **보안 사고 대응**: 실제 보안 사고 발생 시 SIEM, 로그 분석, IDS/IPS 활용 등 사고 대응(IR) 방법에 대해 다룹니다.
+- **최신 보안 트렌드 및 미래 발전 방향**: Zero Trust, 공급망 보안(Supply Chain Security), Confidential Computing 등 최신 이슈를 포함합니다.
+
 ---
 
 ## 디렉토리 구성 (Files & Folders)
 
 ```plaintext
 security/
-├── README.md                                # 보안 디렉토리 전체 개요
+├── README.md                                # 보안 디렉토리 전체 개요 및 실습/자동화/사고 대응 가이드 추가
 ├── backend/
 │   ├── 01_web_app_owasp.md                 # 웹 애플리케이션 보안(OWASP Top 10 등)
 │   ├── 02_api_auth.md                      # API 인증/인가(JWT, OAuth2, RBAC 등)
@@ -26,126 +33,128 @@ security/
     ├── 03_service_mesh_security.md         # Istio/Linkerd mTLS, 사이드카 보안, 정책
     └── README.md                           # kubernetes/ 폴더 개요
 ```
-- `README.md`(루트): `security/` 최상위 문서로, 전체 보안 문서의 개요/학습 순서 안내
-- `backend/`: 웹/애플리케이션(API) 레벨의 보안, 서버 하드닝 관련 자료
-- `cloud/`: 클라우드 인프라(IAM, 네트워크 설계, WAF/DDoS) 보안
-- `kubernetes/`: Docker/K8s 컨테이너 보안, 클러스터/RBAC, Service Mesh 보안
 
-### 1) `backend/`
-- **01_web_app_owasp.md**  
-  - **OWASP Top 10**을 중심으로 한 웹 취약점(Injection, XSS, CSRF, 인증/세션 관리, 민감 정보 노출 등)
-  - 예시 코드(PreparedStatement, escaping)와 실무 방지 기법
-
-- **02_api_auth.md**  
-  - **API 인증/인가**(JWT, OAuth2, Refresh Token 전략)
-  - RBAC/ABAC 설계, 권한 검증(백엔드 레벨/게이트웨이 레벨)
-  - 실무 팁: 만료·갱신, 비밀키 관리
-
-- **03_server_hardening.md**  
-  - **서버/시스템 보안**: OS 권한, SSH 설정, Fail2ban/OS 업데이트
-  - 환경변수/설정 파일에 민감정보 넣지 않기, Vault 연동
-  - 로깅/모니터링(접속 로그, 에러 로그 등)
-
-### 2) `cloud/`
-- **01_iam.md**  
-  - **클라우드 IAM**(AWS, GCP, Azure)
-  - 최소 권한 원칙, 역할(Role)/정책(Policy) 설계
-  - 자격 증명(Access Key), OIDC, MFA
-
-- **02_network_security.md**  
-  - **VPC 설계**(퍼블릭/프라이빗 Subnet, NAT/Bastion)
-  - **보안 그룹/NACL**, 인터넷 게이트웨이/엔드포인트
-  - DDoS 방어(Shield, Cloud Armor), Firewall
-
-- **03_waf_ddos.md**  
-  - Cloud WAF 설정(AWS WAF, GCP Cloud Armor 등)
-  - Rate limiting, SQLi/XSS 필터링
-  - DDoS 방어 솔루션(Shield Advanced, Cloudflare, Arbor)
-
-### 3) `kubernetes/`
-- **01_container_security.md**  
-  - **Docker 보안**(이미지 스캐닝, non-root, read-only filesystem)
-  - Secrets 관리(AWS Secrets Manager, Vault), CI/CD에서 이미지 검사
-
-- **02_k8s_cluster_security.md**  
-  - **Kubernetes RBAC**, PodSecurity/Admission, ETCD 암호화
-  - 네트워크 정책(NetworkPolicy)으로 Pod 간 통신 제한
-  - kubelet 인증, audit logs 등
-
-- **03_service_mesh_security.md**  
-  - **Istio/Linkerd**: mTLS, 트래픽 라우팅, 사이드카 보안
-  - 인증/인가(Policy, PeerAuthentication), Observability
-  - 분산 트레이싱, 로그, 성능 모니터링
+- **루트 README.md**는 전체 보안 문서 개요와 학습 순서를 안내하며,  
+  **실습 환경 가이드**, **자동화 도구 추천**, **보안 사고 대응** 및 **최신 보안 트렌드** 관련 추가 내용을 포함합니다.
 
 ---
 
-## 학습 & 활용 팁
+## 학습 및 활용 가이드
 
-1. **백엔드 보안**(`backend/`)  
-   - 먼저 웹 앱 안전성(OWASP Top 10)과 API 인증/인가, 서버 하드닝을 숙지  
-   - 웹 서버/애플리케이션 레벨의 취약점 및 방어 기법을 탄탄히
+### 1. 학습 순서 및 우선순위
 
-2. **클라우드 보안**(`cloud/`)  
-   - IAM(Identity & Access Management)로 시작해, **네트워크 설계(VPC, 보안 그룹)**, WAF/DDoS 방어 등을 순차적으로  
-   - 실제 AWS/GCP/Azure 콘솔 또는 Terraform 등 IaC를 통해 실습하면 효과 극대화
+1. **백엔드 보안**(`backend/`)
+   - **01_web_app_owasp.md**: OWASP Top 10 및 대표 공격 기법(Injection, XSS, CSRF, 인증/세션 관리 등)과 방어 기법을 학습
+   - **02_api_auth.md**: API 인증/인가 (JWT, OAuth2, Refresh Token, RBAC/ABAC) 및 토큰 관리 방법 습득
+   - **03_server_hardening.md**: 서버/시스템 보안 강화 (SSH 키 기반 인증, 방화벽, 환경변수 관리, 로깅/모니터링)
 
-3. **쿠버네티스 보안**(`kubernetes/`)  
-   - Docker 컨테이너 보안을 먼저 챙기고, K8s 클러스터 보안(RBAC, NetworkPolicy, PodSecurity) → Service Mesh 보안(mTLS, Policy)로 확장  
-   - 마이크로서비스 환경에서 **각 Pod/Service**가 안전하게 통신하도록 설계
+2. **클라우드 보안**(`cloud/`)
+   - **01_iam.md**: 클라우드 IAM 정책, 최소 권한 원칙, 자격 증명 관리, MFA 등 기초부터 고급 기능까지
+   - **02_network_security.md**: VPC, 서브넷, NAT, Bastion Host, 보안 그룹 및 NACL 구성 방법
+   - **03_waf_ddos.md**: WAF 설정, DDoS 방어 솔루션 및 실시간 로그/알림 설정
 
-4. **우선순위**  
-   - "웹/API 보안을 빨리 알고 싶다"면 `backend/` 먼저,  
-   - "클라우드 네트워크"나 "AWS VPC 보안"이 급하면 `cloud/` 폴더부터,  
-   - "쿠버네티스 환경" 위주면 `kubernetes/` 문서로 바로 가도 무방
-
-5. **실무 적용**  
-   - 각 문서에 포함된 **코드 예시**, **CLI 명령어**, **Terraform 설정**, **YAML 스니펫** 등을 실제 프로젝트에 응용  
-   - 팀 내 보안 가이드라인을 세울 때 레퍼런스로 활용 가능
+3. **쿠버네티스 보안**(`kubernetes/`)
+   - **01_container_security.md**: Docker 이미지 보안, non-root 실행, 컨테이너 런타임 보안
+   - **02_k8s_cluster_security.md**: K8s 클러스터 보안(Cluster RBAC, 네트워크 정책, PodSecurity, ETCD 암호화)
+   - **03_service_mesh_security.md**: Istio/Linkerd를 통한 Service Mesh 보안, mTLS 및 트래픽 정책 설정
 
 ---
 
-## 독자 대상 (Who Is This For?)
+### 2. 추가 학습 자료 및 실습 환경
 
-- **백엔드 개발자**: 웹/REST API 보안, 인증/인가, 서버 하드닝에 관심 있는 분  
-- **클라우드 엔지니어/DevOps**: AWS/GCP/Azure 보안, VPC 설계, IAM, DDoS 방어에 집중  
-- **쿠버네티스 사용자**: 컨테이너/클러스터/Service Mesh 보안 심화  
-- **팀/조직 보안 담당자**: 전체 인프라(백엔드+클라우드+K8s) 보안 정책 수립 시 참고
+#### 실습 환경 가이드
+- **필수 도구**: Docker, Kubernetes 클러스터(로컬 Minikube 또는 클라우드 클러스터), VM 또는 클라우드 계정(AWS/GCP/Azure)
+- **실습 환경 구성**: 
+  - 로컬에서 Docker와 Kubernetes(Minikube, Kind) 설치
+  - 클라우드 계정으로 IAM, VPC, WAF 등 실제 환경 설정 및 실습
+  - Terraform, CloudFormation 등을 이용한 IaC 실습
+
+#### 취약점 진단 및 자동화 도구 추천
+- **웹/애플리케이션**: OWASP ZAP, Burp Suite
+- **컨테이너/인프라**: Trivy, Snyk, Lynis, Auditd, Falco, Kube-bench
+- **CI/CD 연동**: GitHub Actions, Jenkins, GitLab CI/CD에 보안 검사 도구 통합
+
+#### DevSecOps 및 보안 자동화
+- **CI/CD 파이프라인**: 소스코드, 컨테이너 이미지, 인프라 코드(Terraform, CloudFormation)에 대한 자동 보안 스캔
+- **보안 테스트 도구 연동**: SAST, DAST, 이미지 스캐닝 도구 연동
+- **자동화 스크립트**: 보안 구성 관리 및 취약점 스캐닝 자동화
+
+#### 보안 사고 대응 (IR: Incident Response)
+- **사고 탐지**: SIEM(예, ELK Stack, Splunk), 로그 분석, IDS/IPS 활용
+- **알림 체계**: CloudWatch, Prometheus+Grafana, Slack/Webhook, 이메일 알림 등
+- **사고 대응 프로세스**: 침해 사고 탐지, 초기 대응, 영향 평가, 복구 및 사후 분석
+
+#### 최신 보안 트렌드 및 미래 발전 방향
+- **Zero Trust 보안 모델**: 내부 네트워크에도 세밀한 인증 및 접근 제어 적용
+- **공급망 보안 (Supply Chain Security)**: SLSA, Sigstore 등을 통한 소프트웨어 공급망 보호
+- **Confidential Computing**: 데이터 처리 시 암호화된 상태 유지
+- **AI/ML 기반 보안 탐지**: 이상 징후 자동 탐지 및 대응
 
 ---
 
-## 발전 방향 (Future Extensions)
+### 3. 보안 체크리스트
 
+각 문서 별로 제공되는 체크리스트 외에, 아래와 같이 전체 점검용 체크리스트를 활용해 실무 적용 시 빠짐없이 보안 설정을 점검할 수 있습니다.
+
+#### 웹/애플리케이션 보안 체크리스트
+- [ ] SQL Injection 방어 (PreparedStatement, ORM safe query)
+- [ ] XSS 방어 (입출력 이스케이프, CSP 헤더)
+- [ ] CSRF 토큰 적용 및 SameSite 쿠키 설정
+- [ ] 안전한 세션 관리 (HttpOnly, Secure)
+
+#### API 인증/인가 체크리스트
+- [ ] JWT 서명 및 만료 관리 (Access/Refresh Token 전략)
+- [ ] RBAC/ABAC 기반 접근 제어 구현
+- [ ] OAuth2 흐름 보안 (PKCE, 인가 코드 보호)
+
+#### 서버 하드닝 체크리스트
+- [ ] SSH 키 기반 인증 및 root 로그인 비활성화
+- [ ] 방화벽 규칙(UFW, iptables) 및 포트 제한
+- [ ] 시스템 업데이트 및 패치 자동화
+- [ ] 민감 정보(환경변수, 설정 파일) 암호화 및 Vault 연동
+- [ ] 로깅/모니터링 설정 및 정기 감사
+
+---
+
+### 4. 향후 발전 방향 및 참고 자료
+
+#### 발전 방향 (Future Extensions)
 1. **CI/CD & DevSecOps**  
-   - 소스코드/컨테이너 이미지 취약점 스캐닝(SAST, DAST)  
-   - IaC 보안(Terraform, CloudFormation) 점검, 보안 자동화
+   - 소스코드, 컨테이너 이미지, 인프라 코드에 대한 보안 스캔 자동화  
+   - 보안 구성 관리 도구(Terraform, CloudFormation) 및 IaC 보안 점검
 
 2. **Zero Trust/SASE**  
-   - 네트워크 경계가 사라진 환경에서의 아이덴티티 기반 접근  
-   - BeyondCorp 접근 제어 모델
+   - 네트워크 경계가 사라진 환경에서 아이덴티티 기반 접근 제어 적용  
+   - BeyondCorp 접근 제어 모델 도입
 
 3. **대규모 엔터프라이즈 보안**  
-   - SOC(Security Operations Center), SIEM, IDS/IPS 운영  
-   - BGP/OSPF 라우팅 보안, IX 연결 시 DDoS 방어
+   - SOC, SIEM, IDS/IPS 운영 및 보안 사고 대응 체계 구축  
+   - BGP/OSPF 라우팅 보안 및 클라우드 연결 시 DDoS 방어 강화
 
-4. **암호화 & 키 관리**  
-   - Key Management Service(KMS), Vault, HSM(Hardware Security Module)  
-   - 데이터 암호화(At-rest, In-transit), SSL Cert 자동화
+4. **암호화 및 키 관리**  
+   - KMS, Vault, HSM을 통한 데이터 암호화(At-rest, In-transit)  
+   - SSL 인증서 자동화 및 공급망 보안(SLSA, Sigstore) 대응
+
+5. **최신 보안 트렌드**  
+   - Confidential Computing, AI/ML 기반 이상 탐지 도입  
+   - 공급망 공격 대응, Zero Trust 네트워크 구현
+
+#### 참고 자료
+- **공식 보안 가이드라인**: OWASP, NIST, CIS Benchmarks 등
+- **보안 도구 및 테스트**: OWASP ZAP, Burp Suite, Trivy, Snyk, Lynis, Auditd, Falco, Kube-bench
+- **온라인 강좌 및 커뮤니티**: SANS, Offensive Security, Reddit r/netsec 등
 
 ---
 
-## 같이 보면 좋은 문서
+### 5. 문서 활용 팁
 
-- **`basic/` 디렉토리**: TCP/IP, HTTP/HTTPS, DNS 등 기초 프로토콜 지식  
-- **`advanced/06_proxy.md`**: 역방향 프록시, 보안 필터링, SSL 오프로딩  
-- **`advanced/07_loadbalancing.md`**: 로드 밸런서(L4/L7) + WAF 등과 연계  
-- **RPC/gRPC 보안**: gRPC TLS/mTLS, Auth Interceptor
+- **실습 환경**: 각 영역별로 제시한 실습 환경 가이드를 참고하여 Docker, Kubernetes, 클라우드 계정 등을 준비한 후 실습 진행
+- **자동화 도구**: 제시한 도구들을 직접 설치 및 연동해 보며, CI/CD 파이프라인에 보안 스캔을 포함시키세요.
+- **사고 대응 사례**: 실제 보안 사고 사례와 대응 방법을 참고해, 사고 발생 시 대응 프로세스를 마련하세요.
+- **팀 협업**: 이 문서를 바탕으로 팀 내 보안 가이드라인을 수립하고, 정기적인 보안 점검 및 업데이트를 실시하세요.
 
 ---
 
 **좋은 학습 되세요!**  
-- 이 `security/` 디렉토리의 문서들은 **"백엔드/클라우드 보안"**을 체계적으로 정리하기 위한 것입니다.  
-- **초심자는 `backend/`**(웹 보안, API 인증)부터 살펴보고,  
-- **클라우드 인프라** 설계가 필요하면 `cloud/` 폴더,  
-- **쿠버네티스** 환경 보안을 다뤄야 한다면 `kubernetes/` 폴더 문서로 넘어가시면 됩니다.
-
----
+이 `security/` 디렉토리의 문서들은 **"백엔드/클라우드/쿠버네티스 보안"**을 체계적으로 정리하여, 실습과 실무 적용에 도움이 되도록 구성되었습니다.  
+각 영역의 기초부터 고급 기능까지 단계별로 학습하고, 실습 환경과 자동화 도구, 보안 사고 대응 등을 통해 실무에 바로 적용해 보시길 바랍니다.
