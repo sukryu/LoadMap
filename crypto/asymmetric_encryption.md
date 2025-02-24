@@ -448,18 +448,18 @@ func optimizedEncryption(publicKey *rsa.PublicKey, messages [][]byte) [][]byte {
 비대칭 암호화의 수학적 기초:
 
 1. **모듈러 연산**
-   - 합동 관계: $a \equiv b \pmod{n}$ 는 $n$이 $a-b$를 나눈다는 의미
-   - 모듈러 역원: $a \cdot a^{-1} \equiv 1 \pmod{n}$
-   - 오일러 함수 $\phi(n)$: $n$과 서로소인 양의 정수의 개수
-   - 페르마의 소정리: 소수 $p$에 대해 $a^{p-1} \equiv 1 \pmod{p}$
-   - 중국인의 나머지 정리: 연립 합동식 해결
+    - 합동 관계: $a \equiv b \pmod{n}$ 는 $n$이 $a-b$를 나눈다는 의미
+    - 모듈러 역원: $a \cdot a^{-1} \equiv 1 \pmod{n}$
+    - 오일러 함수 $\phi(n)$: $n$과 서로소인 양의 정수의 개수
+    - 페르마의 소정리: 소수 $p$에 대해 $a^{p-1} \equiv 1 \pmod{p}$
+    - 중국인의 나머지 정리(연립 항등식 해결):
     $$
-     \begin{align*}
-     x &\equiv a_1 \pmod{m_1} \\
-     x &\equiv a_2 \pmod{m_2} \\
-     &\vdots \\
-     x &\equiv a_n \pmod{m_n}
-     \end{align*}
+        \begin{align*}
+        x &\equiv a_1 \pmod{m_1} \\
+        x &\equiv a_2 \pmod{m_2} \\
+        &\vdots \\
+        x &\equiv a_n \pmod{m_n}
+        \end{align*}
     $$
     - 여기서 $m_1, m_2, \ldots, m_n$은 서로소이고, 해는 다음과 같이 주어짐:
     $$x \equiv \sum_{i=1}^n a_i M_i y_i \pmod{M}$$
