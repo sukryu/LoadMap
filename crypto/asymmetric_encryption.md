@@ -453,11 +453,7 @@ func optimizedEncryption(publicKey *rsa.PublicKey, messages [][]byte) [][]byte {
     - 오일러 함수 $\phi(n)$: $n$과 서로소인 양의 정수의 개수
     - 페르마의 소정리: 소수 $p$에 대해 $a^{p-1} \equiv 1 \pmod{p}$
     - 중국인의 나머지 정리(연립 항등식 해결):
-    $$ \begin{align*} x &\equiv a_1 \pmod{m_1} \\ x &\equiv a_2 \pmod{m_2} \\ &\vdots \\ x &\equiv a_n \pmod{m_n} \end{align*} $$
-    - 여기서 $m_1, m_2, \ldots, m_n$은 서로소이고, 해는 다음과 같이 주어짐:
-    $$x \equiv \sum_{i=1}^n a_i M_i y_i \pmod{M}$$
-    - 단, $M = m_1 m_2 \cdots m_n$이고, $M_i = M/m_i$이며,
-    $y_i$는 $M_i y_i \equiv 1 \pmod{m_i}$를 만족하는 값
+    ![중국인의 나머지 정리](./images/chinese_remainder_theorem.png)
 
 2. **소수 이론**
    - 소수 판별
