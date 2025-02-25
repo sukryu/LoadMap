@@ -237,7 +237,7 @@
   <code><img height="70" src="./images/grpc.png" alt="gRPC"></code>
   <code><img height="70" src="./images/javascript.png" alt="JavaScript"></code>
   <code><img height="70" src="./images/typescript.png" alt="TypeScript"></code>
-  <code><img height="70" src="./images/nestjs.png" alt="Nestjs"></code>
+  <code><img height="70" src="./images/nestjs.svg" alt="Nestjs"></code>
 
 - ### Database
 
