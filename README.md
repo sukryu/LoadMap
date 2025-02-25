@@ -264,6 +264,18 @@
   <code><img height="70" src="./images/argocd.jpg" alt="ArgoCD"></code>
   <code><img height="70" src="./images/githubaction.png" alt="GitHub Actions"></code>
 
+- #### Monitoring & Logging
+  <code><img height="70" src="./images/prometheus.png" alt="Prometheus"></code>
+  <code><img height="70" src="./images/grafana.png" alt="Grafana"></code>
+  <code><img height="70" src="./images/elasticsearch.png" alt="Elasticsearch"></code>
+  <code><img height="70" src="./images/logstash.png" alt="Logstash"></code>
+  <code><img height="70" src="./images/fluentd.png" alt="Fluentd"></code>
+  <code><img height="70" src="./images/kibana.svg" alt="Kibana"></code>
+
+- #### Service Mesh
+  <code><img height="70" src="./images/istio.png" alt="Istio"></code>
+  <code><img height="70" src="./images/linkerd.jpg" alt="Linkerd"></code>
+
 ---
 
 *Last updated: 2025/02/25*
