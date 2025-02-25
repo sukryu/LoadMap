@@ -62,9 +62,9 @@
 
 ### 2. 백엔드 개발
 - **언어 및 프레임워크:**  
-  - **Python:** FastAPI, Django, asyncio, aiohttp, SQLAlchemy  
-  - **Go:** 고루틴, 채널, Gin/Echo, GORM  
-  - **JavaScript/TypeScript:** Node.js, Express.js, NestJS, TypeORM, Prisma  
+  - **Go:** 고루틴, 채널, Gin/Echo/go-micro, GORM  
+  - **JavaScript/TypeScript:** Node.js, Express.js, NestJS, TypeORM, Prisma, Mikro-ORM
+  - **Java:** Spring Boot, Hibernate, JPA etc...
 - **프로젝트 경험:**  
   REST API, gRPC, 마이크로서비스 아키텍처, 실시간 데이터 처리, 동시성 프로그래밍
 
@@ -83,6 +83,8 @@
   Jenkins, GitHub Actions, ArgoCD (GitOps)
 - **클라우드 네이티브:**  
   Kubernetes, 클라우드 인프라 설계, Prometheus, Grafana
+- **서비스 메시:**
+  Istio, Linkerd
 
 ### 5. 프로그래밍 언어
 
@@ -133,6 +135,43 @@
   대규모 트래픽 처리, 클라우드 기반 분산 시스템, 실시간 데이터 스트리밍
 - **관련 기술:**  
   AWS, GCP, Azure, Docker, Kubernetes
+
+### 10. 암호화
+
+백엔드·클라우드·실시간 시스템 엔지니어에게 필수적인 **암호화 기법 및 보안** 전반을 다루는 영역으로, **대칭/비대칭 암호화**, **해시 함수**, **TLS/SSL**, **키 관리** 등의 주제에 대한 심층 학습을 목표로 합니다. 암호화는 데이터의 기밀성·무결성·인증을 보장해 현대 애플리케이션 및 인프라의 보안을 강화하는 핵심 기술.
+
+- **대칭 암호화**  
+  - AES, DES, 3DES, ChaCha20 등의 알고리즘을 이용해 데이터를 빠르고 효율적으로 보호합니다.  
+  - 키 길이, 암호화 모드(CBC, GCM 등), 패딩 방식 등에 따라 보안 강도와 성능이 달라집니다.
+
+- **비대칭 암호화**  
+  - RSA, ECC 등 공개키 기반 알고리즘을 사용해 안전한 키 교환, 디지털 서명 등을 구현합니다.  
+  - 키 관리와 서명 검증 과정을 통해 신뢰성 있는 통신 및 데이터 보호를 보장합니다.
+
+- **해시 함수 및 MAC**  
+  - SHA 계열, HMAC 등을 활용해 데이터 변경 여부를 빠르게 감지하고 무결성을 보장합니다.  
+  - 메시지 인증 코드(MAC)는 전송 과정에서 발생할 수 있는 위·변조를 방지합니다.
+
+- **TLS/SSL**  
+  - HTTPS 등 보안 통신 프로토콜을 구성하는 핵심 요소로, 인증서와 공개키를 통한 안전한 통신 채널을 제공합니다.  
+  - 서버/클라이언트 간 상호 인증, 세션 키 교환, 암호화된 전송 등의 과정을 체계적으로 이해해야 합니다.
+
+- **키 관리**  
+  - 안전한 키 생성·저장·순환은 암호화 시스템 전반의 신뢰도를 좌우합니다.  
+  - HSM(하드웨어 보안 모듈) 또는 클라우드 KMS(Key Management Service)를 활용해 키를 중앙 집중적으로 관리함으로써 보안 위험을 낮출 수 있습니다.
+
+- **모범 사례**  
+  - 최신 표준(예: AES-256, TLS 1.3)을 적용하고, 보안 취약점(예: 짧은 키 길이, 불량 난수) 등을 지속적으로 모니터링해야 합니다.  
+  - 접근 제어, 감사 로그, 정책 문서화 등을 통해 체계적인 보안 운영이 가능해집니다.
+
+- **실무 적용**  
+  - **백엔드 개발자**: 애플리케이션에서 민감 데이터(예: 비밀번호, 개인정보) 암호화, 사용자 인증·인가 로직 강화.  
+  - **클라우드 엔지니어/DevOps**: TLS 설정·인증서 자동 배포, CI/CD 파이프라인에 암호화 검증 프로세스 포함, 안전한 키 보관 및 회전 전략.  
+  - **실시간 시스템 엔지니어**: 낮은 지연 시간과 높은 처리량을 유지하면서 안전한 데이터 전송을 위해 대칭/비대칭 혼합(하이브리드) 암호화 방식 활용.
+
+- **향후 발전 방향**  
+  - **포스트 양자 암호화**: 양자 컴퓨팅 시대에도 안전한 알고리즘 연구 및 적용.  
+  - **DevSecOps**: CI/CD 파이프라인에 암호화 검증과 키 관리를 자동화해 지속적인 보안 개선.
 
 ---
 
@@ -187,32 +226,36 @@
 
 - ### Languages and Frameworks
 
-  <code><img height="70" src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_go_gopher_icon_130571.png" alt="Go"></code>
-  <code><img height="70" src="https://en.wikipedia.org/wiki/Elixir_(programming_language)#/media/File:Elixir_programming_language_logo.png" alt="Elixir"></code>
-  <code><img height="70" src="https://en.wikipedia.org/wiki/C_(programming_language)#/media/File:The_C_Programming_Language_logo.svg" alt="C"></code>
-  <code><img height="70" src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" alt="C++"></code>
+  <code><img height="70" src="./images/golang.png" alt="Go"></code>
+  <code><img height="70" src="./images/elixir.webp" alt="Elixir"></code>
+  <code><img height="70" src="./images/c.png" alt="C"></code>
+  <code><img height="70" src="./images/cpp.png" alt="C++"></code>
 
 - ### Database
 
-  <code><img height="70" src="https://en.wikipedia.org/wiki/PostgreSQL#/media/File:Postgresql_elephant.svg" alt="PostgreSQL"></code>
-  <code><img height="70" src="https://webassets.mongodb.com/_com_assets/cms/mongodb-logo-rgb-j6w271g1xn.jpg" alt="MongoDB"></code>
-  <code><img height="70" src="https://en.wikipedia.org/wiki/Redis#/media/File:Redis_logo.svg" alt="Redis"></code>
+  <code><img height="70" src="./images/mysql.png" alt="MySQL"></code>
+  <code><img height="70" src="./images/postgresql.png" alt="PostgreSQL"></code>
+  <code><img height="70" src="./images/mariadb.png" alt="MariaDB"></code>
+  <code><img height="70" src="./images/redis.png" alt="Redis"></code>
+  <code><img height="70" src="./images/mongodb.png" alt="MongoDB"></code>
+  <code><img height="70" src="./images/cassandra.png" alt="Cassandra"></code>
+
+- ### Message Queue
+  <code><img height="70" src="./images/kafka.png" alt="Kafka"></code>
+  <code><img height="70" src="./images/rabbitmq.png" alt="RabbitMQ"></code>
+  <code><img height="70" src="./images/nats.png" alt="NATS"></code>
 
 - ### Cloud & DevOps
 
-  <code><img height="70" src="https://en.wikipedia.org/wiki/Docker_(software)#/media/File:Docker_logo.svg" alt="Docker"></code>
-  <code><img height="70" src="https://raw.githubusercontent.com/kubernetes/kubernetes/master/logo/logo.png" alt="Kubernetes"></code>
-  <code><img height="70" src="https://en.wikipedia.org/wiki/Jenkins_(software)#/media/File:Jenkins_logo_with_title.svg" alt="Jenkins"></code>
-  <code><img height="70" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Actions"></code>
+- #### Container & Orchestration
+  <code><img height="70" src="./images/docker.png" alt="Docker"></code>
+  <code><img height="70" src="./images/kubernetes.svg" alt="Kubernetes"></code>
+
+- #### CI/CD
+  <code><img height="70" src="./images/jenkins.png" alt="Jenkins"></code>
+  <code><img height="70" src="./images/argocd.png" alt="ArgoCD"></code>
+  <code><img height="70" src="./images/githubaction.png" alt="GitHub Actions"></code>
 
 ---
 
-## **총평**
-네가 진행한 자료는 **기초부터 심화까지 전반적인 역량**(자료구조, 알고리즘, 데이터베이스, DevOps, 프로그래밍 언어, 네트워크, 운영체제, 보안, 시스템 디자인)을 **체계적으로 정리**한 매우 탄탄한 로드맵이다.  
-이 자료들을 바탕으로 지속적인 실습, 프로젝트 진행, Mock Interview 등을 병행한다면 FAANG 및 해외 빅테크 취업 목표에 한 걸음 더 다가갈 수 있을 것이다.
-
-응원할게. 앞으로도 꾸준히 성장하길 바라!
-
----
-
-*Last updated: 2025/02/20*
+*Last updated: 2025/02/25*
