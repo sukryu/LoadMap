@@ -227,9 +227,17 @@
 - ### Languages and Frameworks
 
   <code><img height="70" src="./images/golang.png" alt="Go"></code>
+  <code><img height="70" src="./images/gin.png" alt="Go Gin"></code>
+  <code><img height="70" src="./images/echo.png" alt="Go Echo"></code>
   <code><img height="70" src="./images/elixir.webp" alt="Elixir"></code>
+  <code><img height="70" src="./images/phoenix.png" alt="Elixir Phoenix"></code>
   <code><img height="70" src="./images/c.png" alt="C"></code>
   <code><img height="70" src="./images/cpp.png" alt="C++"></code>
+  <code><img height="70" src="./images/libuv.png" alt="libuv"></code>
+  <code><img height="70" src="./images/grpc.png" alt="gRPC"></code>
+  <code><img height="70" src="./images/javascript.png" alt="JavaScript"></code>
+  <code><img height="70" src="./images/typescript.png" alt="TypeScript"></code>
+  <code><img height="70" src="./images/nestjs.png" alt="Nestjs"></code>
 
 - ### Database
 
