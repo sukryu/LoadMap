@@ -276,6 +276,16 @@
   <code><img height="70" src="./images/istio.png" alt="Istio"></code>
   <code><img height="70" src="./images/linkerd.jpg" alt="Linkerd"></code>
 
+- ### IaC(Infrastructure as Code)
+  <code><img height="70" src="./images/terraform.png" alt="Terraform"></code>
+  <code><img height="70" src="./images/pulumi.png" alt="Pulumi"></code>
+  <code><img height="70" src="./images/awscdk.png" alt="AWS CDK"></code>
+
+- ### Secrets Management
+  <code><img height="70" src="./images/hashicorpvault.png" alt="HashiCorp Vault"></code>
+  <code><img height="70" src="./images/awskms.jpg" alt="AWS KMS"></code>
+  <code><img height="70" src="./images/azurekeyvault.png" alt="Azure Key Vault"></code>
+
 ---
 
 *Last updated: 2025/02/25*
