@@ -253,7 +253,7 @@
 
 - #### CI/CD
   <code><img height="70" src="./images/jenkins.png" alt="Jenkins"></code>
-  <code><img height="70" src="./images/argocd.png" alt="ArgoCD"></code>
+  <code><img height="70" src="./images/argocd.jpg" alt="ArgoCD"></code>
   <code><img height="70" src="./images/githubaction.png" alt="GitHub Actions"></code>
 
 ---
