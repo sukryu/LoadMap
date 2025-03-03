@@ -1,56 +1,100 @@
-다음은 여러분의 기존 문제들과 유사한 스타일의 새로운 문제입니다.
+# 문제: "동시성 기반 웹 크롤러"
+## 설명
+당신은 여러 웹사이트에서 데이터를 수집하는 간단한 웹 크롤러를 Go로 작성해야 합니다. 이 크롤러는 주어진 URL 목록에서 동시에 페이지를 가져오고, 각 페이지의 제목(`<title>` 태그 내용)을 추출해 결과를 출력합니다. 동시성을 활용해 작업 속도를 높이고, Go의 표준 라이브러리와 에러 처리를 연습해 보세요.
+
+## 요구사항
+1. **입력**: URL 목록(예: `[]string{"https://golang.org", "https://example.com", ...}`).
+2. **동작**:
+   - 각 URL을 동시에 크롤링하기 위해 goroutine 사용.
+   - 채널을 통해 크롤링 결과를 수집.
+   - context 패키지를 사용해 타임아웃(예: 10초) 설정.
+   - net/http로 페이지 가져오기, 에러 처리 포함.
+3. **출력**: 각 URL과 해당 페이지의 제목을 맵(`map[string]string`)으로 반환.
+4. **추가 요구사항**:
+   - 크롤링 중 발생하는 에러(예: 연결 실패, 잘못된 URL)는 별도로 기록.
+   - 최대 동시 작업 수를 제한(예: 3개 goroutine만 동시에 실행).
+
+## 목표
+- Goroutine과 채널을 사용한 동시성 구현.
+- 표준 라이브러리(net/http, context 등) 활용.
+- 에러 처리 및 리소스 관리 연습.
 
 ---
 
-## 로봇 청소기 최적 경로 문제 (C언어)
-
-### 문제 설명
-주어진 직사각형 격자에서 로봇 청소기가 모든 먼지(*)를 청소하려고 합니다. 격자에는 벽(#), 빈 공간(.), 먼지(*), 그리고 로봇의 시작 위치(S)가 포함되어 있습니다. 로봇은 상하좌우로 인접한 칸으로만 이동할 수 있으며, 벽은 통과할 수 없습니다.
-
-목표는 로봇이 모든 먼지를 방문(청소)하는 데 필요한 최소 이동 횟수를 구하는 것입니다. 만약 모든 먼지를 청소할 수 없는 경우 -1을 출력합니다.
-
-### 입력 형식
-- 첫 줄에 격자의 행(R)과 열(C)을 나타내는 두 정수 (1 ≤ R, C ≤ 20)가 주어집니다.
-- 이후 R개의 줄에 걸쳐 각 줄에 C개의 문자가 주어지며, 각 문자는 다음 중 하나입니다.
-  - 'S': 로봇의 시작 위치
-  - '*': 먼지(청소해야 하는 지점)
-  - '#': 벽 (이동 불가)
-  - '.': 빈 공간
-
-격자 내에는 최대 10개의 먼지가 존재합니다.
-
-### 출력 형식
-- 모든 먼지를 청소하기 위해 로봇이 이동해야 하는 최소 횟수를 출력합니다.
-- 만약 모든 먼지를 청소할 수 없다면 -1을 출력합니다.
-
-### 예시
-
-**입력**
-```
-7 5
-....*
-.##..
-..S..
-.##..
-....*
-....*
+## 예시 입력
+```go
+urls := []string{
+    "https://golang.org",
+    "https://example.com",
+    "https://github.com",
+    "https://invalid-url", // 에러 발생 예시
+}
 ```
 
-**출력**
+## 기대 출력
 ```
-12
+Results:
+https://golang.org: The Go Programming Language
+https://example.com: Example Domain
+https://github.com: GitHub: Let’s build from here · GitHub
+
+Errors:
+https://invalid-url: Get "https://invalid-url": dial tcp: lookup invalid-url: no such host
 ```
-
-### 문제 해결 아이디어
-1. **BFS를 이용한 거리 계산:**  
-   각 먼지와 시작점 사이의 최단 거리를 BFS로 계산합니다. 이때, 벽을 고려하여 이동할 수 없는 경우 거리를 기록할 수 없습니다.
-
-2. **비트마스크 DP (외판원 순회 문제 TSP 응용):**  
-   계산된 거리 정보를 바탕으로, 시작점에서 모든 먼지를 방문하는 최소 경로를 비트마스크 DP로 구합니다. 상태는 현재 위치와 방문한 먼지들의 집합으로 정의됩니다.
-
-3. **불가능한 경우 처리:**  
-   시작점이나 먼지 사이에 경로가 없는 경우, 모든 먼지를 청소할 수 없으므로 -1을 출력합니다.
 
 ---
 
-이 문제는 동적 메모리 할당, BFS, 그리고 비트마스크 DP 등 다양한 알고리즘 기법을 활용하여 해결할 수 있습니다. 여러분의 기존 프로젝트에서 사용한 다양한 기법들을 이번 문제에도 응용해보세요.
+## 힌트
+1. **동시성**: 
+   - `sync.WaitGroup`으로 모든 goroutine이 끝날 때까지 대기.
+   - 채널로 결과를 수집하거나, 결과 맵을 동기화(`sync.Mutex` 사용).
+2. **제한**: 
+   - 세마포어 패턴(채널로 동시 작업 수 제어) 사용 가능.
+3. **HTML 파싱**: 
+   - `strings.Contains`나 간단한 문자열 검색으로 `<title>` 추출(정규식 또는 외부 파서 사용은 선택).
+4. **타임아웃**: 
+   - `context.WithTimeout`으로 전체 작업에 시간 제한 설정.
+
+---
+
+## 참고 코드 구조
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "net/http"
+    "sync"
+    "time"
+)
+
+func crawlURLs(urls []string, maxConcurrency int, timeout time.Duration) (map[string]string, map[string]error) {
+    // 여기에 구현
+}
+
+func main() {
+    urls := []string{
+        "https://golang.org",
+        "https://example.com",
+        "https://github.com",
+        "https://invalid-url",
+    }
+    results, errors := crawlURLs(urls, 3, 10*time.Second)
+    
+    fmt.Println("Results:")
+    for url, title := range results {
+        fmt.Printf("%s: %s\n", url, title)
+    }
+    fmt.Println("\nErrors:")
+    for url, err := range errors {
+        fmt.Printf("%s: %v\n", url, err)
+    }
+}
+```
+
+---
+
+## 난이도 조정
+- **기본**: 동시성 없이 순차적으로 구현 후 goroutine 추가.
+- **고급**: 세마포어로 동시성 제한, context로 타임아웃, HTML 파싱 최적화.
