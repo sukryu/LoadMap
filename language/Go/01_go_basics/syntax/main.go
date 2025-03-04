@@ -40,37 +40,75 @@ func basicTypesExtended() {
 // Chapter 2: 복합 데이터 타입
 // =============================================================
 
-// 구조체 정의 및 인터페이스 활용 예제
+// Animal 인터페이스는 동물의 행동을 정의합니다.
+// K8s 스타일: 인터페이스 명세는 명확하고 간결하게.
 type Animal interface {
 	Speak() string
 }
 
+// Dog 구조체는 강아지의 정보를 나타냅니다.
 type Dog struct {
 	Name string
 	Age  int
 }
 
+// Speak 메서드는 Dog의 소리를 반환합니다.
+// 값 리시버를 사용한 기본 구현.
 func (d Dog) Speak() string {
 	return fmt.Sprintf("%s: Woof!", d.Name)
 }
 
+// DogManager는 포인터 리시버를 사용하여 Dog의 상태를 관리합니다.
+// K8s 스타일: 관련 메서드를 구조체로 묶어 관리.
+type DogManager struct {
+	dog *Dog // 내부적으로 Dog 객체를 참조.
+}
+
+// NewDogManager는 새로운 DogManager 인스턴스를 생성합니다.
+// K8s 스타일: 생성자 함수는 'New'를 접두사로 사용.
+func NewDogManager(name string, age int) *DogManager {
+	return &DogManager{
+		dog: &Dog{
+			Name: name,
+			Age:  age,
+		},
+	}
+}
+
+// UpdateAge는 포인터 리시버를 사용하여 Dog의 나이를 업데이트합니다.
+// K8s 스타일: 메서드는 단일 책임을 가지며, 주석으로 동작을 상세히 설명.
+// 포인터 리시버를 사용하므로 호출자의 객체가 직접 수정됩니다.
+func (dm *DogManager) UpdateAge(newAge int) {
+	// Dog 객체의 Age 필드를 직접 수정.
+	dm.dog.Age = newAge
+	// 변경 후 상태 로깅 (K8s 스타일: 작업 후 상태 확인).
+	fmt.Printf("Updated age of %s to %d\n", dm.dog.Name, dm.dog.Age)
+}
+
+// GetDogInfo는 Dog의 현재 정보를 반환합니다.
+// K8s 스타일: Getter 메서드는 'Get'을 접두사로 사용.
+func (dm *DogManager) GetDogInfo() string {
+	return fmt.Sprintf("Name: %s, Age: %d", dm.dog.Name, dm.dog.Age)
+}
+
+// complexTypesExtended는 복합 데이터 타입과 포인터 리시버를 포함한 예제를 보여줍니다.
 func complexTypesExtended() {
-	// 배열: 고정 크기의 데이터 집합
+	// 배열: 고정 크기의 데이터 집합.
 	var arr [3]int = [3]int{10, 20, 30}
 
-	// 슬라이스: 동적 배열
+	// 슬라이스: 동적 배열.
 	fruits := []string{"apple", "banana", "cherry"}
 	fruits = append(fruits, "date")
 
-	// 맵: 키-값 쌍 저장
+	// 맵: 키-값 쌍 저장.
 	countryCodes := map[string]string{
 		"US": "United States",
 		"KR": "South Korea",
 	}
-	// 맵에 값 추가
+	// 맵에 값 추가.
 	countryCodes["JP"] = "Japan"
 
-	// 구조체: 복합 데이터 타입
+	// 구조체: 복합 데이터 타입.
 	person := struct {
 		FirstName string
 		LastName  string
@@ -81,9 +119,19 @@ func complexTypesExtended() {
 		Age:       30,
 	}
 
-	// 인터페이스 활용: Animal 인터페이스를 구현하는 Dog 구조체
+	// 인터페이스 활용: Animal 인터페이스를 구현하는 Dog 구조체.
 	myDog := Dog{Name: "Buddy", Age: 5}
 
+	// 포인터 리시버 예제: DogManager를 통해 Dog 객체 관리.
+	// K8s 스타일: 초기화는 생성자 함수로 수행.
+	dogMgr := NewDogManager("Max", 3)
+	fmt.Printf("초기 상태: %s\n", dogMgr.GetDogInfo())
+
+	// 포인터 리시버를 사용한 상태 수정.
+	dogMgr.UpdateAge(4)
+	fmt.Printf("수정 후 상태: %s\n", dogMgr.GetDogInfo())
+
+	// 출력: 모든 복합 데이터 타입 결과 확인.
 	fmt.Printf("배열: %v\n", arr)
 	fmt.Printf("슬라이스: %v\n", fruits)
 	fmt.Printf("맵: %v\n", countryCodes)
