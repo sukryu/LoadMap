@@ -99,6 +99,8 @@ flowchart LR
 - [GeeksforGeeks - Queue Data Structure](https://www.geeksforgeeks.org/queue-data-structure/)
 - [Baekjoon Online Judge](https://www.acmicpc.net/)
 
+- [큐는 언제 써야하는가?](When.md)
+
 ---
 
 큐 자료구조의 개념과 동작 원리를 이해하면,  
